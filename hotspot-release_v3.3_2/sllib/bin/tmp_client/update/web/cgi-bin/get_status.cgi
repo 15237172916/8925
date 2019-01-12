@@ -1,0 +1,1 @@
+/user/web/cgi-bin/get_status.cgi

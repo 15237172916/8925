@@ -1,0 +1,16 @@
+# /etc/profile: system-wide .profile file for the Bourne shells
+
+echo
+echo "Processing /etc/profile..."
+# no-op
+
+# Set search library path
+echo "  Set search library path in /etc/profile"
+export LD_LIBRARY_PATH=/lib:/usr/lib 
+
+# Set user path
+echo "  Set user path in /etc/profile"
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH 
+
+echo "Done"

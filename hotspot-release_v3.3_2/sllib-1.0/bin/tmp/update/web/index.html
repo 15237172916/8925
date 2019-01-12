@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<meta HTTP-EQUIV="pragma" CONTENT="no-cache">
+<meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
+<meta HTTP-EQUIV="expires" CONTENT="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=1.0, user-scalable=yes" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+
+<head>
+ <title>TX controls</title>
+ 
+ <!--link type="text/css" rel="stylesheet" href="css/form_control.css"-->
+ <link type="text/css" rel="stylesheet" href="css/main_control.css"/>
+ <!--link type="text/css" rel="stylesheet" href="css/pickout.css"/-->
+ 
+ <script type="text/javascript" src="Js/jquery-1.4.1.min.js"></script>
+ <script type="text/javascript" src="Js/platform.js"></script>
+ <script type="text/javascript" src="Js/ajaxfileupload.js"></script>
+ <!--script type="text/javascript" src="Js/pickout.js"></script0-->
+ <script type="text/javascript" src="Js/main.js"></script>
+ <script type="text/javascript">
+
+ /*
+function GetRxName()
+{
+	var rxId = ['rxInput001','rxInput002','rxInput003','rxInput004','rxInput005','rxInput006','rxInput007','rxInput008','rxInput009','rxInput010','rxInput011','rxInput012','rxInput013','rxInput014','rxInput015','rxInput016','rxInput017','rxInput018','rxInput019','rxInput020','rxInput021','rxInput022','rxInput023','rxInput024','rxInput025','rxInput026','rxInput027','rxInput028','rxInput029','rxInput030','rxInput031','rxInput032','rxInput033','rxInput034','rxInput035','rxInput036','rxInput037','rxInput038','rxInput039','rxInput040','rxInput041','rxInput042','rxInput043','rxInput044','rxInput045','rxInput046','rxInput047','rxInput048','rxInput049','rxInput050','rxInput051','rxInput052','rxInput053','rxInput054','rxInput055','rxInput056','rxInput057','rxInput058','rxInput059','rxInput060','rxInput061','rxInput062','rxInput063','rxInput064','rxInput065','rxInput066','rxInput067','rxInput068','rxInput069','rxInput070','rxInput071','rxInput072','rxInput073','rxInput074','rxInput075','rxInput076','rxInput077','rxInput078','rxInput079','rxInput080','rxInput081','rxInput082','rxInput083','rxInput084','rxInput085','rxInput086','rxInput087','rxInput088','rxInput089','rxInput090','rxInput091','rxInput092','rxInput093','rxInput094','rxInput095','rxInput096','rxInput097','rxInput098','rxInput099','rxInput100','rxInput101','rxInput102','rxInput103','rxInput104','rxInput105','rxInput106','rxInput107','rxInput108','rxInput109','rxInput110','rxInput111','rxInput112','rxInput113','rxInput114','rxInput115','rxInput116','rxInput117','rxInput118','rxInput119','rxInput120','rxInput121','rxInput122','rxInput123','rxInput124','rxInput125','rxInput126','rxInput127','rxInput128','rxInput129'];
+
+	var orderNumStr = document.getElementById("idSelectRxRename").value;
+	var rxInputName = document.getElementById("RxRenameInput").value;
+	var orderNum = Number(orderNumStr);
+	var id = rxId[orderNum-1];
+	
+	rxName[orderNum-1] = rxInputName;
+	document.getElementById("myIframe").contentDocument.getElementById(id).value = rxInputName;
+	
+	var urlstr= "";
+	var dataStr = "";
+
+	//urlstr = "http://"+hostip+"/cgi-bin/set_TxName.cgi?tx1Name="+tx1Name+"&tx2Name="+tx2Name+"&tx3Name="+tx3Name+"&tx4Name="+tx4Name+"&tx5Name="+tx5Name+"&tx6Name="+tx6Name+"&tx7Name="+tx8Name+"&tx9Name="+tx9Name+"&tx10Name="+tx10Name+"&tx11Name="+tx11Name+"&tx12Name="+tx12Name+"&tx13Name="+tx13Name+"&tx14Name="+tx14Name+"&tx15Name="+tx15Name+"&tx16Name="+tx16Name+"&tx17Name="+tx17Name+"&tx18Name="+tx18Name+"&tx19Name="+tx19Name+"&tx20Name="+tx20Name+"&tx21Name="+tx21Name+"&tx22Name="+tx22Name+"&tx23Name="+tx23Name+"&tx24Name="+tx24Name;
+	urlstr = "http://"+hostip+"/cgi-bin/get_rxRename.cgi?";
+	dataStr = "rx1Name="+rxName[0]+"&rx2Name="+rxName[1]+"&rx3Name="+rxName[2]+"&rx4Name="+rxName[3]+"&rx5Name="+rxName[4]+"&rx6Name="+rxName[5]+"&rx7Name="+rxName[6]+"&rx8Name="+rxName[7]+"&rx9Name="+rxName[8]+"&rx10Name="+rxName[9]+"&rx11Name="+rxName[10]+"&rx12Name="+rxName[11]+"&rx13Name="+rxName[12]+"&rx14Name="+rxName[13]+"&rx15Name="+rxName[14]+"&rx16Name="+rxName[15]+"&rx17Name="+rxName[16]+"&rx18Name="+rxName[17]+"&rx19Name="+rxName[18]+"&rx20Name="+rxName[19]+"&rx21Name="+rxName[20]+"&rx22Name="+rxName[21]+"&rx23Name="+rxName[22]+"&rx24Name="+rxName[23]+
+			"&rx25Name="+rxName[24]+"&rx26Name="+rxName[25]+"&rx27Name="+rxName[26]+"&rx28Name="+rxName[27]+"&rx29Name="+rxName[28]+"&rx30Name="+rxName[29]+"&rx31Name="+rxName[30]+"&rx32Name="+rxName[31]+"&rx33Name="+rxName[32]+"&rx34Name="+rxName[33]+"&rx35Name="+rxName[34]+"&rx36Name="+rxName[35]+"&rx37Name="+rxName[36]+"&rx38Name="+rxName[37]+"&rx39Name="+rxName[38]+"&rx40Name="+rxName[39]+"&rx41Name="+rxName[40]+"&rx42Name="+rxName[41]+"&rx43Name="+rxName[42]+"&rx44Name="+rxName[43]+"&rx45Name="+rxName[44]+"&rx46Name="+rxName[45]+"&rx47Name="+rxName[46]+"&rx48Name="+rxName[47]+
+			"&rx49Name="+rxName[48]+"&rx50Name="+rxName[49]+"&rx51Name="+rxName[50]+"&rx52Name="+rxName[51]+"&rx53Name="+rxName[52]+"&rx54Name="+rxName[53]+"&rx55Name="+rxName[54]+"&rx56Name="+rxName[55]+"&rx57Name="+rxName[56]+"&rx58Name="+rxName[57]+"&rx59Name="+rxName[58]+"&rx60Name="+rxName[59]+"&rx61Name="+rxName[60]+"&rx62Name="+rxName[61]+"&rx63Name="+rxName[62]+"&rx64Name="+rxName[63]+"&rx65Name="+rxName[64]+"&rx66Name="+rxName[65]+"&rx67Name="+rxName[66]+"&rx68Name="+rxName[67]+"&rx69Name="+rxName[68]+"&rx70Name="+rxName[69]+"&rx71Name="+rxName[70]+"&rx72Name="+rxName[71]+
+			"&rx73Name="+rxName[72]+"&rx74Name="+rxName[73]+"&rx75Name="+rxName[74]+"&rx76Name="+rxName[75]+"&rx77Name="+rxName[76]+"&rx78Name="+rxName[77]+"&rx79Name="+rxName[78]+"&rx80Name="+rxName[79]+"&rx81Name="+rxName[80]+"&rx82Name="+rxName[81]+"&rx83Name="+rxName[82]+"&rx84Name="+rxName[83]+"&rx85Name="+rxName[84]+"&rx86Name="+rxName[85]+"&rx87Name="+rxName[86]+"&rx88Name="+rxName[87]+"&rx89Name="+rxName[88]+"&rx90Name="+rxName[89]+"&rx91Name="+rxName[90]+"&rx92Name="+rxName[91]+"&rx93Name="+rxName[92]+"&rx94Name="+rxName[93]+"&rx95Name="+rxName[94]+"&rx96Name="+rxName[95]+
+			"&rx97Name="+rxName[96]+"&rx98Name="+rxName[97]+"&rx99Name="+rxName[98]+"&rx100Name="+rxName[99]+"&rx101Name="+rxName[100]+"&rx102Name="+rxName[101]+"&rx103Name="+rxName[102]+"&rx104Name="+rxName[103]+"&rx105Name="+rxName[104]+"&rx106Name="+rxName[105]+"&rx107Name="+rxName[106]+"&rx108Name="+rxName[107]+"&rx109Name="+rxName[108]+"&rx110Name="+rxName[109]+"&rx111Name="+rxName[110]+"&rx112Name="+rxName[111]+"&rx113Name="+rxName[112]+"&rx114Name="+rxName[113]+"&rx115Name="+rxName[114]+"&rx116Name="+rxName[115]+"&rx117Name="+rxName[116]+"&rx118Name="+rxName[117]+"&rx119Name="+rxName[118]+"&rx120Name="+rxName[119]+
+			"&rx121Name="+rxName[120]+"&rx122Name="+rxName[121]+"&rx123Name="+rxName[122]+"&rx124Name="+rxName[123]+"&rx125Name="+rxName[124]+"&rx126Name="+rxName[125]+"&rx127Name="+rxName[126]+"&rx128Name="+rxName[127];
+
+	$.ajax({ 
+			//type:"GET",
+            type:"POST",
+            url: urlstr,
+            data: dataStr,
+            dataType:"text",
+	        cache:false,
+			success:function(data)
+			{
+				if(data=="succeed")
+				{
+					alert('Setting Successful!');	
+				}
+				else
+				{
+					alert('Setting Failed!');	
+				}
+			}
+	    });
+		
+}
+*/
+/*
+function GetTxName()
+{
+	var txClass = ['option01', 'option02', 'option03', 'option04', 'option05', 'option06', 'option07', 'option08', 'option09', 'option10', 'option11', 'option12', 'option13', 'option14', 'option15', 'option16', 'option17', 'option18', 'option19', 'option20', 'option21', 'option22', 'option23', 'option24' ];
+	var txStaticName = ['TX01:', 'TX02:', 'TX03:', 'TX04:', 'TX05:', 'TX06:', 'TX07:', 'TX08:', 'TX09:', 'TX10:', 'TX11:', 'TX12:', 'TX13:', 'TX14:', 'TX15:', 'TX16:', 'TX17:', 'TX18:', 'TX19:', 'TX20:', 'TX21:', 'TX22:', 'TX23:', 'TX24:']
+	
+	var orderNumStr = document.getElementById("idSelectTxRename").value;
+	var txInputName = document.getElementById("TxRenameInput").value;
+	var orderNum = Number(orderNumStr);
+	var Class = txClass[orderNum-1];
+	var name = txStaticName[orderNum-1] + txInputName;
+	var obj = document.getElementById("myIframe").contentDocument.getElementsByClassName(Class);
+	var i;
+	
+	for (i = 0; i < obj.length; i++)
+	{
+		obj[i].text = name;
+		//document.getElementById("myIframe").contentDocument.getElementsByClassName(id).text = name;
+	}
+	
+	
+	//alert(name);
+}
+*/
+/*
+ if (myIframe.attachEvent) {
+
+myIframe.attachEvent("onload", function () {
+
+alert("兼容IE加载的加载方法");
+
+});
+
+} else {
+
+myIframe.onload = function () {
+
+alert("兼容其他浏览器加载方法");
+
+};
+*/
+
+/*
+function mode1Set()
+{
+	var name = "ADV";
+	
+	//window.open();
+	window.open('RxButton.html', 'newwindow', 'height=500, width=400, top=500, left=500, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, status=no');
+	//OpenWindow = window.open("", "newwin", "height=250, width=250,toolbar=no ,scrollbars=" + scroll + ",menubar=no");  
+	//OpenWindow.document.write("<TITLE>例子</TITLE>")  
+	//OpenWindow.document.write("<BODY BGCOLOR=#ffffff>")  
+	//OpenWindow.document.write("<h1>Hello!</h1>")  
+	//OpenWindow.document.write("New window opened!")  
+	//OpenWindow.document.write("</BODY>")  
+	//OpenWindow.document.write("</HTML>")  
+	//OpenWindow.document.close()  
+	//document.getElementById("Mode1").value = name;
+	//alert("Mode1");
+	
+}
+*/
+ 
+</script>
+<style type="text/css">
+    *{margin:0px;padding:0px;}
+    //body{height:1000px;}
+    <!--#AppConfirm{position:relative;margin:0 auto;}-->
+    #modlue{
+		position:fixed;
+		left:50%;
+		top:50%;
+		width:430px;
+		height:470px;
+		margin-left:-200px;
+		margin-top:-150px;
+		visibility:hidden;
+		background-color:#666666;
+		z-index:100;
+		border:1px solid grey;
+		overflow: hidden;
+	}
+    .MyHeader{
+		width:100%;
+		height:18%;
+		background-color:white;
+		margin:0px;
+		color:black;
+	}
+    .top_content {
+		font-size:24px;
+		text-align:center
+	}
+    #cancle {
+		float:right;
+		width:45px;
+		height:45px;
+	}
+	
+	#TextValue {
+		width:230px;
+		height:50px;
+		font-size: 1.3rem;
+		background-color:#888888;
+		border-color:#666666;
+	}
+    //.MyContent{width:100%;height:64%;background-color:white;}
+    //.MyBtn{width:100%;height:18%;background-color:black;}
+    #modeRenameId,#modeConfigureId,#modePresetId,#modeApplyId {
+		//float:right;
+		//font-size:30px;
+		font-size: 1.5rem;
+		width:400px;
+		height:90px;
+		color:white;
+		font-weight:bold;
+		margin-right:6%;
+		background-color:#333333;
+		border-color:#666666;
+	}
+	#cancleDiv {
+		border-color:#666666;
+	}
+	#sourceSelect {
+		margin-left:17%;
+		//text-align: center;
+		color:red;
+		//margin-right:100px;
+		font-size: 1.5rem;
+		text-align: center;
+	}
+	#Mode_set {
+		//margin-left:85%;
+		
+		//margin-right:1%;
+		//right: 30%;
+		margin-top: 20%;
+		font-size: 1.5rem;
+		color:red;
+	}
+	#Info{
+		background-color: #666666;
+		//position:fixed;
+		//left: 500px;
+		margin-top: 20px;
+		color: red;
+		font-size: 1.5rem;
+		width: 144px;
+		height: 144px;
+		border-radius:72px;
+	}
+    //#box{margin:20px 0 0 20px;background-color:white;font-size:18px;color:black;overflow: hidden;}
+    //#infoMesg p{margin:4px 15px;}
+</style>
+
+<script>
+var ModeValue;
+var ModeID = ['Mode1', 'Mode2', 'Mode3', 'Mode4', 'Mode5'];
+var Scene = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5'];
+var SceneName = ['Scene1', 'Scene2', 'Scene3', 'Scene4', 'Scene5'];
+
+window.onload=function()
+{
+    var boxBtn=document.getElementById('Mode1');
+    boxBtn.onclick=function()
+	{
+		ModeValue=0;
+        new ShowDiv();
+    }
+	
+	var boxBtn=document.getElementById('Mode2');
+    boxBtn.onclick=function()
+	{
+		ModeValue=1;
+        new ShowDiv();
+    }
+	
+	var boxBtn=document.getElementById('Mode3');
+    boxBtn.onclick=function()
+	{
+		ModeValue=2;
+        new ShowDiv();
+    }
+	
+	var boxBtn=document.getElementById('Mode4');
+    boxBtn.onclick=function()
+	{
+		ModeValue=3;
+        new ShowDiv();
+    }
+	
+	var boxBtn=document.getElementById('Mode5');
+    boxBtn.onclick=function()
+	{
+		ModeValue=4;
+        new ShowDiv();
+    }
+	/*
+	var boxBtn=document.getElementById('Mode6');
+    boxBtn.onclick=function()
+	{
+		ModeValue=5;
+        new ShowDiv();
+    }
+	
+	var boxBtn=document.getElementById('Mode7');
+    boxBtn.onclick=function()
+	{
+		ModeValue=6;
+        new ShowDiv();
+    }
+    */
+}
+
+function ShowDiv()
+{
+	var _this = this;
+	
+	this.modlueDiv=document.getElementById("modlue");
+	this.BoxBtn=document.getElementById(ModeID[ModeValue]);
+	this.cancleBtn=document.getElementById("cancle");
+	//对应div的“X”按钮的操作
+	this.applyBtn=document.getElementById("modeApplyId");
+	
+	this.PresetBtn=document.getElementById("modePresetId");
+	 
+	this.RenameBtn=document.getElementById("modeRenameId");
+	
+	this.ConfigureBtn=document.getElementById("modeConfigureId");
+	
+	this.newMask = document.createElement("div");
+	
+	//遮罩层，用来屏蔽灰掉背部界面
+	this.infoMsg=document.getElementById('body');
+	this.textData=document.getElementById("TextValue");
+	this.textData.value="";
+	this.BoxBtn.disabled=true;
+	this.modlueDiv.style.visibility="visible";
+	
+	//apply
+	this.applyBtn.onclick=function()
+	{
+		//alert(ModeValue);
+		var urlstr= "";
+		
+		urlstr = "http://"+hostip+"/cgi-bin/scene_apply.cgi?"+"scene="+ModeValue+"&";
+	
+		$.ajax({
+			type:"GET",
+            url: urlstr,
+            dataType:"text",
+	        cache:false,
+			success:function(data)
+			{
+				if(data=="succeed")
+				{
+					alert('Setting Successful!');
+					_this.CloseDiv(this);
+					document.getElementById("myIframe").contentWindow.location.reload();
+					//window.location.reload();
+					SetSceneName();
+				}
+				else
+				{
+					alert('Setting Failed!');	
+				}
+			}
+	    });
+	}
+	
+	//X button
+	this.cancleBtn.onclick=function()
+	{
+		_this.CloseDiv(this);
+	}
+	
+	//预设按钮
+	this.PresetBtn.onclick=function()
+	{
+		//var i;
+		document.getElementById(ModeID[ModeValue]).value = Scene[ModeValue];
+		
+		var urlstr= "";
+		
+		urlstr = "http://"+hostip+"/cgi-bin/scene_preset.cgi?"+"&"+"preset="+ModeValue+"&";
+
+		$.ajax({ 
+			type:"GET",
+			url: urlstr,
+			dataType:"text",
+			cache:false,
+			success:function(data)
+			{
+				if(data=="succeed")
+				{
+					alert('Setting Successful!');	
+				}
+				else
+				{
+					alert('Setting Failed!');	
+				}
+			}
+		});
+	}
+	
+	//重命名
+	this.RenameBtn.onclick=function()
+	{
+		var rename = document.getElementById("TextValue").value;
+		if (rename==="")
+		{
+			alert("Mode name cannot null !");
+		}
+		else
+		{
+			document.getElementById(ModeID[ModeValue]).value=rename;
+			
+			SceneName[ModeValue] = rename;
+			
+			var urlstr= "";
+			
+			urlstr = "http://"+hostip+"/cgi-bin/scene_rename.cgi?"+"scene_"+ModeValue+"="+rename+"&";
+	
+			$.ajax({ 
+				type:"GET",
+				url: urlstr,
+				dataType:"text",
+				cache:false,
+				success:function(data)
+				{
+					if(data=="succeed")
+					{
+						alert('Setting Successful!');	
+					}
+					else
+					{
+						alert('Setting Failed!');	
+						
+					}
+				}
+			});
+		}
+	}
+	
+	//保存当前配置
+	this.ConfigureBtn.onclick=function()
+	{
+		var urlstr= "";
+		
+		urlstr = "http://"+hostip+"/cgi-bin/scene_save.cgi?"+"scene="+ModeValue+"&";
+	
+		$.ajax({ 
+			type:"GET",
+            url: urlstr,
+            dataType:"text",
+	        cache:false,
+			success:function(data)
+			{
+				if(data=="succeed")
+				{
+					alert('Setting Successful!');	
+				}
+				else
+				{
+					alert('Setting Failed!');	
+				}
+			}
+	    });
+		
+		
+		//alert("Save scene successed!");
+	}
+	
+	// 创建弹出层 遮罩层 等 
+    if ( !document.getElementById("mask") && 1)
+    {
+        //mask div    
+        this.newMask.id = "mask";
+        this.newMask.style.position = "absolute";
+        this.newMask.style.zIndex = "1";
+        this.newMask.style.width = "100%";
+        //this.newMask.style.width = "auto";
+        this.newMask.style.height = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight) + 100 + "px";
+        this.newMask.style.top = "0px";
+        this.newMask.style.left = "0px";
+        this.newMask.style.background = "gray";
+        this.newMask.style.filter = "alpha(opacity=80)";
+        this.newMask.style.opacity = "0.5";
+        document.body.appendChild(this.newMask);      
+    }
+    _this.mask=document.getElementById("mask");
+    _this.mask.style.visibility="visible";
+}
+
+//点击取消按钮关闭模态框
+ShowDiv.prototype.CloseDiv=function()
+{
+    this.BoxBtn.disabled=false;
+    this.modlueDiv.style.visibility="hidden";
+    this.mask.style.visibility="hidden";
+	//alert(ModeValue);
+}
+
+//点击确认按钮关闭模态框，提示增加信息
+ShowDiv.prototype.CloseDivAndInfoMesg=function()
+{
+	this.CloseDiv();
+	
+	//this.TextValue=document.getElementById("TextValue").value;
+	//this.infoMsg.innerHTML+=("<p>"+this.TextValue+"</p>");
+}
+</script>
+
+
+</head>
+
+<body id="body" class="body-index" >
+	
+<!--div id='AppConfirm'-->
+<div id="modlue">
+	<button id="cancle">X</button>
+<div id="cancleDiv">
+	<!--br><button id="cancle">X</button><br/-->
+	<!--p class="top_content">标题栏</p></div-->
+
+	<div class="MyContent">
+		<label>Mode name:</label>
+		<input id="TextValue" placeholder="rename of Mode" maxlength='10'></textarea>
+	</div>
+	
+	<div class="MyBtn">
+		<div>
+			<button id="modeRenameId">Rename</button>
+		</div>
+		<div>
+			<button id="modeConfigureId">Save scene</button>
+		</div>
+		<div>
+			<button id="modePresetId">Preset</button>
+		</div>
+		<div>
+			<button id="modeApplyId">Apply</button>
+		</div>
+	</div>
+</div>
+</div>
+<!--/div-->
+<!--button id="box">弹出框</button-->
+<!--input type="text" placeholder="验证弹出框过后不能再执行原始界面的输入操作"/-->
+<!--div id="infoMesg"></div-->
+
+
+ <header> 
+	<h1>IP MATRIX</h1> 
+ </header>
+<main>
+ <div>
+  <form>
+   <div class="div-c">
+	<div>
+		<label id="sourceSelect">Video source select</label>
+		<!--h2 id="sourceSelect">Video source select</h2-->
+	</div>
+	<!--div class="scroll-wrapper"  style="width:100%;-webkit-overflow-scrolling:touch;overflow:auto;"-->
+	<div class="scroll-wrapper" style="width:100%; height:805px; -webkit-overflow-scrolling:touch; overflow:scroll ;" >
+	  <iframe onload="SetSceneName();" src="RxButton.html" id="myIframe" name="myIframe" width="100%" height="780px" frameborder="0" type="text/html" scrolling="yes" seamless >
+		<p>Your browser is unsupport </p>
+	  </iframe>
+	</div>
+   </div>
+   <!--div class="div-d" onclick="document.getElementById('Mode1').click();"-->
+   <div class="div-d">
+   <div>
+		<div></div>
+		<label id="Mode_set">Mode set</label>
+		<div></div>
+	</div>
+	<div></div><div></div>
+	<div>
+	  <input id="Mode1" type="button" class="Mode_btn" value="Scene1"></input>
+	</div>
+	<div></div><div></div>
+	<div>
+	  <input id="Mode2" type="button" class="Mode_btn" value="Scene2"></input>
+	</div>
+	<div></div><div></div>
+	<div>
+	  <input id="Mode3" type="button" class="Mode_btn" value="Scene3"></input>
+	</div>
+	<div></div><div></div>
+	<div>
+	  <input id="Mode4" type="button" class="Mode_btn" value="Scene4"></input>
+	</div>
+	<div></div><div></div>
+	<div>
+	  <input id="Mode5" type="button" class="Mode_btn" value="Scene5"></input>
+	</div>
+	<div>
+	  <input id="Info" type="button" value="INFO" onclick="display()"></input>
+	</div>
+	<!--div>
+	  <input id="Mode7" type="button" class="Mode_btn" value="Mode7"></input>
+	</div-->
+   </div>
+ </form>
+</div>
+<!--div>border-radius 属性允许您向元素添加圆角。</div-->
+<script>SetSceneName();</script>
+<div class="name-select">
+<form>
+    <div class="div-rxSelect">
+	
+    <!--label>RX rename : </label-->
+	<select id='idSelectRxRename' class="selectRename" name="RX">
+		<option value="01">RX001</option>
+		<option value="02">RX002</option>
+		<option value="03">RX003</option>
+		<option value="04">RX004</option>
+		<option value="05">RX005</option>
+		<option value="06">RX006</option>
+		<option value="07">RX007</option>
+		<option value="08">RX008</option>
+		<option value="09">RX009</option>
+		<option value="10">RX010</option>
+		<option value="11">RX011</option>
+		<option value="12">RX012</option>
+		<option value="13">RX013</option>
+		<option value="14">RX014</option>
+		<option value="15">RX015</option>
+		<option value="16">RX016</option>
+		<option value="17">RX017</option>
+		<option value="18">RX018</option>
+		<option value="19">RX019</option>
+		<option value="20">RX020</option>
+		<option value="21">RX021</option>
+		<option value="22">RX022</option>
+		<option value="23">RX023</option>
+		<option value="24">RX024</option>
+		<option value="25">RX025</option>
+		<option value="26">RX026</option>
+		<option value="27">RX027</option>
+		<option value="28">RX028</option>
+		<option value="29">RX029</option>
+		<option value="30">RX030</option>
+		<option value="31">RX031</option>
+		<option value="32">RX032</option>
+		<option value="33">RX033</option>
+		<option value="34">RX034</option>
+		<option value="35">RX035</option>
+		<option value="36">RX036</option>
+		<option value="37">RX037</option>
+		<option value="38">RX038</option>
+		<option value="39">RX039</option>
+		<option value="40">RX040</option>
+		<option value="41">RX041</option>
+		<option value="42">RX042</option>
+		<option value="43">RX043</option>
+		<option value="44">RX044</option>
+		<option value="45">RX045</option>
+		<option value="46">RX046</option>
+		<option value="47">RX047</option>
+		<option value="48">RX048</option>
+		<option value="49">RX049</option>
+		<option value="50">RX050</option>
+		<option value="51">RX051</option>
+		<option value="52">RX052</option>
+		<option value="53">RX053</option>
+		<option value="54">RX054</option>
+		<option value="55">RX055</option>
+		<option value="56">RX056</option>
+		<option value="57">RX057</option>
+		<option value="58">RX058</option>
+		<option value="59">RX059</option>
+		<option value="60">RX060</option>
+		<option value="61">RX061</option>
+		<option value="62">RX062</option>
+		<option value="63">RX063</option>
+		<option value="64">RX064</option>
+		<option value="65">RX065</option>
+		<option value="66">RX066</option>
+		<option value="67">RX067</option>
+		<option value="68">RX068</option>
+		<option value="69">RX069</option>
+		<option value="70">RX070</option>
+		<option value="71">RX071</option>
+		<option value="72">RX072</option>
+		<option value="73">RX073</option>
+		<option value="74">RX074</option>
+		<option value="75">RX075</option>
+		<option value="76">RX076</option>
+		<option value="77">RX077</option>
+		<option value="78">RX078</option>
+		<option value="79">RX079</option>
+		<option value="80">RX080</option>
+		<option value="81">RX081</option>
+		<option value="82">RX082</option>
+		<option value="83">RX083</option>
+		<option value="84">RX084</option>
+		<option value="85">RX085</option>
+		<option value="86">RX086</option>
+		<option value="87">RX087</option>
+		<option value="88">RX088</option>
+		<option value="89">RX089</option>
+		<option value="90">RX090</option>
+		<option value="91">RX091</option>
+		<option value="92">RX092</option>
+		<option value="93">RX093</option>
+		<option value="94">RX094</option>
+		<option value="95">RX095</option>
+		<option value="96">RX096</option>
+		<option value="97">RX097</option>
+		<option value="98">RX098</option>
+		<option value="99">RX099</option>
+		<option value="100">RX100</option>
+		<option value="101">RX101</option>
+		<option value="102">RX102</option>
+		<option value="103">RX103</option>
+		<option value="104">RX104</option>
+		<option value="105">RX105</option>
+		<option value="106">RX106</option>
+		<option value="107">RX107</option>
+		<option value="108">RX108</option>
+		<option value="109">RX109</option>
+		<option value="110">RX110</option>
+		<option value="111">RX111</option>
+		<option value="112">RX112</option>
+		<option value="113">RX113</option>
+		<option value="114">RX114</option>
+		<option value="115">RX115</option>
+		<option value="116">RX116</option>
+		<option value="117">RX117</option>
+		<option value="118">RX118</option>
+		<option value="119">RX119</option>
+		<option value="120">RX120</option>
+		<option value="121">RX121</option>
+		<option value="122">RX122</option>
+		<option value="123">RX123</option>
+		<option value="124">RX124</option>
+		<option value="125">RX125</option>
+		<option value="126">RX126</option>
+		<option value="127">RX127</option>
+		<option value="128">RX128</option>
+	</select>
+	<input id="RxRenameInput" type="input" class="input_rename" placeholder="rename" value ="" maxlength="15"></input>
+	<input type="button" class="Name_btn" onclick="GetRxName()" value="RENAME"></input>
+
+   </div> 
+   
+   <div class="div-rxSelect">
+   
+    <!--label>TX rename : </label-->
+    <select id="idSelectTxRename" class="selectRename" name="TX" <!--onclick="onselect(this)"-->>
+		<option value="01">TX01</option>
+		<option value="02">TX02</option>
+		<option value="03">TX03</option>
+		<option value="04">TX04</option>
+		<option value="05">TX05</option>
+		<option value="06">TX06</option>
+		<option value="07">TX07</option>
+		<option value="08">TX08</option>
+		<option value="09">TX09</option>
+		<option value="10">TX10</option>
+		<option value="11">TX11</option>
+		<option value="12">TX12</option>
+		<option value="13">TX13</option>
+		<option value="14">TX14</option>
+		<option value="15">TX15</option>
+		<option value="16">TX16</option>
+		<option value="17">TX17</option>
+		<option value="18">TX18</option>
+		<option value="19">TX19</option>
+		<option value="20">TX20</option>
+		<option value="21">TX21</option>
+		<option value="22">TX22</option>
+		<option value="23">TX23</option>
+		<option value="24">TX24</option>
+    </select>
+	<input id="TxRenameInput" type="input" class="input_rename" placeholder="rename" value="" maxlength="15"></input>
+	<input type="button" class="Name_btn" onclick="GetTxName()" value="RENAME"></input>
+	
+   </div> 
+</form>
+</div>
+</main>
+</body>
+
+<!--frameset rows="80%, 20%">
+
+	<frameset cols="70%, 30%">
+		<frame src="./RxButton.html">
+		<frame src="./SaveConfig.html">
+	</frameset>
+
+	<frame src="Rename.html">
+
+</frameset-->
+
+
+</html>

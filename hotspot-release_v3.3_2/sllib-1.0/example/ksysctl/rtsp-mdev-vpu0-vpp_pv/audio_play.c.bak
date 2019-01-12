@@ -1,0 +1,242 @@
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/syscall.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "audio_ioctl.h"
+#include <sys/mman.h>
+
+static audio_dma_info_s audio_dma_out;
+static int audio_fd = -1;
+static int audioOut_trigger = 0;
+
+void audio_close(void)
+{
+    close(audio_fd);
+}
+
+int audio_config(SL_U32 fs, SL_U32 audio_bits, SL_U32 chns)
+{
+	unsigned int tmp;
+
+	if(audio_fd < 0)
+	{
+		audio_fd=open("/dev/silan-i2s", O_RDWR);
+		if(audio_fd<0)
+		{
+			printf("fail to open /dev/silan-i2s\n");
+			return -1;
+		}
+		if (ioctl(audio_fd, AUDIO_IOCTL_GET_OUT_START_DMA_ADDR, &tmp) == -1) {
+			audio_close();
+			return -1;
+		}
+		audio_dma_out.start_addr = tmp;
+		audio_dma_out.wrPtr = audio_dma_out.rdPtr = audio_dma_out.start_addr;
+
+		if (ioctl(audio_fd, AUDIO_IOCTL_GET_OUT_DMA_SIZE, &tmp) == -1) {
+			audio_close();
+			return -1;
+		}
+		audio_dma_out.size = tmp;
+
+		tmp =  (unsigned long)mmap(NULL, audio_dma_out.size, PROT_READ | PROT_WRITE, MAP_SHARED, audio_fd, 0);
+
+		audio_dma_out.start_addr_va = tmp;
+
+	}
+	if(audioOut_trigger) {
+		//trigger
+		if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
+			audio_close();
+			return -1;
+		}
+		memset((unsigned char *)(audio_dma_out.start_addr_va), 0x00, audio_dma_out.size);
+		audioOut_trigger = 0;
+		printf("\n\n*** 2 audioOut_trigger_off\n\n");
+	}
+
+	audio_dma_out.wrPtr = audio_dma_out.rdPtr = audio_dma_out.start_addr;
+
+	tmp = chns; //2;//FIXME
+	if (ioctl(audio_fd, AUDIO_IOCTL_SET_OUT_CHNS, &tmp) == -1) {
+		audio_close();
+		return -1;
+	}
+
+	tmp = audio_bits;//16; //wxp
+	if (ioctl(audio_fd, AUDIO_IOCTL_SET_OUT_BITS, &tmp) == -1) {
+		audio_close();
+		return -1;
+	}
+	tmp = fs;//48000; //wxp
+	if (ioctl(audio_fd, AUDIO_IOCTL_SET_OUT_FS, &tmp) == -1) {
+		audio_close();
+		return -1;
+	}
+
+	return 0;
+}
+
+void audio_play(unsigned char * src, unsigned frameSize)
+{
+	unsigned char *dst;
+	int write_size_1;
+	int write_size_2;
+	unsigned int tmp;
+
+	//printf("//////////////////Frame size : %d /////////////\n", frameSize);
+#if 0
+#define DUMP_AUDIO_DATA
+#ifdef DUMP_AUDIO_DATA
+#define DUMP_COUNT_TOTAL 50000
+	static int dump_count = 0;
+	char outfilename[128] = "./test3.wav";
+	static FILE * outfile  = NULL;
+	if(!outfile)
+	{   
+		if ((outfile = fopen(outfilename, "wb")) == NULL) {
+			printf("can't open %s",outfilename);
+			return;
+		}   
+	}   
+
+	if(outfile)
+	{   
+		if(DUMP_COUNT_TOTAL>dump_count)
+			fwrite(src, frameSize, 1, outfile);
+		dump_count ++;
+		if(DUMP_COUNT_TOTAL == dump_count)
+		{
+			fclose(outfile);
+		}
+	}
+#endif
+#endif
+	//printf("////////////////////////10///////////////////////////\n");
+	if((audio_dma_out.wrPtr + frameSize) < (audio_dma_out.start_addr + audio_dma_out.size))
+	{
+		//printf("////////////////////////1///////////////////////////\n");
+		dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
+		memcpy(dst, src, frameSize);
+		audio_dma_out.wrPtr += frameSize;
+		//printf("audio_dma_out.wrPtr = %d \n", audio_dma_out.wrPtr);
+	}
+	else
+	{
+		//printf("////////////////////////2///////////////////////////\n");
+		write_size_1 = audio_dma_out.start_addr + audio_dma_out.size - audio_dma_out.wrPtr;
+
+		dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
+
+		memcpy(dst, src, write_size_1);
+
+		write_size_2 = frameSize - write_size_1;
+
+		dst =(unsigned char *)audio_dma_out.start_addr_va;
+		src += write_size_1;
+		memcpy(dst, src, write_size_2);
+
+		audio_dma_out.wrPtr = audio_dma_out.start_addr + write_size_2;
+	}
+	//printf("audio_dma_out.wrPtr = %d \n", audio_dma_out.wrPtr);
+	//printf("////////////////////////3///////////////////////////\n");
+	
+	if(!audioOut_trigger) 
+	{
+		//printf("////////////////////////4///////////////////////////\n");
+		tmp = audio_dma_out.wrPtr - audio_dma_out.start_addr;
+		//printf("tmp = %d \n", tmp);
+		if(tmp >60*1024) 
+		{
+			if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER, &tmp))
+			{
+				audio_close();
+				return ;
+			}
+			printf("*** audioOut_trigger_on\n");
+			audioOut_trigger = 1;
+		}
+	}
+	//printf("audioOut tigger : %d \n", audioOut_trigger);
+	if(audioOut_trigger)
+	//if(1) 
+	{
+		//printf("////////////////////////5///////////////////////////\n");
+		if (ioctl(audio_fd, AUDIO_IOCTL_GET_OUT_RD_DMA_ADDR, &tmp) == -1) {
+			audio_close();
+			return;
+		}
+
+		if(audio_dma_out.wrPtr >= tmp)
+		{
+			//printf("////////////////////////6///////////////////////////\n");
+			if((audio_dma_out.wrPtr - tmp) < 4000)
+			{
+				if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
+					audio_close();
+				}
+				memset((unsigned char *)(audio_dma_out.start_addr_va), 0x00, audio_dma_out.size);
+				audioOut_trigger = 0;
+				printf("\n\n*** 4 audioOut_trigger_off\n\n");
+				audio_dma_out.wrPtr = audio_dma_out.rdPtr = audio_dma_out.start_addr;
+				audioOut_trigger = 0;
+			}
+		}
+		else
+		{
+			//printf("////////////////////////7///////////////////////////\n");
+			if((tmp - audio_dma_out.wrPtr) > audio_dma_out.size - 4000)
+			{
+				if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
+					audio_close();
+				}
+				memset((unsigned char *)(audio_dma_out.start_addr_va), 0x00, audio_dma_out.size);
+				audioOut_trigger = 0;
+				printf("\n\n*** 5 audioOut_trigger_off\n\n");
+				audio_dma_out.wrPtr = audio_dma_out.rdPtr = audio_dma_out.start_addr;
+				audioOut_trigger = 0;
+			}
+		}
+	}
+}
+#if 0
+static void * check_wr_thread(void * Args)
+{
+	static unsigned int wr_old = 0;
+	unsigned int tmp;
+	while(1)
+	{
+		sleep(1);
+		if(audioOut_trigger > 0)
+		{
+			if(wr_old == audio_dma_out.wrPtr)
+			{
+				if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
+					audio_close();
+				}
+				memset((unsigned char *)(audio_dma_out.start_addr_va), 0x00, audio_dma_out.size);
+				audioOut_trigger = 0;
+				printf("\n\n*** 1 audioOut_trigger_off\n\n");
+				audio_dma_out.wrPtr = audio_dma_out.rdPtr = audio_dma_out.start_addr;
+				wr_old = 0;
+
+			}
+			else 
+				wr_old = audio_dma_out.wrPtr;
+
+		}
+	}
+
+	return NULL;
+}
+
+ static pthread_t  checkWr_handler;
+ret = pthread_create(&checkWr_handler, NULL, check_wr_thread, NULL);
+	if (ret) {
+		printf("Failed to create audio check wr thread, %d\n", ret);
+		return ret;
+	}
+#endif
