@@ -3,6 +3,8 @@
 
 extern char web_flag;
 extern char multicast[20];
+extern SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
+
 
 int InitShareMem(void)
 {
@@ -71,21 +73,23 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 #if 1
 			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
 #endif
+			SLVENC_setBitrate(share_mem->sm_encoder_setting.usEncRate);
 			web_flag = 1;
 			share_mem->ucUpdateFlag = 0;
 			//printf("\n\n--------------web end \n");
 		}
-		if (1==share_mem->ucSceneApplyFlag)
+		if (1==share_mem->ucModeApplyFlag)
 		{
-			printf("\n\n--------scene apply -------\n");
-			ret = AppInitCfgInfoFromFile(&fd_config);
+			printf("\n\n--------mode apply -------\n");
+			AppWrinteModeInfotoFile(); //mode 
+			ret = AppInitCfgInfoFromFile(&fd_config); //flush current share memory
 			if (ret < 0)
 			{
 				if (NULL!=fd_config)
 					close(fd_config);
 				printf("share memary cfg Info from file error \n");
 			}
-			share_mem->ucSceneApplyFlag = 0;
+			share_mem->ucModeApplyFlag = 0;
 		}
 		sleep(1);
 	}

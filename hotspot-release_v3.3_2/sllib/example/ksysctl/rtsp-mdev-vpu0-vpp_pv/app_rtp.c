@@ -10,9 +10,12 @@
 #include <unistd.h>
 
 #include "app_rtp.h"
+#include "crc.h"
 
 //#define RTP_UDP
-#define CHECKSUM
+#define CHECKSUM_AUDIO
+#define CHECKSUM_VIDEO
+
 static FILE * outfile  = NULL;
 
 static unsigned char uNowPayloadType;
@@ -29,21 +32,17 @@ char idr_flag = 0;
 char outfilename[128] = "./test2.264";
 
 unsigned short int usAudioChecksum;
+unsigned short int usVideoChecksum;
+
 
 static unsigned short csum(unsigned char *buf, int nwords)
 {
-	unsigned long sum;
+	//unsigned long sum;
+	unsigned short check;
 	
-	//printf("buf : 0x%x \n", buf);
+	check = crc_check(buf, nwords);
 	
-	for (sum = 0; nwords > 0; nwords--)
-	{
-		sum += *buf++;
-	}
-	sum = (sum >> 16) + (sum & 0xffff);
-	sum += (sum >> 16);
-	//printf("buf.usChecksum: 0x%x \n", ~sum);
-	return (unsigned short)(~sum);
+	return (unsigned short)(~check);
 }
 
 static int process_start_frame(unsigned char *buf, unsigned int len, unsigned int *piCpySize, unsigned int *piFrameLeftLen)
@@ -62,11 +61,12 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 	DataFrameLen = pDataHead->iLen;
 	iPacketLeftLen = len;
 	
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 	if (H264 == uNowPayloadType)
 	{
 		//printf("\n------------------------%d----------------------\n", pDataHead->uSeq);
 		//printf("DataFrameLen : %d \n", DataFrameLen);
+		usVideoChecksum = pDataHead->usChecksum;
 	}
 	if (WAV == uNowPayloadType)
 	{
@@ -88,14 +88,40 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 		{
 			//printf("\n----------------H264 1-------------- \n");
 			//printf("wac process 1, size = %d \n",size);
-			wacPushFrameToMDev(pFrame, size); //
+#ifdef CHECKSUM_VIDEO
+			if (size < CHECK_SUM_COUNT)
+			{
+				if (csum(pFrame, size) == usVideoChecksum)
+				{
+					wacPushFrameToMDev(pFrame,size);
+				}
+				else
+				{
+					printf("video checksum error !\n");
+				}
+			}
+			else
+			{
+				if (csum(pFrame, CHECK_SUM_COUNT) == usVideoChecksum)
+				{
+					wacPushFrameToMDev(pFrame,size);
+				}
+				else
+				{
+					printf("video checksum error !\n");
+				}
+			}
+			
+#else
+			wacPushFrameToMDev(pFrame,size);
+#endif
 			//fwrite(pFrame, size, 1, outfile);
 		}
 		if (WAV == uNowPayloadType)
 		{
 			//printf("\n***************WAV 1*****************\n");
 			//printf("size : %d \n", size);
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 			printf("sum: %x \n", csum(pFrame, size));
 			printf("usAudioChecksum : %x \n", usAudioChecksum);
 			if (csum(pFrame, size) == usAudioChecksum)
@@ -116,11 +142,12 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 		iPacketLeftLen = iPacketLeftLen - (DataFrameLen+sizeof(DATAHEAD));
 		buf = buf+DataFrameLen+sizeof(DATAHEAD);
 		pDataHead = buf;
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 		if (H264 == uNowPayloadType)
 		{
 			//printf("\n------------------------%d----------------------\n", pDataHead->uSeq);
 			//printf("DataFrameLen : %d \n", DataFrameLen);
+			usVideoChecksum = pDataHead->usChecksum;
 		}
 		if (WAV == uNowPayloadType)
 		{
@@ -189,14 +216,39 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 		{
 			//printf("\n----------------H264 2-------------- \n");
 			//printf("wac process 2, size = %d \n",size);
-			wacPushFrameToMDev(pFrame, size);
+#ifdef CHECKSUM_VIDEO
+			if (size < CHECK_SUM_COUNT)
+			{
+				if (csum(pFrame, size) == usVideoChecksum)
+				{
+					wacPushFrameToMDev(pFrame,size);
+				}
+				else
+				{
+					printf("video checksum error !\n");
+				}
+			}
+			else
+			{
+				if (csum(pFrame, CHECK_SUM_COUNT) == usVideoChecksum)
+				{
+					wacPushFrameToMDev(pFrame,size);
+				}
+				else
+				{
+					printf("video checksum error !\n");
+				}
+			}
+#else
+			wacPushFrameToMDev(pFrame,size);
+#endif
 			//fwrite(pFrame, size, 1, outfile);
 		}
 		if (WAV == uNowPayloadType)
 		{
 			//printf("\n***************WAV 2*****************\n");
 			printf("size : %d \n", size);
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 			printf("sum: %d \n", csum(pFrame, size));
 			printf("usAudioChecksum : %d \n", usAudioChecksum);
 			if (csum(pFrame, size) == usAudioChecksum)
@@ -394,11 +446,12 @@ Recv:
 					
 					uNowPayloadType = pDataHead->uPayloadType;
 					iPacketLeftLen = len;
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 					if (H264 == uNowPayloadType)
 					{
 						//printf("\n------------------------%d----------------------\n", pDataHead->uSeq);
 						//printf("DataFrameLen : %d \n", DataFrameLen);
+						usVideoChecksum = pDataHead->usChecksum;
 					}
 					if (WAV == uNowPayloadType)
 					{
@@ -460,14 +513,55 @@ Recv:
 						{
 							//printf("\n----------------H264 3-------------- \n");
 							//printf("Wac process 3, size = %d \n",size);
+#ifdef CHECKSUM_VIDEO
+							//printf("videochecksum: %x \n", usVideoChecksum);
+							//printf("csum(pFrame, size): %x \n", csum((unsigned char *)pFrame, size));
+							//printf("*pFrame: %x \n", *pFrame);
+							#if 0
+							int m, n;
+							unsigned char * p = pFrame;
+							for (m=256; m>0; m--)
+							{
+								for (n=40; n>0; n--)
+								{
+									printf("%x",*p);
+									p+=1;
+								}
+								printf("\n");
+							}
+							#endif
+							if (size < CHECK_SUM_COUNT)
+							{
+								if (csum(pFrame, size) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+							else
+							{
+								if (csum(pFrame, CHECK_SUM_COUNT) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+#else
 							wacPushFrameToMDev(pFrame,size);
+#endif
 							//fwrite(pFrame, size, 1, outfile);
 						}
 						if (WAV == uNowPayloadType)
 						{
 							//printf("\n***************WAV 3*****************\n");
 							//printf("size : %d \n", size);
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 							//printf("sum: %x \n", csum(pFrame, size));
 							//printf("usAudioChecksum : %x \n", usAudioChecksum);
 							//printf("pFrame: %d \n", *pFrame);
@@ -519,16 +613,41 @@ Recv:
 						size = size + DataFrameLeftLen;
 						if (H264 == uNowPayloadType)
 						{
-							//printf("\n----------------H264 4-------------- \n");
-							//printf("Wac process 4, size = %d \n",size);
+							printf("\n----------------H264 4-------------- \n");
+							printf("Wac process 4, size = %d \n",size);
+#ifdef CHECKSUM_VIDEO
+							if (size < CHECK_SUM_COUNT)
+							{
+								if (csum(pFrame, size) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+							else
+							{
+								if (csum(pFrame, CHECK_SUM_COUNT) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+#else
 							wacPushFrameToMDev(pFrame,size);
+#endif
 							//fwrite(pFrame, size, 1, outfile);
 						}
 						if (WAV == uNowPayloadType)
 						{
 							//printf("\n***************WAV 4*****************\n");
 							//printf("size : %d \n", size);
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 							if (csum(pFrame, size) == usAudioChecksum)
 							{
 								audio_play(pFrame, size);
@@ -567,15 +686,40 @@ Recv:
 						if (H264 == uNowPayloadType)  //对这一帧数据进行处理
 						{
 							printf("\n----------------H264 5-------------- \n");
-							//printf("Wac process 5, size = %d \n",size);
+							printf("Wac process 5, size = %d \n",size);
+#ifdef CHECKSUM_VIDEO
+							if (size < CHECK_SUM_COUNT)
+							{
+								if (csum(pFrame, size) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+							else
+							{
+								if (csum(pFrame, CHECK_SUM_COUNT) == usVideoChecksum)
+								{
+									wacPushFrameToMDev(pFrame,size);
+								}
+								else
+								{
+									printf("video checksum error !\n");
+								}
+							}
+#else
 							wacPushFrameToMDev(pFrame,size);
+#endif
 							//fwrite(pFrame, size, 1, outfile);
 						}
 						if (WAV == uNowPayloadType)
 						{
 							//printf("\n***************WAV 5*****************\n");
 							//printf("size : %d \n", size);
-#ifdef CHECKSUM
+#ifdef CHECKSUM_AUDIO
 							if (csum(pFrame, size) == usAudioChecksum)
 							{
 								audio_play(pFrame, size);
@@ -806,7 +950,9 @@ ReConnect:
 						{
 							printf("\n----------------H264 3-------------- \n");
 							printf("Wac process 3, size = %d \n",size);
+
 							wacPushFrameToMDev(pFrame,size);
+
 						}
 						if (WAV == uNowPayloadType)
 						{

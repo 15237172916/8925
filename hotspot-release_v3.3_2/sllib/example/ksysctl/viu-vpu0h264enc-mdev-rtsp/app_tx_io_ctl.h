@@ -80,6 +80,8 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define LED_HDMI				35 //GPIO2_03
 #define LED_SYS_STA     		32 //GPIO2_00
 
+#define DEVICE_RESET            63 //GPIO2_31
+
 void HDMI_light_off(void);
 void HDMI_light_on(void);
 void System_running(void);
@@ -87,4 +89,5 @@ SL_U32 get_key_value(void);
 
 void Multicast_switch(void);
 void Init_Multicast_and_IP(void);
+void device_reset(void);
 #endif

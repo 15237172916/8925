@@ -24,6 +24,7 @@
 #include "drv_sii9293.h"
 #include "stdio.h"
 #include "audio_ioctl.h"
+#include "sharemem.h"
 
 #define APP_CODE
 
@@ -1050,7 +1051,9 @@ int get_video_frameRate(void)
 		else if((2200 == total_width) || (858 == total_width))
 			return 30;
 		else
-			printf("unsupport total_width \n");
+		{
+			printf("unsupport total_width : %d \n", total_width);
+		}
 	}
 	else
 	{
@@ -1859,6 +1862,8 @@ void *sii9293_handler(void *p)
 	
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
+	device_reset();
+	sleep(1);
 	chip_init();
 	//sleep(3); //yuliubing FIXME
 	sii9293_init_register();
@@ -1900,13 +1905,18 @@ void *sii9293_handler(void *p)
 				//gbBandwidthDetectMode = SL_TRUE;
 				HDMI_light_off();
 #endif
+#if 1 //
+				share_mem->sm_run_status.ucInputStatus = 0;
+				share_mem->sm_run_status.usWidth = 0;
+				share_mem->sm_run_status.usHeight = 0;
+				share_mem->sm_run_status.ucFrameRate = 0;
+#endif
 				HDMI_lost = 1;
 				timeOutReset_5V++;
 				if (timeOutReset_5V > 300)
 				{
 					reboot1();
 				}
-				
 				if (audioOut_trigger)
 				{
 					//trigger
@@ -1945,9 +1955,15 @@ void *sii9293_handler(void *p)
 			case ModeDetect:
 				printf("ModeDetect \n");
 				if(!Is_Sync_stable())
+				{
 					chip->video_status = WaitSync;
+					
+				}
 				else if(!Is_HDMI_5V_detected())
+				{
 					chip->video_status = SWReset;
+					
+				}
 				else 
 				{
 					ret = check_video_timing(video_info);
@@ -1977,6 +1993,12 @@ void *sii9293_handler(void *p)
 
 						rtsp_audio_config(audio_info->fs, audio_info->audio_bits, audio_info->chns); //defined from live555
 #endif
+#if 1
+						share_mem->sm_run_status.ucInputStatus = 1;
+						share_mem->sm_run_status.usWidth = video_info->width;
+						share_mem->sm_run_status.usHeight = video_info->height;
+						share_mem->sm_run_status.ucFrameRate = video_info->frameRate*(video_info->interlaceMode+1);
+#endif
 					}
 					else
 						chip->video_status = SWReset;
@@ -1989,6 +2011,7 @@ void *sii9293_handler(void *p)
 				//gbBandwidthDetectMode = SL_FALSE;
 				HDMI_light_on();
 #endif
+				share_mem->sm_run_status.ucInputStatus = 1;
 				HDMI_lost = 0;
 				timeOutReset_5V = 0;
 				if( VideoOn == chip->video_prev_status)

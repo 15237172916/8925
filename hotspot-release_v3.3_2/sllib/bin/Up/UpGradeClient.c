@@ -252,7 +252,7 @@ ReAccept:
             {
                 printf("temp buf[0]=%0x\n",tempbuf[0]);
 
-                printf("Recv file data len = %d, tlen = %d \n",len,tlen);
+                printf("Recv file data len =0 %d, tlen = %d \n",len,tlen);
                 memcpy(filebuf+tlen,tempbuf,len);
                 tlen+=len;
 
@@ -260,7 +260,6 @@ ReAccept:
             }
             
          }
-         
         //recv all data then fwrite
         if(tlen == iFileLen)
         {
@@ -320,9 +319,9 @@ ReAccept:
                 
                 system("/bin/chmod 777 /tmp/rtsp-mdev-vpu0-vpp_pv");
             }
-			if(strcmp(filename,"tmp/run.sh")==0)
+			if(strcmp(filename,"/tmp/run.sh")==0)
 			{
-					system("/bin/chmod 777 /tmp/run.sh");
+				system("/bin/chmod 777 /tmp/run.sh");
 			}
 			
 #endif			

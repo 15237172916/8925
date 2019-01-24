@@ -105,9 +105,9 @@ GROUP_RENAME_S group_rename;
 
 typedef struct
 {
-	char sceneRename[5][20];
-} SCENE_RENAME_S;
-SCENE_RENAME_S scene_rename;
+	char modeRename[10][20];
+} MODE_RENAME_S;
+MODE_RENAME_S mode_rename;
 
 
 

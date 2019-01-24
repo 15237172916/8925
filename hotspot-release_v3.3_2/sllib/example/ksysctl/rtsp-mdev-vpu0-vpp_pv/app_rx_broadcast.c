@@ -13,6 +13,7 @@
 #include "sharemem.h"
 #include "init.h"
 
+char display_flag = 0;
 
 #if 1
 static int get_random(void)
@@ -51,8 +52,8 @@ void *IP_broadcast_report()
 	int display_count = 0;
 	int ret = -1;
 	int len = -1;
-	char str_tmp[50];
-	char display_flag = 0;
+	
+	
 	const int opt = -1;
 	unsigned int ip_add, mul_add;
 	//int random_number = get_random();
@@ -92,16 +93,6 @@ try_socket:
 	while (1)
 	{
 		sleep(1);
-		if (display_flag)
-		{
-			display_count++;
-			if (display_count > 5)
-			{
-				display_count = 0;
-				display_flag = 0;
-				process_osd_disable();
-			}
-		}
 		
 		//get multicast address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
@@ -157,13 +148,12 @@ try_socket:
 						printf("probe error \n");
 						continue;
 					}
-					else if (1 == broadRecv_s.ucInfoDisplayFlag)
+					else
 					{
-						display_flag = 1;
-						sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
-						process_osd_text_solid(10, 20, str_tmp);
+						display_flag = broadRecv_s.ucInfoDisplayFlag;
+						//printf("ucInfoDisplayFlag: %d \n", broadRecv_s.ucInfoDisplayFlag);
 					}
-					else if (broadReport_s.ucIpAddress != broadRecv_s.ucIpAddress)
+					if (broadReport_s.ucIpAddress != broadRecv_s.ucIpAddress)
 					{
 						printf("IP address is not same \n");
 						continue;
@@ -188,6 +178,10 @@ try_socket:
 						share_mem->ucUpdateFlag = 1;
 					}
 				}
+			}
+			else
+			{
+				display_flag = 0;
 			}
 		}
 	}

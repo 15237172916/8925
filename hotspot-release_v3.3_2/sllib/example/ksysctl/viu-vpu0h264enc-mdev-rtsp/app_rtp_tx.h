@@ -8,6 +8,7 @@
 #define UDP_MTU	1024*10
 
 #define FETCH_COUNT 1024*10
+#define CHECK_SUM_COUNT 1024*50
 
 #define MCAST_ADDR		"239.255.42.44"
 

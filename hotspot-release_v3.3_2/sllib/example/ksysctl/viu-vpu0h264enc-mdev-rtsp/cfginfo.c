@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -11,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sl_debug.h>
+
 #include "config.h"
 #include "cfginfo.h"
 #include "Setting.h"
@@ -18,7 +20,7 @@
 
 //#define CONFIG_FILE ("/user/configs/config.conf")
 
-#define CONFIG_FILE1 ("/tmp/configs/sceneName.conf")
+#define CONFIG_FILE1 ("/tmp/configs/modeName.conf")
 #define CONFIG_FILE ("/tmp/configs/config.conf")
 #define NETWORK_INFO         ("Info1")
 #define IP           ("IP")
@@ -67,7 +69,7 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_wlan_setting.ucWlanEnable=DISABLE; 
     
     //ENCODER
-    share_mem->sm_encoder_setting.usEncRate = 1000;
+    share_mem->sm_encoder_setting.usEncRate = 8000;
     share_mem->sm_encoder_setting.ucInterval = 30;
     share_mem->sm_encoder_setting.ucIQP = 36;
     share_mem->sm_encoder_setting.ucPQP = 40;
@@ -98,19 +100,8 @@ int AppInitCfgInfoDefault(void)
 	
 	for (i=0; i<128; i++)
 	{
-		if (i<9)
-		{
-			sprintf(s,"TV00%d", i+1);
-		}
-		else if (i<99)
-		{
-			sprintf(s,"TV0%d", i+1);
-		}
-		else
-		{
-			sprintf(s,"TV%d", i+1);
-		}
 		
+		sprintf(s,"");
 		//printf(s);
 		strcpy(share_mem->sm_group_rename.rxRename[i], s);
 		//printf(s);
@@ -118,26 +109,22 @@ int AppInitCfgInfoDefault(void)
 	
 	for (i=0; i<24; i++)
 	{
-		if (i<9)
-		{
-			sprintf(s,"TX0%d:", i+1);
-		}
-		else
-		{
-			sprintf(s,"TX%d:", i+1);
-		}
+		
+		sprintf(s,"");
+		
 		strcpy(share_mem->sm_group_rename.txRename[i], s);
 		//printf(s);
 		//printf("share_mem->sm_group_rename.txRename[%d] : %s \n", i, share_mem->sm_group_rename.txRename[i]);
 	}
 	
-	//scene
-	for (i=0; i<5; i++)
+	//mode
+	for (i=0; i<10; i++)
 	{
-		sprintf(s,"Scene%d", i+1);
-		strcpy(share_mem->sm_scene_rename.sceneRename[i], s);
+		sprintf(s,"");
+		strcpy(share_mem->sm_mode_rename.modeRename[i], s);
 	}
 	
+	share_mem->ucCurrentMode = 1;
 	
 	//share_mem->sm_group_pack.uuid = "0";
 	//strcpy(share_mem->sm_group_pack.ucIpAddress,"000");
@@ -291,7 +278,6 @@ int AppInitCfgInfoFromFile(int *fp)
 		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
 		//printf(strTemp);
 		strcpy(share_mem->sm_group_rename.rxRename[i], strTemp);
-		
 		//printf("share_mem->sm_group_rename.rxRename[%d] : %s \n", i, share_mem->sm_group_rename.rxRename[i]);
 	}
 	
@@ -308,7 +294,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	close(fp);
 	
 #if 1
-	//scene rename
+	//mode rename
 	printf("open config file \n");
 	*fp = open(CONFIG_FILE1, O_RDONLY);
 	printf("fp = %d, *fp = %d\n",fp,*fp);
@@ -317,14 +303,20 @@ int AppInitCfgInfoFromFile(int *fp)
 		printf("%s open failed\n",CONFIG_FILE);
 		return -1;
 	}
-	for (i=0; i<5; i++)
+	for (i=0; i<10; i++)
 	{
-		sprintf(s,"SCENE[%d]", i);
+		sprintf(s,"MODE[%d]", i);
 		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		printf(strTemp);
-		strcpy(share_mem->sm_scene_rename.sceneRename[i], strTemp);
-		printf("%s",share_mem->sm_group_rename.txRename[i]);
+		//printf(strTemp);
+		strcpy(share_mem->sm_mode_rename.modeRename[i], strTemp);
+		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
 	}
+	//current mode
+	sprintf(s,"CurrentMode");
+	iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
+	//printf(strTemp);
+	share_mem->ucCurrentMode = atoi(strTemp);
+
 	printf("end");
 	close(fp);
 #endif
@@ -440,20 +432,49 @@ int AppWriteCfgInfotoFile(void)
 	fprintf(fp,"[END]");
 	fclose(fp);
 	
-	//scene rename
+	//mode rename
 	fp = fopen(CONFIG_FILE1, "w");
 	fprintf(fp,"[ETH]\n");
 	
-    for (i=0; i<5; i++)
+    for (i=0; i<10; i++)
     {
-		fprintf(fp, "SCENE[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_scene_rename.sceneRename[i]);
-		//printf("%s",share_mem->sm_scene_rename.sceneRename[i]);
+		fprintf(fp, "MODE[%d]=", i);
+		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
+		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
 	}
+	//current mode
+	fprintf(fp, "CurrentMode=");
+	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
+	
 	//printf("end");
     fprintf(fp,"[END]");
 	fclose(fp);
 }
+
+int AppWrinteModeInfotoFile(void)
+{
+	int iRetCode = 0 , i; 
+	char strTemp[200];
+    FILE* fp;
+	
+	fp = fopen(CONFIG_FILE1, "w");
+	fprintf(fp,"[ETH]\n");
+	
+    for (i=0; i<10; i++)
+    {
+		fprintf(fp, "MODE[%d]=", i);
+		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
+		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
+	}
+	//current mode
+	fprintf(fp, "CurrentMode=");
+	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
+	
+	//printf("end");
+    fprintf(fp,"[END]");
+	fclose(fp);
+}
+
 #if 0
 int AppInitCfgInfoFromFile(int *fp)
 {

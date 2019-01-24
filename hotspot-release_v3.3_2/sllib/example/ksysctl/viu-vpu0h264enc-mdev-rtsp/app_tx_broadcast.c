@@ -93,24 +93,25 @@ try_socket:
 			}
 			else
 			{
-				printf("recv len = %d \n", len);
-				printf("ucIpAddress : %d \n", broadCollect_s.ucIpAddress);
-				printf("ucMultiAddress : %d \n", broadCollect_s.ucMultiAddress);
-				printf("uProbe : 0x%x \n", broadCollect_s.uProbe);
-				printf("uuid : %d \n", broadCollect_s.uuid);
+				usleep(1000);
+				//printf("recv len = %d \n", len);
+				printf("Ip : %d \n", broadCollect_s.ucIpAddress);
+				printf("Multicast : %d \n", broadCollect_s.ucMultiAddress);
+				//printf("uProbe : 0x%x \n", broadCollect_s.uProbe);
+				//printf("uuid : %d \n", broadCollect_s.uuid);
+				//printf("uuid : %d \n", broadCollect_s.uuid);
 				if (PROBE == broadCollect_s.uProbe) //probe
 				{
+					//printf("share_mem->ucInfoDisplayFlag: %d\n",share_mem->ucInfoDisplayFlag);
 					if (1 == share_mem->ucInfoDisplayFlag)
 					{
 						broadSend_s.ucInfoDisplayFlag = 1;
-						share_mem->ucInfoDisplayFlag = 0;
 						goto INFO;
 					}
 					else
 					{
 						broadSend_s.ucInfoDisplayFlag = 0;
 					}
-					
 					if (broadCollect_s.ucIpAddress <= 128) //ip
 					{
 						broadSend_s.ucIpAddress = broadCollect_s.ucIpAddress;
@@ -128,14 +129,13 @@ try_socket:
 				{
 					if (share_mem->sm_group_pack.ucMultiAddress[broadSend_s.ucIpAddress] == broadSend_s.ucMultiAddress)
 					{
-						printf("Multicast is the same \n");
+						//printf("Multicast is the same \n");
 						continue;
 					}
 					else
 					{
 						broadSend_s.ucMultiAddress = share_mem->sm_group_pack.ucMultiAddress[broadSend_s.ucIpAddress];
 						//broadSend_s.uuid = share_mem->sm_group_pack.uuid[broadSend_s.ucIpAddress];
-						
 					}
 				}
 				else
@@ -156,7 +156,7 @@ INFO:
 				}
 				else
 				{
-					printf("sendto success \n");
+					//printf("sendto success \n");
 				}
 #endif
 			}

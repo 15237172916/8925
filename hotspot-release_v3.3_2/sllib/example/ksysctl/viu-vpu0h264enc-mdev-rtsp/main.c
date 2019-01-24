@@ -193,6 +193,7 @@ static SL_U32 need_feed_dog = 1;
 //static SL_S32 g_bitrate = 12000;//12M is good;
 //static SL_S32 g_bitrate = 10000;//10M is good;
 static SL_S32 g_bitrate = 8000;//8M is good;
+//static SL_S32 g_bitrate = 6000;//
 //static SL_S32 g_bitrate = 5000;//bad kadun;
 //static SL_S32 g_bitrate = 2000;//
 //static SL_S32 g_bitrate = 4000;//
@@ -200,6 +201,7 @@ static SL_S32 g_bitrate = 8000;//8M is good;
 
 
 SL_S32 bad_network = 0; //for eric
+
 
 void *mutexlock;
 #define DEV_IO_NAME		"/dev/silan_testio"
@@ -219,7 +221,7 @@ typedef struct
 
 
 #ifdef APP_CODE
-static SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
+SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
 
 //COMMAND g_TxCommand; //remove for link issue 2017-06-09
 //SL_BOOL g_bDataTestEn=FALSE;
@@ -1311,8 +1313,8 @@ static SL_S32 SLVENC_setCfg(SLVENC_Cfg_s *cfg, video_info_s *video_info)
 	cfg->chnParam[0].format = 0;
 	cfg->chnParam[0].picWidth = cvp.reso_wi;
 	cfg->chnParam[0].picQp = 32;//28;
-	//cfg->chnParam[0].frameSkipDisable = 0; //dicard frame
-	cfg->chnParam[0].frameSkipDisable = 1; //need not dicard frame
+	//cfg->chnParam[0].frameSkipDisable = 0; //discard frame
+	cfg->chnParam[0].frameSkipDisable = 1; //need not discard frame
 
 	cfg->chnParam[0].picHeight = cvp.reso_hi;
 
@@ -1367,9 +1369,9 @@ static SL_S32 SLVENC_setCfg(SLVENC_Cfg_s *cfg, video_info_s *video_info)
 
 		cfg->chnParam[0].intraCostWeight = 0; //400
 	}
-	else if((cfg->chnParam[0].bitRate > 6000) && (cfg->chnParam[0].bitRate <= 12000))
+	else if((cfg->chnParam[0].bitRate > 6000) && (cfg->chnParam[0].bitRate <= 20000))
 	{
-		cfg->chnParam[0].IdrQp = 20;//26;//20;//26; //IdrQp 16 ~ 50
+		cfg->chnParam[0].IdrQp = 25;//26;//20;//26; //IdrQp 16 ~ 50
 
 		cfg->chnParam[0].maxQp = 30;//30;//46; //16~ 50
 
@@ -1430,7 +1432,7 @@ static SL_S32 setBitrate(SLVENC_Cfg_s *cfg, SL_U32 bitRate)
 	return 0;
 }
 
-static SL_S32 SLVENC_setBitrate(SL_U32 bitRate)
+SL_S32 SLVENC_setBitrate(SL_U32 bitRate)
 {
 	SL_S32 ret;
 	printf("new bitrate is : %d \n", bitRate);
@@ -2695,7 +2697,17 @@ int main(int argc, char* argv[])
             close(fd_config);
         printf("build default config.conf \n");
         AppWriteCfgInfotoFile();
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config0.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config1.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config2.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config3.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config4.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config5.conf");
         system("/bin/cp /tmp/configs/config.conf /tmp/configs/config6.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config7.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config8.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config9.conf");
+        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config10.conf");
     }
     else
     {
@@ -2785,6 +2797,7 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
+	
 #endif
 
 #if 1

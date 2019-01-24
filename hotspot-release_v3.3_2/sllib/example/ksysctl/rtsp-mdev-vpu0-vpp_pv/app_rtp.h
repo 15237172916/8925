@@ -16,6 +16,8 @@
 #define CECKHEAD	0x1A1B1C1D
 #define UDP_MTU		15000
 
+#define CHECK_SUM_COUNT 1024*50
+
 typedef struct
 {
     unsigned int iProbe;

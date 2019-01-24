@@ -155,6 +155,9 @@ static SL_U32 wpa_need_restart = 0;
 extern CFG_INFO_S cfginfo;
 
 extern char idr_flag;
+extern char key_display;
+extern char display_flag;
+
 
 char rtspURL_video_eth0[128] = "rtsp://192.168.1.3:8554/ch0"; //video 
 char rtspURL_audio_eth0[128] = "rtsp://192.168.1.3:8559/testStream"; //audio 
@@ -980,8 +983,8 @@ tryAgain:
 			usleep(100000);
 			
 			reboot1();
-			return 0;
-			//goto tryAgain;
+			//return 0;
+			goto tryAgain;
 		}
 
 		//printf("allocate block ok\n");
@@ -2173,7 +2176,7 @@ int main(int argc, char* argv[])
 	SL_S32 ret = -1, i;
 	SL_S32 dd = -1;
 	RTSP_STATE_e state;
-
+	char str_tmp[50];
 	char configs[128];
 	//AppWriteCfgInfotoFile();
 #if 0
@@ -2463,9 +2466,31 @@ int main(int argc, char* argv[])
 	signal(SIGIO, signalioHandle);
 #endif
 	//trigger();
+	char tmp = 0;
+	
 	while (1)
 	{
 		sleep(1);
+		//printf("tmp:%d \n", tmp);
+		//printf("display_flag: %d\n", display_flag);
+		if (key_display || display_flag)
+		{
+			if (0==tmp)
+			{
+				sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
+				process_osd_text_solid(10, 20, str_tmp);
+			}
+			tmp = 1;
+		}
+		else
+		{
+			if (1==tmp)
+			{
+				process_osd_disable();
+				tmp = 0;
+			}
+		}
+		
 #if 0
 		//add for wang in 20181219
 		ret = SLSYSCTL_getTimeoutDev(&dd);

@@ -1,9 +1,86 @@
 mount -o nolock 192.168.1.253:/home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/bin/Up /mnt
 
-
+rm /tmp/UpGradeClient
 
 cp /mnt/UpGradeClient /tmp
-cp /mnt/viu-vpu0h264enc-mdev-rtsp /tmp
 
+
+rm /tmp/viu-vpu0h264enc-mdev-rtsp
+
+cp /mnt/viu-vpu0h264enc-mdev-rtsp /tmp
+ 
+
+rm /tmp/rtsp-mdev-vpu0-vpp_pv
 
 cp /mnt/rtsp-mdev-vpu0-vpp_pv /tmp
+ 
+
+rm /tmp/run.sh 
+
+cp /mnt/run.sh /tmp
+
+
+  
+
+
+1 ok ,
+3 ok ,
+2 ok ,
+
+//jason
+
+21 no
+
+
+
+48 ok
+49 ok
+50 ok
+51 ok
+52 ok
+53 ok
+54 ok
+55 ok
+56 ok
+57 ok
+58 ok
+59 ok
+60 ok
+61 ok
+62 ok
+63 ok
+64 ok
+65 ok
+66 ok
+67 ok
+68 ok
+69 ok
+70 ok
+71 ok
+72 ok
+73 ok
+74 ok
+75 ok
+76 ok
+
+
+
+
+
+77 ok ,
+78 ok ,
+79 ok ,
+80 ok ,
+81 ok ,
+85 ok ,
+86 ok ,
+87 ok ,
+88 ok , 
+89 ok ,
+90 ok ,
+91 ok ,
+92 ok ,
+93 ok ,
+94 ok ,
+95 ok ,
+96 ok ,

@@ -1,1 +1,0 @@
-/user/web/cgi-bin/get_net.cgi

@@ -17,10 +17,9 @@
 #include "sharemem.h"
 
 //#define CONFIG_FILE ("/user/configs/config.conf")
-#define CONFIG_FILE ("/tmp/config.conf")
+//#define CONFIG_FILE ("/tmp/configs/config.conf")
 
-
-//#define CONFIG_FILE ("./config.conf")
+#define CONFIG_FILE ("./config.conf")
 #define NETWORK_INFO         ("Info1")
 #define IP           ("IP")
 #define SERVERIP           ("SERVERIP")
@@ -29,12 +28,8 @@
 			"IP=%s\n"\
 			"SERVERIP=%s\n")
 			
-			
-
-
 //CFG_INFO_S cfginfo = {{0},{0},0,0};
 CFG_INFO_S cfginfo;
-
 
 
 #if 1
@@ -108,7 +103,7 @@ int AppInitCfgInfoDefault(void)
     //strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, share_mem->sm_eth_setting.strEthIp);
     strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, "main");
     //printf("init interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
-
+	
     return 1;
 }
 
@@ -173,7 +168,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_ENABLE",strTemp);
 	share_mem->sm_wlan_setting.ucWlanEnable = atoi(strTemp);
 	printf("WLAN_ENABLE %s %d\n",strTemp,iRetCode);	  
-	  
+	
 	iRetCode = GetConfigStringValue(*fp,"ETH","ENC_RATE",strTemp);
 	share_mem->sm_encoder_setting.usEncRate =  atoi(strTemp);  
 	printf("Enc_rate %s %d\n",strTemp,share_mem->sm_encoder_setting.usEncRate);	

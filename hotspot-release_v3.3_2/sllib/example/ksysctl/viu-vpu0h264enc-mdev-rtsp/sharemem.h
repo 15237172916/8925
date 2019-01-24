@@ -9,8 +9,9 @@
 
 typedef struct{
 	unsigned char ucUpdateFlag; //1:updated
-	unsigned char ucSceneApplyFlag; //1:apply
+	unsigned char ucModeApplyFlag; //1:apply
 	unsigned char ucInfoDisplayFlag; //1:send flag of display information to RX
+	unsigned char ucCurrentMode;
 	RUN_STATUS sm_run_status;
 	ETH_SETTING sm_eth_setting;
 	WLAN_SETTING sm_wlan_setting;
@@ -19,7 +20,7 @@ typedef struct{
 	RTSP_SETTING sm_rtsp_setting;
 	GROUP_PACK_S sm_group_pack; //wang
 	GROUP_RENAME_S sm_group_rename;
-	SCENE_RENAME_S sm_scene_rename;
+	MODE_RENAME_S sm_mode_rename;
 }SHARE_MEM;
 
 SHARE_MEM *share_mem;

@@ -549,7 +549,7 @@ void Init_Multicast_and_IP(void)
 	#endif
 	
 	printf("tmp1 = 0x%x \n", tmp1);
-	
+	//tmp1+=1;
 	sprintf(str, "239.255.42.%d", tmp1); //multicast address
 	strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
 	printf(str);
@@ -564,6 +564,21 @@ void Init_Multicast_and_IP(void)
 	}
 }
 #endif
+
+
+void device_reset(void)
+{
+	printf("device reset \n\n");
+	GPIO_openFd(DEVICE_RESET);
+	GPIO_export(DEVICE_RESET);
+	GPIO_setDir(DEVICE_RESET, GPIO_OUTPUT);
+    GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
+	usleep(10000);
+	GPIO_setValue(DEVICE_RESET, GPIO_LOW_STA);
+	usleep(100000);
+	GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
+}
+
 
 
 

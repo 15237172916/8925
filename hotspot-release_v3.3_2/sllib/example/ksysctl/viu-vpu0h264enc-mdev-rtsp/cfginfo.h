@@ -16,5 +16,5 @@ CFG_INFO_S *GetCfgInfo();
 int AppInitCfgInfoDefault(void);
 int AppInitCfgInfoFromFile(int *fp);
 int AppWriteCfgInfotoFile(void);
-
+int AppWrinteModeInfotoFile(void);
 #endif

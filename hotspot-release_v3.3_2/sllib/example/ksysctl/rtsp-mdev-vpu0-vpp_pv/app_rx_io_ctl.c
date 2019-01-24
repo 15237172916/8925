@@ -25,9 +25,12 @@ extern SL_BOOL gbTestMode;
 
 extern char multicast[20];
 extern char web_flag;
+
 //extern char save_264file_flag;
 extern int process_osd_text_solid(int x, int y, const char *text);
 extern int process_osd_disable(void);
+
+char key_display = 0;
 
 //extern SHOWDATA g_ShowData;
 
@@ -621,8 +624,8 @@ SL_U32 get_key_value(void)
 
 void *IP_switch(void)
 {
-	SL_U32 value, tmp1, tmp2, key;
-	char state = 1;
+	SL_U32 value, tmp1, tmp2, key, key_count = 0;
+	char state = 0;
 	
 	char str[20] = {0};
 	char str_tmp[100] = {0};
@@ -707,27 +710,38 @@ void *IP_switch(void)
 		#endif
 		
 		GPIO_getValue(OSD_MULTICAST, &key);
+		
 		if (!key)
 		{
-			usleep(120000);
-			
+			usleep(300000);
+			key_count++;
+			printf("key_count : %d \n", key_count);
 			if (!key)
 			{
-				printf("\n OSD Multicast \n");
-				if (state)
+				if (0==state)
 				{
-					state = !state;
-					sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
-					process_osd_text_solid(10, 20, str_tmp);
+					printf("\n\n OSD Multicast display \n\n");
+					key_display = 1;
+					state = 1;
 					//save_264file_flag = 1;
 				}
 				else
 				{
-					state = !state;
-					process_osd_disable();
+					printf("\n\n OSD Multicast disable \n\n");
+					state = 0;
+					key_display = 0;
 					//save_264file_flag = 0;
 				}
 			}
+			if (key_count > 10)
+			{
+				printf("reboot \n");
+				reboot1();
+			}
+		}
+		else
+		{
+			key_count = 0;
 		}
 		
 		usleep(20000);

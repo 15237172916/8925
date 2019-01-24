@@ -9,10 +9,10 @@
 
 
 <head>
- <title>TX controls</title>
+ <title>IP MATRIX</title>
  
  <!--link type="text/css" rel="stylesheet" href="css/form_control.css"-->
- <link type="text/css" rel="stylesheet" href="css/main_control.css"/>
+ <!--link type="text/css" rel="stylesheet" href="css/main_control.css"/-->
  <!--link type="text/css" rel="stylesheet" href="css/pickout.css"/-->
  
  <script type="text/javascript" src="Js/jquery-1.4.1.min.js"></script>
@@ -209,17 +209,6 @@ function mode1Set()
 		font-size: 1.5rem;
 		color:red;
 	}
-	#Info{
-		background-color: #666666;
-		//position:fixed;
-		//left: 500px;
-		margin-top: 20px;
-		color: red;
-		font-size: 1.5rem;
-		width: 144px;
-		height: 144px;
-		border-radius:72px;
-	}
     //#box{margin:20px 0 0 20px;background-color:white;font-size:18px;color:black;overflow: hidden;}
     //#infoMesg p{margin:4px 15px;}
 </style>
@@ -292,7 +281,7 @@ function ShowDiv()
 	this.cancleBtn=document.getElementById("cancle");
 	//对应div的“X”按钮的操作
 	this.applyBtn=document.getElementById("modeApplyId");
-	
+	//对应div的取消按钮的操作
 	this.PresetBtn=document.getElementById("modePresetId");
 	 
 	this.RenameBtn=document.getElementById("modeRenameId");
@@ -406,7 +395,6 @@ function ShowDiv()
 					else
 					{
 						alert('Setting Failed!');	
-						
 					}
 				}
 			});
@@ -566,10 +554,10 @@ ShowDiv.prototype.CloseDivAndInfoMesg=function()
 	<div>
 	  <input id="Mode5" type="button" class="Mode_btn" value="Scene5"></input>
 	</div>
-	<div>
-	  <input id="Info" type="button" value="INFO" onclick="display()"></input>
-	</div>
 	<!--div>
+	  <input id="Mode6" type="button" class="Mode_btn" value="Mode6"></input>
+	</div>
+	<div>
 	  <input id="Mode7" type="button" class="Mode_btn" value="Mode7"></input>
 	</div-->
    </div>
@@ -581,7 +569,7 @@ ShowDiv.prototype.CloseDivAndInfoMesg=function()
 <form>
     <div class="div-rxSelect">
 	
-    <!--label>RX rename : </label-->
+    <label>RX rename : </label>
 	<select id='idSelectRxRename' class="selectRename" name="RX">
 		<option value="01">RX001</option>
 		<option value="02">RX002</option>
@@ -719,7 +707,7 @@ ShowDiv.prototype.CloseDivAndInfoMesg=function()
    
    <div class="div-rxSelect">
    
-    <!--label>TX rename : </label-->
+    <label>TX rename : </label>
     <select id="idSelectTxRename" class="selectRename" name="TX" <!--onclick="onselect(this)"-->>
 		<option value="01">TX01</option>
 		<option value="02">TX02</option>
@@ -752,6 +740,7 @@ ShowDiv.prototype.CloseDivAndInfoMesg=function()
    </div> 
 </form>
 </div>
+
 </main>
 </body>
 
