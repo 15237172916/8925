@@ -22,7 +22,6 @@ mkfs.jffs2 -n -s 512 -e 16KiB -d execute-client -o execute-client.jffs2
 
 dd if=/dev/zero of=server.img bs=1024 count=8192
 
-
 dd if=boot.img of=server.img bs=1024 count=320
 dd if=uImage of=server.img seek=384 bs=1024 count=2560
 dd if=rootfs-server.sfs of=server.img seek=2944 bs=1024 count=2560
