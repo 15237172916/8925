@@ -1,1 +1,0 @@
-/user/web/cgi-bin/set_net.cgi

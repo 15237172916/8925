@@ -105,13 +105,13 @@ else
 fi
 
 #insmod slviu.ko
-if [ -f /tmp/update/ko/slviu.ko ]; then
-    echo "/tmp/update/ko/slviu.ko OK"
-    insmod /tmp/update/ko/slviu.ko
-else
-    echo "/user/update/ko/slviu.ko OK"
-    insmod /user/update/ko/slviu.ko
-fi
+#if [ -f /tmp/update/ko/slviu.ko ]; then
+#    echo "/tmp/update/ko/slviu.ko OK"
+#    insmod /tmp/update/ko/slviu.ko
+#else
+#    echo "/user/update/ko/slviu.ko OK"
+#    insmod /user/update/ko/slviu.ko
+#fi
 
 #insmod slaudio.ko
 if [ -f /tmp/update/ko/slaudio.ko ]; then
