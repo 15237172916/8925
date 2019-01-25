@@ -93,20 +93,28 @@ function onclickSelectTxApply(number)
 	var TxName = document.getElementById(TxId).value;
 	var TxTmp;
 	var ret;
+	var name;
+	var myIframeLeft = window.parent.document.getElementById("myIframe_left").contentWindow;
+	//console.log(selectButtonId);
 	ret = changeMulticast(number, value);
 	if (1 == ret)
 	{
-		window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(selectButtonId).value = TxName;
+		name = TxName;
+		//console.log(name);
+		myIframeLeft.document.getElementById(selectButtonId).value = name;
+		myIframeLeft.document.getElementById(selectButtonId).style.backgroundColor="#4d4d4d";
+		
 		//window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
-		window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(selectButtonId).style.backgroundColor="#4d4d4d";
 		//alert(ButtonId);
+		/*
 		for (var i=0; i<128; i++)
 		{
 			selectButtonId = "button"+num[i];
-			window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(selectButtonId).removeAttribute("disabled");
+			//window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(selectButtonId).removeAttribute("disabled");
 		}
+		*/
 		window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
-		window.parent.document.getElementById("myIframe_left").contentWindow.tmp = 1;
+		myIframeLeft.tmp = 1;
 		for (var i=0; i<24; i++)
 		{
 			TxTmp = "TX"+num1[i];	
@@ -128,10 +136,7 @@ function onclickSelectTxApply(number)
 			}
 			
 		}
-		
 	}
-	
-
 	
 	//alert(TxName);
 	//alert(selectButtonId);

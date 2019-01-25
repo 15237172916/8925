@@ -304,6 +304,7 @@ function RenameOnclick()
 
 function TxRenameOnclick()
 {
+	var inputId;
 	if (tmp2==1)
 	{
 		document.getElementById("div_popupChangeTxName").style.visibility="visible";
@@ -317,6 +318,12 @@ function TxRenameOnclick()
 		tmp2 = 0;
 		tmp3 = 1;
 		tmp4 = 1;
+
+		for (var i=0; i<24; i++)
+		{
+			inputId = "inputTxName"+num1[i];
+			document.getElementById("myIframe_changeTxName").contentWindow.document.getElementById(inputId).value = txName[i];
+		}
 		
 	}
 	else
@@ -328,6 +335,8 @@ function TxRenameOnclick()
 }
 function RxRenameOnclick()
 {
+	var inputId;
+
 	if (tmp3==1)
 	{
 		document.getElementById("div_popupChangeRxName").style.visibility="visible";
@@ -342,6 +351,12 @@ function RxRenameOnclick()
 		tmp3 = 0;
 		tmp2 = 1;
 		tmp4 = 1;
+
+		for (var i=0; i<128; i++)
+		{
+			inputId = "inputRxName"+num[i];
+			document.getElementById("myIframe_changeRxName").contentWindow.document.getElementById(inputId).value = rxName[i];
+		}
 	}
 	else
 	{
@@ -354,6 +369,8 @@ function RxRenameOnclick()
 
 function ModeRenameOnclick()
 {
+	var inputId;
+
 	if (tmp4==1)
 	{
 		document.getElementById("div_popupChangeModeName").style.visibility="visible";
@@ -368,6 +385,12 @@ function ModeRenameOnclick()
 		tmp4 = 0;
 		tmp2 = 1;
 		tmp3 = 1;
+
+		for (var i=0; i<10; i++)
+		{
+			inputId = "inputModeName"+num1[i];
+			document.getElementById("myIframe_changeModeName").contentWindow.document.getElementById(inputId).value = modeName[i];
+		}
 	}
 	else
 	{

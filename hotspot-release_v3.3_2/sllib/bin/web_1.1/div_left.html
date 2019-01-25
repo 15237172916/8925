@@ -170,12 +170,12 @@ function onclickButtonSelectTx(number)
 	var TxTmp;
 
 	ButtonId = "button"+number;
-	//selectButtonValue = number;
+	selectButtonValue = number;
 	//stringValue = '1000';
 	//alert(selectButtonValue);
 	//console.log(tmpNumber);
-	//if (number==tmpNumber) //check button is same
-	//{
+	if (number==tmpNumber) //check button is same
+	{
 		if (tmp == 1) //check button state 
 		{
 			//alert(ButtonId);
@@ -199,7 +199,7 @@ function onclickButtonSelectTx(number)
 			window.parent.tmp2 = 1;
 			window.parent.tmp3 = 1;
 			window.parent.tmp4 = 1;
-			console.log(number);
+			//console.log(number);
 			for (i=0; i<128; i++)
 			{
 				ButtonId = "button"+num[i];
@@ -213,8 +213,6 @@ function onclickButtonSelectTx(number)
 					document.getElementById(ButtonId).style.backgroundColor="#4d4d4d";
 				}
 			}
-
-
 
 			//
 			/*
@@ -264,16 +262,32 @@ function onclickButtonSelectTx(number)
 			tmp=1;
 		}
 		
-		//selectButtonValue = number;
-	/*
+		selectButtonValue = number;
 	}
 	else
 	{
+		window.parent.document.getElementById("div_popupRename").style.visibility="hidden";
+		window.parent.document.getElementById("RENAME").style.backgroundColor="#4d4d4d";
+
+		window.parent.document.getElementById("TxChangeName").style.backgroundColor="#4d4d4d";
+		window.parent.document.getElementById("ModeChangeName").style.backgroundColor="#4d4d4d";
+		window.parent.document.getElementById("RxChangeName").style.backgroundColor="#4d4d4d";
+
+		window.parent.document.getElementById("div_popupChangeTxName").style.visibility="hidden";
+		window.parent.document.getElementById("div_popupChangeModeName").style.visibility="hidden";
+		window.parent.document.getElementById("div_popupChangeRxName").style.visibility="hidden";
+
+		window.parent.tmp1 = 1;
+		window.parent.tmp2 = 1;
+		window.parent.tmp3 = 1;
+		window.parent.tmp4 = 1;
+		
 		tmpNumber = number;
 		tmp = 0;
 		for (i=0; i<128; i++)
 		{
 			ButtonId = "button"+num[i];
+			
 			if (num[i] == number)
 			{
 				document.getElementById(ButtonId).style.backgroundColor="green";
@@ -288,7 +302,7 @@ function onclickButtonSelectTx(number)
 		//document.getElementById(ButtonId).style.backgroundColor="green";
 		
 	}
-	*/
+	
 	//console.log(tmp);
 	//console.log(number);
 	
