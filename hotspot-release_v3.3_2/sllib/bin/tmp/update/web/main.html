@@ -7,22 +7,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=1.0, user-scalable=yes" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-
 <head>
 
 <script type="text/javascript" src="Js/jquery-1.4.1.min.js"></script>
 <script type="text/javascript" src="Js/platform.js"></script>
 <script type="text/javascript" src="Js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="Js/main.js"></script>
-	   
+
 <style>
 	html{
 		margin:0;
 		padding:0;
-		//background-color:#999999;
+		/*background-color:#999999;*/
 		background-color:#262626;
-		//min-width: 800px; /*页面最小宽度*/
-		//max-width: 1200px; /*页面最大宽度*/
+		/*min-width: 800px; /*页面最小宽度*/
+		/*max-width: 1200px; /*页面最大宽度*/
 	}
 	
 	body{
@@ -31,25 +30,28 @@
 		min-width: 720px; /*页面最小宽度*/
 		max-width: 1200px; /*页面最大宽度*/
 		background-color:#262626;
-		//background-image:url(./logo_max.png);
+		/*background-image:url(./logo_max.png);*/
 	}
+
 	main{
 		position: relative;
 		min-width: 720px; /*页面最小宽度*/
 		max-width: 1200px; /*页面最大宽度*/
 		background-color:#262626;
 	}
+	
 	header{
 		background-color:#4d4d4d;
 		margin:0 auto; 
 		color:white;
 		
 	}
+	
 	body > * {
 		
 		background-color: #4d4d4d; /*其他页面的背景色*/
-		//background-color: #444444; /*其他页面的背景色*/
-		//padding: 1%;
+		/*background-color: #444444; /*其他页面的背景色*/
+		/*padding: 1%;*/
 	}
 	
 	h1{
@@ -57,7 +59,7 @@
 		background-color:#4d4d4d;
 		margin:0 auto; 
 		height: 50px;
-		//background-image:url(./logo_max.png);
+		/*background-image:url(./logo_max.png);*/
 	}
 	
 	div{
@@ -237,7 +239,7 @@
 		background-color:#4d4d4d;
 		color: white;
 		font-size: 1.1rem;
-		border-color:#4d4d4d; /*边框颜色*/
+		border-color:#080808; /*边框颜色*/
 		-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 	}
 	#block{
@@ -264,6 +266,17 @@ function RenameOnclick()
 	{
 		document.getElementById("div_popupRename").style.visibility="visible";
 		document.getElementById("RENAME").style.backgroundColor="green";
+		document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
+
+		//console.log(document.getElementById("myIframe_left").contentWindow.tmp);
+		document.getElementById("myIframe_left").contentWindow.tmp = 1;
+		var leftButton=document.getElementById("myIframe_left").contentWindow.document.getElementsByClassName("RXBotton");//.style.backgroundColor="#4d4d4d";
+		
+		for (var i=0; i<leftButton.length; i++)
+		{
+			leftButton[i].style.backgroundColor = "#4d4d4d";
+		}
+		
 		tmp1 = 0;
 	}
 	else
@@ -288,8 +301,10 @@ function RenameOnclick()
 	}
 
 }
+
 function TxRenameOnclick()
 {
+	var inputId;
 	if (tmp2==1)
 	{
 		document.getElementById("div_popupChangeTxName").style.visibility="visible";
@@ -303,6 +318,12 @@ function TxRenameOnclick()
 		tmp2 = 0;
 		tmp3 = 1;
 		tmp4 = 1;
+
+		for (var i=0; i<24; i++)
+		{
+			inputId = "inputTxName"+num1[i];
+			document.getElementById("myIframe_changeTxName").contentWindow.document.getElementById(inputId).value = txName[i];
+		}
 		
 	}
 	else
@@ -314,6 +335,8 @@ function TxRenameOnclick()
 }
 function RxRenameOnclick()
 {
+	var inputId;
+
 	if (tmp3==1)
 	{
 		document.getElementById("div_popupChangeRxName").style.visibility="visible";
@@ -328,6 +351,12 @@ function RxRenameOnclick()
 		tmp3 = 0;
 		tmp2 = 1;
 		tmp4 = 1;
+
+		for (var i=0; i<128; i++)
+		{
+			inputId = "inputRxName"+num[i];
+			document.getElementById("myIframe_changeRxName").contentWindow.document.getElementById(inputId).value = rxName[i];
+		}
 	}
 	else
 	{
@@ -340,6 +369,8 @@ function RxRenameOnclick()
 
 function ModeRenameOnclick()
 {
+	var inputId;
+
 	if (tmp4==1)
 	{
 		document.getElementById("div_popupChangeModeName").style.visibility="visible";
@@ -354,6 +385,12 @@ function ModeRenameOnclick()
 		tmp4 = 0;
 		tmp2 = 1;
 		tmp3 = 1;
+
+		for (var i=0; i<10; i++)
+		{
+			inputId = "inputModeName"+num1[i];
+			document.getElementById("myIframe_changeModeName").contentWindow.document.getElementById(inputId).value = modeName[i];
+		}
 	}
 	else
 	{
@@ -372,7 +409,7 @@ function displayInfoOnclick()
 	{
 		if (1 == tmp5)
 		{
-			document.getElementById("INFO").style.backgroundColor="#00b1b3";
+			document.getElementById("INFO").style.backgroundColor="#006000";
 			
 			tmp5 = 0;
 		}

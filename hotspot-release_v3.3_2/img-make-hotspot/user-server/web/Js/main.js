@@ -211,7 +211,7 @@ function modeStateNow(mode)
 	
 	window.parent.currentMode = orderNumber;
 	//alert(number);
-	console.log(orderNumber);
+	//console.log(orderNumber);
 	//return 1;
 	
 	//var urlstr = "http://"+hostip+"/cgi-bin/modeStateNow.cgi?currentMode:"+number+"&";
@@ -318,15 +318,34 @@ function SelectButtonNameInit()
 {
 	var SelectButtonId;
 	var RxNameId;
-	
+	var rxName, txName;
+
 	for (var i=0; i<128; i++)
 	{
 		RxNameId = "rxName"+num[i];
 		SelectButtonId = "button"+num[i];
 		multicast = window.parent.rxMulticast[i]-1;
+		rxName = window.parent.rxName[i];
+		txName = window.parent.txName[multicast];
 		//console.log(multicast);
-		document.getElementById(SelectButtonId).value = window.parent.txName[multicast];
-		document.getElementById(RxNameId).value = window.parent.rxName[i];
+		if (""==txName)
+		{
+			document.getElementById(SelectButtonId).value = "SOURCE-"+num1[multicast];
+		}
+		else
+		{
+			document.getElementById(SelectButtonId).value = window.parent.rxMulticast[i]+'-'+txName;
+		}
+		//document.getElementById(SelectButtonId).value = window.parent.txName[multicast];
+		if (""==rxName)
+		{
+			document.getElementById(RxNameId).value = "TV-"+num[i];
+		}
+		else
+		{
+			document.getElementById(RxNameId).value = num[i]+'-'+rxName;
+		}
+		
 	}
 	//console.log(window.parent.txName);
 	//alert(window.parent.txName);
@@ -335,10 +354,21 @@ function SelectButtonNameInit()
 function TxButtonNameInit()
 {
 	var TxNameId;
+	var name;
+
 	for (var i=0; i<24; i++)
 	{
 		TxNameId = "TX"+num1[i];
-		document.getElementById(TxNameId).value = window.parent.txName[i];
+		name = window.parent.txName[i];
+
+		if (""==name)
+		{
+			document.getElementById(TxNameId).value = "SOURCE-"+num1[i];
+		}
+		else
+		{
+			document.getElementById(TxNameId).value = num[i]+'-'+name;
+		}
 	}
 }
 
@@ -346,16 +376,26 @@ function ModeInit()
 {
 	var modeButtonId;
 	var currentModeNum;
-	
+	var name;
+
 	for (var i=0; i<10; i++)
 	{
 		modeButtonId = "Mode"+num1[i];
-		document.getElementById(modeButtonId).value = window.parent.modeName[i];
+		name = window.parent.modeName[i];
+
+		if (""==name)
+		{
+			document.getElementById(modeButtonId).value = "MODE-"+num1[i];
+		}
+		else
+		{
+			document.getElementById(modeButtonId).value = name;
+		}
 	}
 	
 	currentModeNum=Number(window.parent.currentMode)-1;
 	modeButtonId = "Mode"+num1[currentModeNum];
-	document.getElementById(modeButtonId).style.backgroundColor = "#00b1b3";
+	document.getElementById(modeButtonId).style.backgroundColor = "#006000";
 }
 
 

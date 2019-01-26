@@ -174,23 +174,35 @@ function OnfocusRx(number)
 	//alert(num);
 }
 
-
 function OnclickApplyButton(number)
 {
 	var ApplyId = "ApplyButton"+number;
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputRxName"+number;
 	var RxId = "rxName"+number;
-	var inputValue = number+':'+document.getElementById(InputId).value;
+	
 	var ret;
-
+	
+	var inputValue = document.getElementById(InputId).value;
+	var name = inputValue;
+	if (''==inputValue)
+	{
+		//inputValue = "TV"+number;
+		name = "TV-"+number;
+	}
+	else
+	{
+		//inputValue = number+'-'+inputValue;
+		name = number+'-'+inputValue;
+	}
+	
 	ret = changeRxName(number, inputValue);
 	if (1==ret)
 	{
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
 	
-		window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(RxId).value = inputValue;
+		window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(RxId).value = name;
 	}
 	else
 	{
@@ -215,10 +227,22 @@ function OnclickCancelButton(number)
 	//alert(number);
 }
 
+function changRxNameInit()
+{
+	var inputRxNameId;
+
+	for (var i=0; i<128; i++)
+	{
+		inputRxNameId = "inputRxName"+num[i];
+		//console.log(inputRxNameId);
+		document.getElementById(inputRxNameId).value = window.parent.rxName[i];
+	}
+
+}
 </script>
  
 </head>
-<body class="" onload="">
+<body class="" onload="changRxNameInit();">
 	<div class="RxName">
 		<script>
 			LoopButton();

@@ -180,10 +180,18 @@ function OnclickApplyButton(number)
 	var ApplyId = "ApplyButton"+number;
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputModeName"+number;
-	var inputValue = document.getElementById(InputId).value;
 	var ModeId = "Mode"+number;
 	var ret;
-
+	var name;
+	var inputValue = document.getElementById(InputId).value;
+	if (''==inputValue)
+	{
+		name = "MODE-"+number;
+	}
+	else
+	{
+		name = inputValue;
+	}
 	ret = changeModeName(number, inputValue);
 	//console.log(ret);
 	if(1 == ret)
@@ -191,7 +199,7 @@ function OnclickApplyButton(number)
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
 
-		window.parent.document.getElementById("myIframe_right").contentWindow.document.getElementById(ModeId).value = inputValue;
+		window.parent.document.getElementById("myIframe_right").contentWindow.document.getElementById(ModeId).value = name;
 	}
 	else
 	{
@@ -214,10 +222,25 @@ function OnclickCancelButton(number)
 	//alert(number);
 }
 
+function changModeNameInit()
+{
+	var inputModeNameId;
+	var name;
+
+	for (var i=0; i<10; i++)
+	{
+		inputModeNameId = "inputModeName"+num1[i];
+		name = window.parent.modeName[i];
+		//console.log(inputModeNameId);
+	
+		document.getElementById(inputModeNameId).value = name;	
+	}
+
+}
 </script>
  
 </head>
-<body class="" onload="">
+<body class="" onload="changModeNameInit();">
 	<div class="ModeName">
 		<script>
 			LoopButton();

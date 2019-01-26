@@ -182,9 +182,19 @@ function OnclickApplyButton(number)
 	var InputId = "inputTxName"+number;
 	var TxId = "TX"+number;
 	var TxSelectButtonId;
-	var inputValue = number+':'+document.getElementById(InputId).value;
 	var orderNumber = Number(number);
+	//var rxMulticast = 
+	var name;
 	var ret;
+	var inputValue = document.getElementById(InputId).value;
+	if (''==inputValue)
+	{
+		name = "SOURCE-"+number;
+	}
+	else
+	{
+		name = num1[orderNumber-1]+'-'+inputValue;
+	}
 	//orderNumber -= 1;
 	//alert(orderNumber);
 	ret = changeTxName(number, inputValue);
@@ -193,13 +203,22 @@ function OnclickApplyButton(number)
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
 
-		window.parent.document.getElementById("myIframe_selectTxButton").contentWindow.document.getElementById(TxId).value = inputValue;
+		window.parent.document.getElementById("myIframe_selectTxButton").contentWindow.document.getElementById(TxId).value = name;
 		for (var i=0; i<128; i++)
 		{
 			TxSelectButtonId = "button"+num[i];
-			if (rxMulticast[i] == orderNumber)
+			//console.log(orderNumber);
+			//console.log(window.parent.rxMulticast[i]);
+			if (window.parent.rxMulticast[i] == orderNumber)
 			{
-				window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(TxSelectButtonId).value = inputValue;
+				if (''==inputValue)
+				{
+					window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(TxSelectButtonId).value = "SOURCE-"+num1[window.parent.rxMulticast[i]-1];
+				}
+				else
+				{
+					window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(TxSelectButtonId).value = name;
+				}
 			}
 		}
 	}
@@ -210,6 +229,7 @@ function OnclickApplyButton(number)
 	}
 	//alert(number);
 }
+
 function OnclickCancelButton(number)
 {
 	var ApplyId = "ApplyButton"+number;
@@ -223,10 +243,23 @@ function OnclickCancelButton(number)
 	//alert(number);
 }
 
+function changTxNameInit()
+{
+	var inputTxNameId;
+
+	for (var i=0; i<24; i++)
+	{
+		inputTxNameId = "inputTxName"+num1[i];
+		//console.log(inputTxNameId);
+		document.getElementById(inputTxNameId).value = window.parent.txName[i];
+	}
+
+}
+</script>
 </script>
  
 </head>
-<body class="" onload="">
+<body class="" onload="changTxNameInit()">
 	<div class="TxName">
 		<script>
 			LoopButton();
