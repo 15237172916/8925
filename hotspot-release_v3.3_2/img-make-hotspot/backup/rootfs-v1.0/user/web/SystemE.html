@@ -14,7 +14,7 @@
 <script type="text/javascript">   
 var hostip =window.location.host;
 function updateInfo() {
-	var menu_html = showMenu("System.html");
+	var menu_html = showMenuE("SystemE.html");
    	$("#menu_bar").html(menu_html);
 	
 	$.ajax({
@@ -66,7 +66,8 @@ function SetReboot() {
     });
 
 }
-	function SetReboot1(){
+
+function SetReboot1(){
 	document.write(" ");
 	$.ajax({ 
 		type:"GET",
@@ -83,7 +84,7 @@ function SetReboot() {
 
 function changeLan() {
 	var Language=$("#LanSle").val();
-	if(Language=='English') {
+	if(Language=='Chinese'){
 		$.ajax({ 
 			type:"GET",
 			url: "http://" + hostip + "/cgi-bin/set_sys.cgi?type=lang&lang=1",
@@ -136,13 +137,12 @@ function gotoend(pro, value){
 			var timer1 = setTimeout(function(){gotoend(pro, value);},720)
 		}
 		else{
-				if(success_dete == 1)
-				{
-					setTimeout(function(){alert("升级成功!\r\n\r\n如果没运行，检查文件名，再试一次")},20);
-				}
-				else{setTimeout(function(){alert("升级失败!\r\n\r\n请检查网线或者电源连接，再试一次")},20);}
+			if(success_dete == 1)
+			{
+				setTimeout(function(){alert("升级成功!\r\n\r\n如果没运行，检查文件名，再试一次")},20);
 			}
-				
+			else{setTimeout(function(){alert("升级失败!\r\n\r\n请检查网线或者电源连接，再试一次")},20);}
+		}
 }
 
 var timer;
@@ -155,7 +155,7 @@ function upload_file1()
 		alert("Select firmware file!");
 		return;
 	}
-	else
+	else if(upgrade=="rtsp-mdev-vpu0-vpp_pv")
 	{
 		$.ajaxFileUpload({
 		type:"post",
@@ -184,6 +184,73 @@ function upload_file1()
 
 			},
 		});
+	}
+	else if(upgrade=="ko.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_ko.cgi",			
+		dataType:"text",			
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				//alert('升级成功，系统正在重启！');	
+				alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else if(upgrade=="web.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_web.cgi",			
+		dataType:"text",
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				//alert('升级成功，系统正在重启！');	
+				alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else
+	{
+		alert('Failed, please select the correct file!');
+		return;
 	}
 	setTimeout(updateBar(),3000);
 }
@@ -274,9 +341,9 @@ function uploadFw() {
 </div>
  <dd id="menu_bar"></dd>
  <DIV class="clear"></DIV>
- <DIV class="wrapper">
-  <h1 class="h1_System">System</h1>
-  <DIV class="content">
+<DIV class="wrapper">
+ <h1 class="h1_SystemE">System</h1>
+<DIV class="content">
    <DIV class="in author t_index_1">
 	   <H2>System information</H2>
    </DIV>
@@ -337,9 +404,9 @@ function uploadFw() {
      <dl>
       <dt>&nbsp;</dt>
       <dd>
-       <input type="button" value="Reboot" name ="insert" class="com_btn b_chongqi" onclick="SetReboot()"  id="subBut" />
+       <input type="button" value="Reboot" name ="insert" class="com_btn_E b_chongqiE" onclick="SetReboot()"  id="subBut" />
        &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-       <input type="button" value="Reset" name ="insert" class="com_btn b_chongzhi" onclick="SetReset()"  id="subBut" />
+       <input type="button" value="Reset" name ="insert" class="com_btn_E b_chongzhiE" onclick="SetReset()"  id="subBut" />
       </dd>
      </dl>
     </div>

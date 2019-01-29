@@ -38,7 +38,7 @@ echo 50 > /proc/sys/net/ipv4/tcp_retries2
 #echo "blk_pd dsp0 0" > /proc/slpm
 #echo "blk_pd dsp1 0" > /proc/slpm
 #echo "blk_pd fdip 0" > /proc/slpm
-#echo "blk_pd isp 0" > /proc/slpm
+echo "blk_pd isp 0" > /proc/slpm
 #echo "blk_pd vpre2h264 0" > /proc/slpm
 
 #add route list
@@ -55,10 +55,22 @@ sleep 1;
 cat /dev/silan-cm0
 /user/word.csky 0xbfba903c 0xffffffff
 
+str="1"
 
-#cd /user/update/ko/&&./insmod-server.sh
+if [ $str="1" ]; then
+
+if [ -f /tmp/update/ko/insmod-server.sh ]; then
+	echo "/tmp/update/ko ok"
+	cd /tmp/update/ko/&&./insmod-server.sh
+else
+	echo "user/update/ko ok"
+	cd /user/update/ko/&&./insmod-server.sh
+fi
+
+
+else
+
 #insmod ko
-
 #insmod slcommon.ko log_levels=1
 if [ -f /tmp/update/ko/slcommon.ko ]; then
     echo "/tmp/update/ko/slcommon.ko OK"
@@ -139,7 +151,7 @@ else
     echo "/user/update/ko/sldsp-ir.ko OK"
     insmod /user/update/ko/sldsp-ir.ko
 fi
-
+fi
 
 #boa
 if [ -f /tmp/update/web/boa ]; then

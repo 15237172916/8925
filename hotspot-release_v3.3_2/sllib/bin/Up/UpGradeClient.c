@@ -252,7 +252,7 @@ ReAccept:
             {
                 printf("temp buf[0]=%0x\n",tempbuf[0]);
 
-                printf("Recv file data len =0 %d, tlen = %d \n",len,tlen);
+                printf("Recv file data len = %d, tlen = %d \n",len,tlen);
                 memcpy(filebuf+tlen,tempbuf,len);
                 tlen+=len;
 

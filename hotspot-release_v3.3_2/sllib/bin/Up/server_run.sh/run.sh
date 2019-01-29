@@ -38,7 +38,7 @@ echo 50 > /proc/sys/net/ipv4/tcp_retries2
 #echo "blk_pd dsp0 0" > /proc/slpm
 #echo "blk_pd dsp1 0" > /proc/slpm
 #echo "blk_pd fdip 0" > /proc/slpm
-#echo "blk_pd isp 0" > /proc/slpm
+echo "blk_pd isp 0" > /proc/slpm
 #echo "blk_pd vpre2h264 0" > /proc/slpm
 
 #add route list

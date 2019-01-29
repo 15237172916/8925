@@ -105,13 +105,13 @@ else
 fi
 
 #insmod slviu.ko
-if [ -f /tmp/update/ko/slviu.ko ]; then
-    echo "/tmp/update/ko/slviu.ko OK"
-    insmod /tmp/update/ko/slviu.ko
-else
-    echo "/user/update/ko/slviu.ko OK"
-    insmod /user/update/ko/slviu.ko
-fi
+#if [ -f /tmp/update/ko/slviu.ko ]; then
+#    echo "/tmp/update/ko/slviu.ko OK"
+#    insmod /tmp/update/ko/slviu.ko
+#else
+#    echo "/user/update/ko/slviu.ko OK"
+#    insmod /user/update/ko/slviu.ko
+#fi
 
 #insmod slaudio.ko
 if [ -f /tmp/update/ko/slaudio.ko ]; then
@@ -142,9 +142,10 @@ else
 fi
 
 #bin
-cd /tmp/
-./rtsp-mdev-vpu0-vpp_pv &
-./UpGradeClient &
+./tmp/configs/ip.conf
+
+./tmp/rtsp-mdev-vpu0-vpp_pv &
+./tmp/UpGradeClient &
 
 #mount -o nolock 192.168.1.2:/home/y/Work/8925Docs/8925_test/hotspot-release_v3.3/sllib/bin /mnt
 #mount -o nolock 192.168.1.2:/home/y/work/8925Docs/8925_test/Baseline_8925/900/test/hotspot-release_v1.7_3/sllib/bin/ /mnt

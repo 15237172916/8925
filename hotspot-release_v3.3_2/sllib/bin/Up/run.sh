@@ -10,7 +10,7 @@ echo 500 > /proc/sys/net/core/netdev_max_backlog
 echo 50 > /proc/sys/net/ipv4/tcp_retries2
 
 # enable mic i2s in
-#/user/word.csky 0xbfba9010 0x07980120
+/user/word.csky 0xbfba9010 0x07980120
 # enable dma clk bit 9
 /user/word.csky 0xbfba9000 0xef0d32df
 /user/word.csky 0xbfba9004 0x802a0013
@@ -38,7 +38,7 @@ echo 50 > /proc/sys/net/ipv4/tcp_retries2
 #echo "blk_pd dsp0 0" > /proc/slpm
 #echo "blk_pd dsp1 0" > /proc/slpm
 #echo "blk_pd fdip 0" > /proc/slpm
-#echo "blk_pd isp 0" > /proc/slpm
+echo "blk_pd isp 0" > /proc/slpm
 #echo "blk_pd vpre2h264 0" > /proc/slpm
 
 #add route list
@@ -105,13 +105,22 @@ else
 fi
 
 #insmod slviu.ko
-#if [ -f /tmp/update/ko/slviu.ko ]; then
-#    echo "/tmp/update/ko/slviu.ko OK"
-#    insmod /tmp/update/ko/slviu.ko
-#else
-#    echo "/user/update/ko/slviu.ko OK"
-#    insmod /user/update/ko/slviu.ko
-#fi
+if [ -f /tmp/update/ko/slviu.ko ]; then
+    echo "/tmp/update/ko/slviu.ko OK"
+    insmod /tmp/update/ko/slviu.ko
+else
+    echo "/user/update/ko/slviu.ko OK"
+    insmod /user/update/ko/slviu.ko
+fi
+
+#insmod slvpre.ko
+if [ -f /tmp/update/ko/slvpre.ko ]; then
+    echo "/tmp/update/ko/slvpre.ko OK"
+    insmod /tmp/update/ko/slvpre.ko
+else
+    echo "/user/update/ko/slvpre.ko OK"
+    insmod /user/update/ko/slvpre.ko
+fi
 
 #insmod slaudio.ko
 if [ -f /tmp/update/ko/slaudio.ko ]; then
@@ -143,7 +152,7 @@ fi
 
 #bin
 cd /tmp/
-./rtsp-mdev-vpu0-vpp_pv &
+./viu-vpu0h264enc-mdev-rtsp &
 ./UpGradeClient &
 
 #mount -o nolock 192.168.1.2:/home/y/Work/8925Docs/8925_test/hotspot-release_v3.3/sllib/bin /mnt

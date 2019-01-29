@@ -2,7 +2,6 @@ uImage-size=92k this is new image , add on 20190125
 uImage-size=104k this is 922 use image , add on 20190125
 rootfs-v1.1 this rootfs file add tar command 
 rootfs-v1.0 this rootfs file use 922 product, it is not tar command 
-
-
-
-
+make.sh-v1.1 use tmp=2.6M
+boot.img = reset.bin + u-boot.img
+make.sh-v1.0 use tmp=1M

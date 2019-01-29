@@ -10,7 +10,7 @@ echo 500 > /proc/sys/net/core/netdev_max_backlog
 echo 50 > /proc/sys/net/ipv4/tcp_retries2
 
 # enable mic i2s in
-#/user/word.csky 0xbfba9010 0x07980120
+/user/word.csky 0xbfba9010 0x07980120
 # enable dma clk bit 9
 /user/word.csky 0xbfba9000 0xef0d32df
 /user/word.csky 0xbfba9004 0x802a0013
@@ -38,7 +38,7 @@ echo 50 > /proc/sys/net/ipv4/tcp_retries2
 #echo "blk_pd dsp0 0" > /proc/slpm
 #echo "blk_pd dsp1 0" > /proc/slpm
 #echo "blk_pd fdip 0" > /proc/slpm
-#echo "blk_pd isp 0" > /proc/slpm
+echo "blk_pd isp 0" > /proc/slpm
 #echo "blk_pd vpre2h264 0" > /proc/slpm
 
 #add route list
@@ -142,7 +142,7 @@ else
 fi
 
 #bin
-./tmp/configs/ip.conf
+#./tmp/configs/ip.conf
 
 ./tmp/rtsp-mdev-vpu0-vpp_pv &
 ./tmp/UpGradeClient &

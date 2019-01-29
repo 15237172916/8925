@@ -1,10 +1,11 @@
 #!/bin/sh
-rm *.img
+rm client.img
+rm server.img
 
-rm execute-server.jffs2
-rm execute-client.jffs2
-rm rootfs-server.sfs
-rm rootfs-client.sfs
+#rm execute-server.jffs2
+#rm execute-client.jffs2
+#rm rootfs-server.sfs
+#rm rootfs-client.sfs
 
 rm rootfs/user -rf
 cp user-server rootfs/user -rf
@@ -32,6 +33,11 @@ dd if=uImage of=client.img seek=384 bs=1024 count=2560
 dd if=rootfs-client.sfs of=client.img seek=2944 bs=1024 count=4224
 dd if=execute-client.jffs2 of=client.img seek=7168 bs=1024 count=1024
 
+
+mv execute-server.jffs2 ./tmp
+mv execute-client.jffs2 ./tmp
+mv rootfs-server.sfs ./tmp
+mv rootfs-client.sfs ./tmp
 
 
 cp client.img /tftpboot/
