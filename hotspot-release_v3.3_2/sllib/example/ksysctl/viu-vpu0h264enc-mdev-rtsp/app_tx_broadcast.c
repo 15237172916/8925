@@ -95,8 +95,8 @@ try_socket:
 			{
 				usleep(1000);
 				//printf("recv len = %d \n", len);
-				printf("Ip : %d \n", broadCollect_s.ucIpAddress);
-				printf("Multicast : %d \n", broadCollect_s.ucMultiAddress);
+				//printf("Ip : %d \n", broadCollect_s.ucIpAddress);
+				//printf("Multicast : %d \n", broadCollect_s.ucMultiAddress);
 				//printf("uProbe : 0x%x \n", broadCollect_s.uProbe);
 				//printf("uuid : %d \n", broadCollect_s.uuid);
 				//printf("uuid : %d \n", broadCollect_s.uuid);
