@@ -47,6 +47,9 @@
 #include "app_rtp_tx.h"
 #include "app_tx_broadcast.h"
 
+#include "uart_watchdog.h"
+
+
 #if 1
 #define IR_DATA_LENGTH 2040
 #define IR_DATA_NUM 2
@@ -150,6 +153,7 @@ static pthread_t	setBitrateHandle;
 static pthread_t 	PullFromList_handler;
 
 static pthread_t controlHandle;
+static pthread_t uartWatchdogHandler;
 
 #ifdef RINGBUFF
 static pthread_t audio_handler;
@@ -2683,7 +2687,27 @@ int main(int argc, char* argv[])
 #endif
 	printf("********************system starting***************************\n");
 	System_running();
-	
+
+#ifdef DEBUG_OFF
+	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
+	if (ret) {
+		log_err("Failed to Create watchdogHandle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+
+#if 1
+	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
+	if (ret) {
+		log_err("Failed to Create uartWatchdogHandler Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+
 #ifdef WEB_ENABLE
 
     InitShareMem();
@@ -2752,16 +2776,8 @@ int main(int argc, char* argv[])
 #endif
 
 	SLOS_CreateMutex(&mutexlock);
-#ifdef DEBUG_OFF
-	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create watchdogHandle Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-	
+
+	//while (1) sleep(9);
 	//register_pull_method(PullFromMdev,PullFromDsp, PushToMdev);
 	
 #ifdef H264_OUTPUT
@@ -2777,6 +2793,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
+	//while (1) sleep(9);
 
 #ifdef ENABLE_GET_IR
 	init_dsp_ir();

@@ -52,6 +52,7 @@
 #include "app_rtp.h"
 
 #include "app_rx_broadcast.h"
+#include "uart_watchdog.h"
 
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
@@ -215,8 +216,8 @@ static pthread_t rtspHandle_video;
 static pthread_t watchdogHandle;
 static pthread_t wifiHandle;
 static pthread_t IP_report_handle;
-static pthread_t 	witch_multicast_handler;   //Jason add
-
+static pthread_t witch_multicast_handler;   //Jason add
+static pthread_t uartWatchdogHandler;
 
 static SL_POINTER join_ret;
 static SL_POINTER join_ret1;
@@ -2218,7 +2219,17 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	
+
+#if 1
+	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
+	if (ret) {
+		log_err("Failed to Create uartWatchdogHandler Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+
 #ifdef 	WEB_ENABLE
 	InitShareMem();
 	AppInitCfgInfoDefault();
