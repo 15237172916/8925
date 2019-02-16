@@ -2688,7 +2688,7 @@ int main(int argc, char* argv[])
 	printf("********************system starting***************************\n");
 	System_running();
 
-#ifdef DEBUG_OFF
+#if 1
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");

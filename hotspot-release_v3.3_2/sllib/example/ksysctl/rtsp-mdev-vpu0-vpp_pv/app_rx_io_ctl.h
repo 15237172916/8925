@@ -55,7 +55,7 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define LED_OFF 1
 #define LED_FLASH 2
 
-#define KEY_IO		8 		//GPIO1_8
+#define KEY_IO		    8 	//GPIO1_8
 #define LED_SIG_LOW 	6 	//GPIO1_6
 #define LED_SIG_MOD		4	//GPIO1_4
 #define LED_SIG_HIG		5	//GPIO1_5

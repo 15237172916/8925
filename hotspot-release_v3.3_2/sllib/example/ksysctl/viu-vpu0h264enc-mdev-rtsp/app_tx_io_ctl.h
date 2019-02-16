@@ -69,13 +69,15 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define MULTICAST_SWITCH_5		6	//GPIO01_06
 #define MULTICAST_SWITCH_6		5	//GPIO01_05
 #define MULTICAST_SWITCH_7		30	//GPIO01_30
-#endif
+#else
 
 #define MULTICAST_SWITCH_1		6	//GPIO01_06
 #define MULTICAST_SWITCH_2		5	//GPIO01_05
 #define MULTICAST_SWITCH_3		4	//GPIO01_04
 #define MULTICAST_SWITCH_4		7	//GPIO01_07
 #define MULTICAST_SWITCH_5		33 	//GPIO02_01
+#endif
+
 
 #define LED_HDMI				35 //GPIO2_03
 #define LED_SYS_STA     		32 //GPIO2_00
