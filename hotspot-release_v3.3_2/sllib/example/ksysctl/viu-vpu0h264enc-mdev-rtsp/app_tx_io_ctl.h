@@ -60,7 +60,7 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define GPIO_HIG_STA	1	//gpio output mode is high 
 #define GPIO_LOW_STA	0	//gpio output mode is low
 
-#if 0
+#if 1
 //Multicast address switch io port
 #define MULTICAST_SWITCH_1		34 	//GPIO02_02
 #define MULTICAST_SWITCH_2		36	//GPIO02_04
