@@ -42,7 +42,6 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define MID_LED 0
 #define LOW_LED 2
 
-
 #define LED_ON 0
 #define LED_OFF 1
 
