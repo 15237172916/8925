@@ -32,7 +32,7 @@ extern void *mutexlock;
 extern LIST_BUFFER_S *list;
 
 extern int flushMdev(void);
-extern char HDMI_lost;
+extern unsigned char HDMI_lost;
 
 extern char web_flag;
 extern char multicast[20];
@@ -63,7 +63,7 @@ SL_POINTER PullFromList(SL_POINTER p)
 	SL_S32 ret, len, pos , tmp_len;
 	unsigned char *dst;
 	unsigned char *pStream;
-	
+	unsigned char *pCheck="0abc"; //send flag with HDMI check signal
 	SLVENC_ExtendStream_info_s *stream;
 
 	dst = malloc(2*1024*1024); //FIXME
@@ -175,6 +175,20 @@ ReSocket:
 			close(sock_cli);
 			goto ReSocket;
 		}
+		//check HDMi signal 
+		if (HDMI_lost)
+		{
+			len = sendto(sock_cli, pCheck, sizeof(pCheck), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+			if (len <= 0)
+			{
+				perror("sendto");
+				close(sock_cli);
+				goto ReSocket;
+			}
+			sleep(1);
+		}
+		else
+		{
 
 		/***************Video data****************/
 #if 1
@@ -446,6 +460,7 @@ ReSocket:
 		{
 			//printf("ringbuffer not full \n");
 			usleep(1000);
+		}
 		}
 #endif
 	}

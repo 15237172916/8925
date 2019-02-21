@@ -418,7 +418,7 @@ Recv:
 			{
 				process_osd_text_solid(10, 10, "Searching TX");
 			}
-			if (timeOut > 20)
+			if (timeOut > 25)
 			{
 				printf("time out 100s \n");
 				reboot1();
@@ -429,17 +429,28 @@ Recv:
 		}
 		else if (len > 0)
 		{
-			if (timeOut > 5)
+			if(!(strcmp(buf,"0abc"))) //check tx's hdmi 
 			{
-				timeOut = 0;
-				process_osd_disable();
-				//printf("\n***********************************\n");
+				process_osd_text_solid(10, 10, "Check TX's input signal");
+				printf("no tx's signal input \n");
+				sleep(1);
+				timeOut++;
+				if (timeOut > 25)
+				{
+					printf("time out 100s \n");
+					reboot1();
+				}
 			}
-			
 			//printf("recv packet len : %d \n", len);
 			#if 1
-			if (0==bStartRecv)
+			else if (0==bStartRecv)
 			{
+				if (timeOut > 5)
+				{
+					timeOut = 0;
+					process_osd_disable();
+					//printf("\n***********************************\n");
+				}
 				//check data header
 				if (0x1A1B1C1D == pDataHead->iProbe && len>=sizeof(DATAHEAD)) //ignore the DATAHEAD split frame issue
 				{
