@@ -144,8 +144,8 @@ fi
 #bin
 #./tmp/configs/ip.conf
 
-./tmp/rtsp-mdev-vpu0-vpp_pv &
-./tmp/UpGradeClient &
+cd /tmp/&&./rtsp-mdev-vpu0-vpp_pv &
+cd /tmp/&&./UpGradeClient &
 
 #mount -o nolock 192.168.1.2:/home/y/Work/8925Docs/8925_test/hotspot-release_v3.3/sllib/bin /mnt
 #mount -o nolock 192.168.1.2:/home/y/work/8925Docs/8925_test/Baseline_8925/900/test/hotspot-release_v1.7_3/sllib/bin/ /mnt

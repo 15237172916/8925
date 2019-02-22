@@ -1853,6 +1853,7 @@ int  audio_config(void)
 
 void *sii9293_handler(void *p)
 {
+	printf("9293\n");
 	video_info_s *video_info;
 	audio_info_s *audio_info;
 	int ret = -1, timeOutReset_5V = 0;
@@ -1862,7 +1863,7 @@ void *sii9293_handler(void *p)
 	
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	device_reset();
+	//device_reset();
 	sleep(1);
 	chip_init();
 	//sleep(3); //yuliubing FIXME

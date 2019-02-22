@@ -563,31 +563,13 @@ void Init_Multicast_and_IP(void)
 	usleep(10000);
 	}
 }
-#endif
+#else
 
-
-void device_reset(void)
-{
-	printf("device reset \n\n");
-	GPIO_openFd(DEVICE_RESET);
-	GPIO_export(DEVICE_RESET);
-	GPIO_setDir(DEVICE_RESET, GPIO_OUTPUT);
-    GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
-	usleep(10000);
-	GPIO_setValue(DEVICE_RESET, GPIO_LOW_STA);
-	usleep(100000);
-	GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
-}
-
-
-
-
-#if 0
-void Multicast_switch(void)
+void Init_Multicast_and_IP(void)
 {
 	SL_U32 value = 0, tmp1, tmp2, i = 10;
 	char str[50] = {0};
-	
+	sleep(1);
 	printf("-----------IP switch-----------\n");
 	while (1)
 	{
@@ -595,11 +577,11 @@ void Multicast_switch(void)
 		
 		GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
 		tmp1 |= value; //0x01
-		printf("value: %d \n", value);
+		//printf("value: %d \n", value);
 		tmp1 = tmp1 << 1; //0x02
 		GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
 		tmp1 = tmp1 | value; //0x03
-		printf("value: %d \n", value);
+		//printf("value: %d \n", value);
 		tmp1 = tmp1 << 1;
 		GPIO_getValue(MULTICAST_SWITCH_3, &value);
 		tmp1 |= value;
@@ -619,9 +601,10 @@ void Multicast_switch(void)
 		tmp1 |= value;
 		#endif
 		
-		printf("tmp1 = 0x%x \n", tmp1);
 		
-		
+		//printf("tmp1 = 0x%x \n", tmp1);
+
+		tmp1+=1;
 		#if 1
 		if (tmp2 != tmp1)
 		{
@@ -636,9 +619,22 @@ void Multicast_switch(void)
 			init_eth();
 		}
 		#endif
-		usleep(10000);
+		sleep(1);
 	}
 	
 }
 #endif
 
+
+void device_reset(void)
+{
+	printf("device reset \n\n");
+	GPIO_openFd(DEVICE_RESET);
+	GPIO_export(DEVICE_RESET);
+	GPIO_setDir(DEVICE_RESET, GPIO_OUTPUT);
+    GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
+	usleep(10000);
+	GPIO_setValue(DEVICE_RESET, GPIO_LOW_STA);
+	usleep(100000);
+	GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
+}
