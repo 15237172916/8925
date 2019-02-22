@@ -19,7 +19,7 @@ body{
 	margin:0 auto; 
 	background-color:#262626;
 	padding:0;
-	background-image:url(./css/logo.png);
+	/*background-image:url(./css/logo.png);*/
 	background-repeat:no-repeat;
 	background-attachment:fixed; /*背景图像固定*/
 	background-position:0px 420px;
@@ -106,6 +106,13 @@ div{
 	
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
+#button129{
+       background-color: transparent; /*#262626;*/
+       outline: none;
+       border: 0;
+}
+
 </style>
 
 <script type="text/html" id="selectTag">
@@ -333,7 +340,7 @@ function onclickButtonSelectTx(number)
 								<input id="button128" type='button' class="RXBotton" onclick="onclickButtonSelectTx('128')"/>
 							</div>
 							<div class="div3">
-
+								<input id="button129" type='button' class="RXBotton" disabled="disabled" value=" "/>
 							</div>
 							
 							<div class="divA">
@@ -343,7 +350,7 @@ function onclickButtonSelectTx(number)
 								<input id="rxName128"  class="RxNameInput" type="text" readonly="true" disabled="disabled" value="TV-128"/>
 							</div>
 							<div class="divC">
-								
+								<input id="rxName129"  class="RxNameInput" type="text" readonly="true" disabled="disabled" value=" "/>
 							</div>	
 						</div>
 					</div>
