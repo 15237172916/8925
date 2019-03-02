@@ -314,23 +314,68 @@ function onloading()
 	});
 }
 
-function SelectButtonNameInit()
+function SelectButtonNameInit(leftPage)
 {
 	var SelectButtonId;
 	var RxNameId;
 	var rxName, txName;
+	var min, max;
+	
+	switch (leftPage)
+	{
+		case 1:
+			min = 0;
+			max = 15;
+			break;
+		case 2:
+			min = 15;
+			max = 30;
+			break;
+		case 3:
+			min = 30;
+			max = 45;
+			break;
+		case 4:
+			min = 45;
+			max = 60;
+			break;
+		case 5:
+			min = 60;
+			max = 75;
+			break;
+		case 6:
+			min = 75;
+			max = 90;
+			break;
+		case 7:
+			min = 90;
+			max = 105;
+			break;
+		case 8:
+			min = 105;
+			max = 120;
+			break;
+		case 9:
+			min = 120;
+			max = 128;
+			break;
+		default:
+			alert("error");
+	}
 
-	for (var i=0; i<128; i++)
+
+	for (var i = min; i < max; i++)
 	{
 		RxNameId = "rxName"+num[i];
 		SelectButtonId = "button"+num[i];
 		multicast = window.parent.rxMulticast[i]-1;
 		rxName = window.parent.rxName[i];
 		txName = window.parent.txName[multicast];
-		//console.log(multicast);
+		console.log(multicast);
 		if (""==txName)
 		{
 			document.getElementById(SelectButtonId).value = "SOURCE-"+num1[multicast];
+			//console.log(document.getElementById(SelectButtonId));
 		}
 		else
 		{
@@ -347,7 +392,7 @@ function SelectButtonNameInit()
 		}
 		
 	}
-	//console.log(window.parent.txName);
+	console.log(window.parent.txName);
 	//alert(window.parent.txName);
 }
 
@@ -355,7 +400,7 @@ function TxButtonNameInit()
 {
 	var TxNameId;
 	var name;
-
+	
 	for (var i=0; i<24; i++)
 	{
 		TxNameId = "TX"+num1[i];
@@ -372,13 +417,24 @@ function TxButtonNameInit()
 	}
 }
 
-function ModeInit()
+function ModeInit(modePage)
 {
 	var modeButtonId;
 	var currentModeNum;
 	var name;
+	var min, max;
+	if (modePage == 1)
+	{
+		min = 0;
+		max = 5;
+	}
+	else
+	{
+		min = 5;
+		max = 10;
+	}
 
-	for (var i=0; i<10; i++)
+	for (var i=min; i<max; i++)
 	{
 		modeButtonId = "Mode"+num1[i];
 		name = window.parent.modeName[i];
@@ -394,8 +450,11 @@ function ModeInit()
 	}
 	
 	currentModeNum=Number(window.parent.currentMode)-1;
-	modeButtonId = "Mode"+num1[currentModeNum];
-	document.getElementById(modeButtonId).style.backgroundColor = "#006000";
+	if ((currentModeNum < max)&&(currentModeNum > min))
+	{
+		modeButtonId = "Mode"+num1[currentModeNum];
+		document.getElementById(modeButtonId).style.backgroundColor = "#006000";
+	}
 }
 
 

@@ -111,6 +111,21 @@ div{
 	outline: none;
 	border: 0;
 }
+
+a {
+	margin:4px 5px 0px 5px;
+	/*转换为内联块 才可以增加a标签的大小*/
+	display: inline-block;
+	background: green;
+	/*14 12*/
+	padding: 7px 13px;
+	font-size: 12px;
+	/*把行高设置和文字一样 方便计算a标签的高度*/
+	line-height: 12px;
+	color: white;
+	text-decoration: none;
+}
+
 </style>
 
 <script type="text/html" id="selectTag">
@@ -149,7 +164,8 @@ var selectButtonValue;
 
 function LoopButton()
 {
-	for (var i=0; i<42; i++)
+	//for (var i=0; i<42; i++)
+	for (var i=15; i<20; i++)
 	{
 		var tiganStr = $("#selectTag").html();
 		tiganStr = delHtmlTags(tiganStr, "{{numA}}", numA[i]);
@@ -205,7 +221,7 @@ function onclickButtonSelectTx(number)
 			window.parent.tmp3 = 1;
 			window.parent.tmp4 = 1;
 			//console.log(number);
-			for (i=0; i<128; i++)
+			for (i=45; i<60; i++)
 			{
 				ButtonId = "button"+num[i];
 
@@ -251,7 +267,7 @@ function onclickButtonSelectTx(number)
 			//ButtonId = "button"+number;
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
 			document.getElementById(ButtonId).style.backgroundColor="#4d4d4d";
-			for (i=0; i<128; i++)
+			for (i=45; i<60; i++)
 			{
 				ButtonId = "button"+num[i];
 				document.getElementById(ButtonId).style.backgroundColor="#4d4d4d";
@@ -289,7 +305,7 @@ function onclickButtonSelectTx(number)
 		
 		tmpNumber = number;
 		tmp = 0;
-		for (i=0; i<128; i++)
+		for (i=45; i<60; i++)
 		{
 			ButtonId = "button"+num[i];
 			
@@ -321,7 +337,7 @@ function onclickButtonSelectTx(number)
  
 </head>
 <!--body class="body-button" onload="SetRxRename();-->
-<body class="body-button" onload="SelectButtonNameInit();">
+<body class="body-button" onload="SelectButtonNameInit(4);">
 	<div class="container">
         <div class="content">
             <!--form action="#" method="post" autocomplete="on"-->
@@ -329,7 +345,7 @@ function onclickButtonSelectTx(number)
 				<script>
 					LoopButton();
 				</script>
-				<div class="div_button">
+				<!--div class="div_button">
 						<div class="div">
 							<div class="div1">
 								<input id="button127" type='button' class="RXBotton" onclick="onclickButtonSelectTx('127')"/>
@@ -351,7 +367,19 @@ function onclickButtonSelectTx(number)
 								<input id="rxName129"  class="RxNameInput" type="text" readonly="true" disabled="disabled" value=" "/>
 							</div>	
 						</div>
-					</div>
+					</div-->
+					<div>
+						<a href="./div_left_1.html">1</a>
+						<a href="./div_left_2.html">2</a>
+						<a href="./div_left_3.html">3</a>
+						<a style="background-color: rgb(22, 201, 22);" href="./div_left_4.html">4</a>
+						<a href="./div_left_5.html">5</a>
+						<a href="./div_left_6.html">6</a>
+						<a href="./div_left_7.html">7</a>
+						<a href="./div_left_8.html">8</a>
+						<a href="./div_left_9.html">9</a>	
+				</div>
+					
 			</div>
 			<!--/form-->
 		</div>

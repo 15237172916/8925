@@ -156,7 +156,7 @@
 	#div_popupRename{
 		position:absolute;
 		
-		top:450px;
+		top:455px;
 		width:58%;
 		min-width: 400px; /*页面最小宽度*/
 		max-width: 720px; /*页面最大宽度*/
@@ -173,7 +173,7 @@
 		right: 0px;
 		
 		width:41%;
-		height:720px;
+		height:725px;
 		max-width: 500px;
 		
 		visibility:hidden;
@@ -182,14 +182,14 @@
 		
 		overflow: hidden;
 	}
-	
-	#div_popupChangeModeName{
+	/*
+	.popupChangeName{
 		position:absolute;
 		right: 0px;
 		
 		width:41%;
-		min-width: 320px; /*页面最小宽度*/
-		max-width: 480px; /*页面最大宽度*/
+		min-width: 320px;
+		max-width: 480px;
 		height:720px;
 		
 		visibility:hidden;
@@ -198,16 +198,16 @@
 		
 		overflow: hidden;
 	}
+	*/
 	
-	#div_popupChangeRxName{
+	#div_popupChangeModeName{
 		position:absolute;
 		right: 0px;
 		
-		min-width: 320px; /*页面最小宽度*/
-		max-width: 480px; /*页面最大宽度*/
-		
 		width:41%;
-		height:720px;
+		min-width: 320px;
+		max-width: 480px;
+		height:725px;
 		
 		visibility:hidden;
 		background-color:#4d4d4d;
@@ -217,15 +217,33 @@
 	}
 	
 	#div_popupChangeTxName{
+
+		position:absolute;
+		right: 0px;
+		
+		min-width: 320px;
+		max-width: 480px;
+
+		width:41%;
+		height:725px;
+		
+		visibility:hidden;
+		background-color:#4d4d4d;
+		z-index:100;
+		
+		overflow: hidden;
+	}
+	
+	#div_popupChangeRxName{
 		
 		position:absolute;
 		right: 0px;
 		
-		min-width: 320px; /*页面最小宽度*/
-		max-width: 480px; /*页面最大宽度*/
+		min-width: 320px; 
+		max-width: 480px;
 		
 		width:41%;
-		height:720px;
+		height:725px;
 		
 		visibility:hidden;
 		background-color:#4d4d4d;
@@ -243,6 +261,7 @@
 		border-color:#080808; /*边框颜色*/
 		-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 	}
+
 	#block{
 		width: 100%;
 		height:20px;
@@ -325,7 +344,6 @@ function TxRenameOnclick()
 			inputId = "inputTxName"+num1[i];
 			document.getElementById("myIframe_changeTxName").contentWindow.document.getElementById(inputId).value = txName[i];
 		}
-		
 	}
 	else
 	{
@@ -334,6 +352,7 @@ function TxRenameOnclick()
 		tmp2 = 1;
 	}
 }
+
 function RxRenameOnclick()
 {
 	var inputId;
@@ -438,7 +457,7 @@ function displayInfoOnclick()
 		<div id="div-left">
 			
 			<div class="scroll-wrapper" style="width:100%; height:725px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="div_left.html" id="myIframe_left" name="myIframe_left" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
+				<iframe onload="" src="div_left_1.html" id="myIframe_left" name="myIframe_left" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>
@@ -446,62 +465,63 @@ function displayInfoOnclick()
 		
 		<div id="div-right">
 			<div class="scroll-wrapper" style="width:100%; height:725px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="div_right.html" id="myIframe_right" name="myIframe_right" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
+				<iframe onload="" src="div_right_1.html" id="myIframe_right" name="myIframe_right" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>
 		</div>
 		
 		<div type="background-color:#262626;">
-		<div class="div_rename">	
-			<input type="button" id="RENAME" value="RENAME" onclick="RenameOnclick();"/>
+			<div class="div_rename">	
+				<input type="button" id="RENAME" value="RENAME" onclick="RenameOnclick();"/>
+			</div>
+			
+			<div class="div_info">
+				<input type="button" id="INFO" value="INFO" onclick="displayInfoOnclick();"/>
+			</div>
 		</div>
 		
-		<div class="div_info">
-			<input type="button" id="INFO" value="INFO" onclick="displayInfoOnclick();"/>
+		<div id="div_popupRename">
+				<div class="div_ChangeName">
+					<input id="RxChangeName" class="button_ChangeName" type="button" value="CHANGE TV NAME" onclick="RxRenameOnclick();"/>
+				</div>
+				<div class="div_ChangeName">
+					<input id="TxChangeName" class="button_ChangeName" type="button" value="CHANGE SOURCE NAME" onclick="TxRenameOnclick();"/>
+				</div>
+				<div class="div_ChangeName">
+					<input id="ModeChangeName" class="button_ChangeName" type="button" value="CHANGE MODE NAME" onclick="ModeRenameOnclick();"/>
+				</div>
 		</div>
-		</div>
-		<div id="div_popupChangeModeName">
-			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
+
+		<div id="div_popupChangeModeName" class="popupChangeName">
+			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow-y:scroll;" >
 				<iframe onload="" src="popupChangeModeName.html" id="myIframe_changeModeName" name="myIframe_right" width="100%" height="710px" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>
 		</div>
-		
-		<div id="div_popupTxSelectButton">
-			<div class="scroll-wrapper" style="width:100%; height:725px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="popupTxSelectButton.html" id="myIframe_selectTxButton" name="myIframe_right" width="100%" height="700px" frameborder="0" type="text/html" scrolling="yes" seamless >
-					<p>Your browser is unsupport </p>
-				</iframe>
-			</div>
-		</div>
-		
-		<div id="div_popupChangeRxName">
-			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="popupChangeRxName.html" id="myIframe_changeRxName" name="myIframe_right" width="100%" height="710px" frameborder="0" type="text/html" scrolling="yes" seamless >
-					<p>Your browser is unsupport </p>
-				</iframe>
-			</div>
-		</div>
-		
-		<div id="div_popupChangeTxName">
-			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
+		<div></div>	
+		<div id="div_popupChangeTxName" class="popupChangeName">
+			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow-y:scroll;" >
 				<iframe onload="" src="popupChangeTxName.html" id="myIframe_changeTxName" name="myIframe_right" width="100%" height="710px" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>
 		</div>
-		
-		<div id="div_popupRename">
-			<div class="div_ChangeName">
-				<input id="RxChangeName" class="button_ChangeName" type="button" value="CHANGE TV NAME" onclick="RxRenameOnclick();"/>
+		<div></div>	
+		<div id="div_popupChangeRxName" class="popupChangeName">
+			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow-y:scroll;" >
+				<iframe onload="" src="popupChangeRxName.html" id="myIframe_changeRxName" name="myIframe_right" width="100%" height="710px" frameborder="0" type="text/html" scrolling="yes" seamless >
+					<p>Your browser is unsupport </p>
+				</iframe>
 			</div>
-			<div class="div_ChangeName">
-				<input id="TxChangeName" class="button_ChangeName" type="button" value="CHANGE SOURCE NAME" onclick="TxRenameOnclick();"/>
-			</div>
-			<div class="div_ChangeName">
-				<input id="ModeChangeName" class="button_ChangeName" type="button" value="CHANGE MODE NAME" onclick="ModeRenameOnclick();"/>
+		</div>
+		<div></div>	
+		<div id="div_popupTxSelectButton">
+			<div class="scroll-wrapper" style="width:100%; height:735px; -webkit-overflow-scrolling:touch; overflow:scroll;" >
+				<iframe onload="" src="popupTxSelectButton.html" id="myIframe_selectTxButton" name="myIframe_right" width="100%" height="710px" frameborder="0" type="text/html" scrolling="yes" seamless >
+					<p>Your browser is unsupport </p>
+				</iframe>
 			</div>
 		</div>
 		

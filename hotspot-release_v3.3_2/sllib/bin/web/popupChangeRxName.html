@@ -51,6 +51,7 @@ div{
 .TxSelectButton{
 	height: 100px;
 	width: 100%;
+	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .inputChangeRxName{
 	height: 80px;
@@ -75,7 +76,7 @@ div{
 }
 .CancelButton{
 	height: 80px;
-	width: 20%;
+	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
 	color: white;
@@ -96,7 +97,7 @@ div{
 		<label class="labelMode">TV-{{num}}:</label>
 		<input id="inputRxName{{num}}" class="inputChangeRxName" onfocus="OnfocusRx('{{num}}');" onblur="OnblurRx('{{num}}');" value="">
 		<input id="ApplyButton{{num}}" class="ApplyButton" type="button" onclick="OnclickApplyButton('{{num}}');" value="OK"/>
-		<input id="CancelButton{{num}}" class="CancelButton" type="button" onclick="OnclickCancelButton('{{num}}')" value="CANCEL">
+		<input id="CancelButton{{num}}" class="CancelButton" type="button" onclick="OnclickCancelButton('{{num}}')" value="CL">
 	<div>
   </div>
 </script>
@@ -242,7 +243,8 @@ function changRxNameInit()
 </script>
  
 </head>
-<body class="" onload="changRxNameInit();">
+<!--body class="" onload="changRxNameInit();"-->
+<body class="">
 	<div class="RxName">
 		<script>
 			LoopButton();
