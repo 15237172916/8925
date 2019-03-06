@@ -20,6 +20,7 @@
 
 //#define CONFIG_FILE ("/user/configs/config.conf")
 
+#define RM_CONFIG_FILE ("rm /tmp/configs/config.conf")
 #define CONFIG_FILE1 ("/tmp/configs/modeName.conf")
 #define CONFIG_FILE ("/tmp/configs/config.conf")
 #define NETWORK_INFO         ("Info1")
@@ -56,7 +57,7 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.200");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
     strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");
-    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.1");      
+    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.1"); 
     
     //WLAN
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
@@ -291,6 +292,14 @@ int AppInitCfgInfoFromFile(int *fp)
 		
 		//printf("share_mem->sm_group_rename.txRename[%d] : %s \n", i, share_mem->sm_group_rename.txRename[i]);
 	}
+
+	if (iRetCode == FAILURE)
+	{
+		printf("read error of configure file  \n");
+		system(RM_CONFIG_FILE);
+		sleep(1);
+		reboot1();
+	}
 	close(fp);
 	
 #if 1
@@ -308,6 +317,7 @@ int AppInitCfgInfoFromFile(int *fp)
 		sprintf(s,"MODE[%d]", i);
 		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
 		//printf(strTemp);
+		//printf(s);
 		strcpy(share_mem->sm_mode_rename.modeRename[i], strTemp);
 		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
 	}
@@ -440,7 +450,7 @@ int AppWriteCfgInfotoFile(void)
     {
 		fprintf(fp, "MODE[%d]=", i);
 		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
-		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
+		//printf("Write config : %s",share_mem->sm_mode_rename.modeRename[i]);
 	}
 	//current mode
 	fprintf(fp, "CurrentMode=");

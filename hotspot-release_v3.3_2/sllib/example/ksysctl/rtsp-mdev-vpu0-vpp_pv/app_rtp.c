@@ -429,7 +429,14 @@ Recv:
 		}
 		else if (len > 0)
 		{
-			if(!(strcmp(buf,"0abc"))) //check tx's hdmi 
+			//printf("recvfrom len : %d \n", len);
+			#if 0
+			if (4==len)
+			{
+				printf("buf : %c%c%c%c \n", *buf, *(buf+1), *(buf+2), *(buf+3));
+			}
+			#endif
+			if(!(strncmp( buf, "0abc", 4))) //check tx's hdmi 
 			{
 				process_osd_text_solid(10, 10, "Check TX's input signal");
 				printf("no tx's signal input \n");
@@ -445,7 +452,7 @@ Recv:
 			#if 1
 			else if (0==bStartRecv)
 			{
-				if (timeOut > 5)
+				if (timeOut > 2)
 				{
 					timeOut = 0;
 					process_osd_disable();

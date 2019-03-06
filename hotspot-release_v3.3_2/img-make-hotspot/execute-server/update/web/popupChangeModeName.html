@@ -180,11 +180,21 @@ function OnclickApplyButton(number)
 	var ApplyId = "ApplyButton"+number;
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputModeName"+number;
-	var ModeId = "Mode"+number;
-	var ret;
-	var name;
+	var ModeId, ret, name;
+	var orderNumber = Number(number);
 	var inputValue = document.getElementById(InputId).value;
-	console.log(number)
+	var page = window.parent.currentRightPageNum;
+	console.log(orderNumber);
+	
+	if (orderNumber<=5)
+	{
+		ModeId = "Mode"+num1[orderNumber-1];
+	}
+	else
+	{
+		ModeId = "Mode"+num1[(orderNumber-6)];
+	}
+
 	if (''==inputValue)
 	{
 		name = "MODE-"+number;
@@ -194,14 +204,21 @@ function OnclickApplyButton(number)
 		name = inputValue;
 	}
 	ret = changeModeName(number, inputValue);
-
-	console.log(ModeId);
+	//console.log(ModeId);
 	if(1 == ret)
 	{
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
-
-		window.parent.document.getElementById("myIframe_right").contentWindow.document.getElementById(ModeId).value = name;
+		window.parent.modeName[orderNumber-1] = inputValue;
+		//console.log(Math.ceil(orderNumber/5));
+		//console.log(page);
+		//console.log(orderNumber);
+		//console.log(window.parent.modeName[orderNumber-1]);
+		console.log(ModeId);
+		if ((Math.ceil(orderNumber/5)) == page)
+		{
+			window.parent.document.getElementById("myIframe_right").contentWindow.document.getElementById(ModeId).value = name;
+		}
 	}
 	else
 	{

@@ -54,7 +54,7 @@
 		/*background-color: #444444; /*其他页面的背景色*/
 		/*padding: 1%;*/
 	}
-	
+
 	h1{
 		text-align:center;
 		background-color:#4d4d4d;
@@ -284,6 +284,7 @@ function RenameOnclick()
 {
 	if (tmp1==1)
 	{
+		//console.log(tmp1);
 		document.getElementById("div_popupRename").style.visibility="visible";
 		document.getElementById("RENAME").style.backgroundColor="green";
 		document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
@@ -448,7 +449,7 @@ function displayInfoOnclick()
 
 <body id="body" onload="">
 	<header id="header" onload="">
-		<h1><img src="./css/logo_max2.png" width="auto" height="50"  align ="left">IP MATRIX &emsp;&emsp; </h1>
+		<h1><img src="./css/logo_max2.png" width="auto" height="50" align ="left"/>IP MATRIX &emsp;&emsp; </h1>
 		<script>onloading();</script>
 	</header>
 	<div id="block"></div>
@@ -457,7 +458,7 @@ function displayInfoOnclick()
 		<div id="div-left">
 			
 			<div class="scroll-wrapper" style="width:100%; height:725px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="div_left_1.html" id="myIframe_left" name="myIframe_left" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
+				<iframe onload="" src="div_left.html" id="myIframe_left" name="myIframe_left" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>
@@ -465,7 +466,7 @@ function displayInfoOnclick()
 		
 		<div id="div-right">
 			<div class="scroll-wrapper" style="width:100%; height:725px; -webkit-overflow-scrolling:touch; overflow: scroll ;" >
-				<iframe onload="" src="div_right_1.html" id="myIframe_right" name="myIframe_right" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
+				<iframe onload="" src="div_right.html" id="myIframe_right" name="myIframe_right" width="100%" height="100%" frameborder="0" type="text/html" scrolling="yes" seamless >
 					<p>Your browser is unsupport </p>
 				</iframe>
 			</div>

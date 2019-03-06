@@ -181,7 +181,9 @@ function OnclickApplyButton(number)
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputRxName"+number;
 	var RxId = "rxName"+number;
-	
+	var parent = window.parent;
+	var num = Number(number);
+	var page = parent.currentLeftPageNum;
 	var ret;
 	
 	var inputValue = document.getElementById(InputId).value;
@@ -196,14 +198,20 @@ function OnclickApplyButton(number)
 		//inputValue = number+'-'+inputValue;
 		name = number+'-'+inputValue;
 	}
-	
+	console.log(Math.ceil(num/15));
+	console.log(page);
 	ret = changeRxName(number, inputValue);
+	
 	if (1==ret)
 	{
+		window.parent.rxName[num-1] = inputValue;
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
-	
-		window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(RxId).value = name;
+		
+		if ((Math.ceil(num/15))==page)
+		{
+			window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(RxId).value = name;
+		}
 	}
 	else
 	{
