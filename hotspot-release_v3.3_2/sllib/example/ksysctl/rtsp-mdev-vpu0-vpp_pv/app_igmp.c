@@ -14,7 +14,7 @@ extern char multicast[20];
 extern char web_flag;
 char report_succeed = 1;
 
-static unsigned short csum(unsigned short *buf, int nwords)
+unsigned short csum(unsigned short *buf, int nwords)
 {
 	unsigned long sum;
 	

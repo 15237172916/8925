@@ -41,18 +41,13 @@ typedef struct _SLUART_OpenParms_t
     SL_U8             stop;   /*1 or 2*/
 }SLUART_OpenParams_t;
 
-SL_ErrorCode_t SLUART_Setopt(SL_S32 fd, 
-                             SL_U32 nSpeed, 
-                             SL_U32 nBits, 
-                             SL_U8  nEvent, 
-                             SL_U8  nStop);
 
-SL_ErrorCode_t SLUART_Open(SL_U32 *fd, const SLUART_OpenParams_t *OpenParams, const char *UartName);
-SL_ErrorCode_t SLUART_Close(SL_U32 fd);
+SL_ErrorCode_t SLUART_Open(const SLUART_OpenParams_t *OpenParams);
+SL_ErrorCode_t SLUART_Close();
 
-SL_ErrorCode_t SLUART_Read(SL_U32 fd, SL_U8 *ReadBuffer, SL_U32 ReadLength);
+SL_ErrorCode_t SLUART_Read(SL_U8 *ReadBuffer, SL_U32 ReadLength);
 
-SL_ErrorCode_t SLUART_Write(SL_U32 fd, SL_U8 *WriteBuffer, SL_U32 WriteLength);
+SL_ErrorCode_t SLUART_Write(SL_U8 *WriteBuffer, SL_U32 WriteLength);
 
 #ifdef __cplusplus
 }

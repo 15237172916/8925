@@ -38,7 +38,7 @@
 #include <vpp/sl_api_pv.h>
 #include <vpp/sl_param_osd.h>
 #include <vpp/sl_api_osd.h>
-#include "list_handler.h"
+#include "list_handler.h" 
 #include "sl_watchdog.h" 
 #include "display.h" 
 #include "osd.h" 
@@ -51,17 +51,14 @@
 
 #include "app_rtp.h"
 
-#include "app_rx_broadcast.h"
-#include "uart_watchdog.h"
-
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
 //#define APP_CODE
 #define WEB_ENABLE
 //#define KVM_UART
-#define APP_IO
-#define APP_RTP
-
+//#define APP_IO
+#define APP_RTP 
+#define  SWIT_MULTICAST
 
 #define AUDIO_SUPPORT
 #define VIDEO_SUPPORT
@@ -120,8 +117,6 @@ char 	web_flag;
 static pthread_t ConfigHandle;
 #endif
 
-static pthread_t IP_switch_handle;
-
 client_param_t client_param;
 
 #ifdef ENABLE_IR_SEND
@@ -156,9 +151,6 @@ static SL_U32 wpa_need_restart = 0;
 extern CFG_INFO_S cfginfo;
 
 extern char idr_flag;
-extern char key_display;
-extern char display_flag;
-
 
 char rtspURL_video_eth0[128] = "rtsp://192.168.1.3:8554/ch0"; //video 
 char rtspURL_audio_eth0[128] = "rtsp://192.168.1.3:8559/testStream"; //audio 
@@ -208,16 +200,17 @@ static SL_U32 netInterface;
 static SL_U32 need_feed_dog = 1;
 static LIST_BUFFER_S *list;
 
-
 static pthread_t iHandle;
 
 static pthread_t rtspHandle_audio;
 static pthread_t rtspHandle_video;
 static pthread_t watchdogHandle;
 static pthread_t wifiHandle;
-static pthread_t IP_report_handle;
-static pthread_t witch_multicast_handler;   //Jason add
-static pthread_t uartWatchdogHandler;
+
+static pthread_t  switch_multicast_handler;   //Jason add
+static pthread_t  Udp_multicast_handler;
+
+
 
 static SL_POINTER join_ret;
 static SL_POINTER join_ret1;
@@ -236,7 +229,7 @@ const char * hdmi_pullout = "Check TX's input signal";
 #endif
 
 char serverip[20] = "192.168.1.3";
-char multicast[20] = "239.255.42.1";
+char multicast[20] = "239.255.42.44";
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
 
@@ -367,7 +360,6 @@ int reboot1(void)
 	SILANWORDR data;
 
 	//sleep(1);
-	
 	//system("umount /home");
 	fd = open(DEV_IO_NAME, O_RDWR);
 	if(fd < 0){
@@ -601,9 +593,8 @@ static SL_S32 trigger(SL_S32 first_time)
 			log_err("sysctl_config failed");
 			reboot1();
 		}
-	} 
-	else 
-	{
+
+	} else {
 		usleep(20000); //TODO
 		ret = SLSYSCTL_stopProcess(im_devman); 
 		if (SL_NO_ERROR != ret) {
@@ -629,19 +620,7 @@ static SL_S32 trigger(SL_S32 first_time)
 }
 
 #if 1
-#define DEBUG 	0
 
-#if DEBUG
-#define FILE1 "./test1.264"
-#define FILE2 "./test2.264"
-#define FILE3 "./test3.264"
-#define FILE4 "./test4.264"
-#define FILE5 "./test5.264"
-#define FILE6 "./test6.264"
-
-static char outfilename[128] = "./test.264";
-char save_264file_flag = 0;
-#endif
 //pthread
 //static SL_POINTER wacPushFrameToMDev(SL_POINTER Args)
 void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
@@ -655,12 +634,10 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	H264_APPEND_INFO_s *append_info;
 	SL_S32 idr_frame;
 	SL_S32 first_time;
-	static SL_S32 discard_frame_count = 0;
+	static SL_S32 discard_p_frame = 0;
 	static SL_S32 tmp_fs = 0;
 	static SL_S32  idr_got = 0;
 	static SL_S32 frameCount = 0;
-	static SL_S32 write_block_fail_count = 0;
-	static SL_S32 discard_p_frame = 0;
 	static struct timeval time_begin = {0};
 	static struct timeval time_end = {0};
 	
@@ -673,110 +650,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
     //printf("wac Get a Frame size = %d \n",size);
     //return 0;
     
-#if DEBUG //save h264 file
-	
-	static unsigned int file_count = 0;
-	static FILE * outfile1  = NULL;
-	static FILE * outfile2  = NULL;
-	static FILE * outfile3  = NULL;
-	static FILE * outfile4  = NULL;
-	static FILE * outfile5  = NULL;
-	static FILE * outfile6  = NULL;
-	
-	
-	if (file_count < 10000)
-	{
-		if(!outfile1)
-		{
-			if ((outfile1 = fopen(FILE1, "wb")) == NULL)
-			{
-				printf("can't open ", outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile1);
-	}
-	else if ((file_count >= 10000) && (file_count < 20000))
-	{
-		if(!outfile2)
-		{
-			if ((outfile2 = fopen(FILE2, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile2);
-	}
-	else if ((file_count >= 20000) && (file_count < 30000))
-	{
-		if(!outfile3)
-		{
-			if ((outfile3 = fopen(FILE3, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile3);
-	}
-	else if ((file_count >= 3000) && (file_count < 40000))
-	{
-		if(!outfile4)
-		{
-			if ((outfile4 = fopen(FILE4, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile4);
-	}
-	else if ((file_count >= 40000) && (file_count < 50000))
-	{
-		if(!outfile5)
-		{
-			if ((outfile5 = fopen(FILE5, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile5);
-	}
-	else if ((file_count >= 50000) && (file_count < 60000))
-	{
-		if(!outfile6)
-		{
-			if ((outfile6 = fopen(FILE6, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile6);
-	}
-	else
-	{
-		file_count = 0;
-		outfile1 = NULL;
-		outfile2 = NULL;
-		outfile3 = NULL;
-		outfile4 = NULL;
-		outfile5 = NULL;
-		outfile6 = NULL;
-	}
-	
-	file_count++;
-#endif
-    
-	//while (1)
+	//while(1)
 	{
 		//for eric 
 		timeoutCnt = 0;
@@ -789,7 +663,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 			if(!frameCount)
 				gettimeofday(&time_begin, 0);
 			frameCount ++;
-			if (frameCount >= total_frame)
+			if(frameCount >= total_frame)
 			{
 				//printf("frameCount:%d\n",frameCount);
 				gettimeofday(&time_end, 0);
@@ -803,21 +677,8 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 				//printf("interval_second:%f\n",interval_second);
 				g_discard_frame = g_frameRate - (SL_S32)(total_frame/interval_second); 
 				if(g_discard_frame > 5)
-				{
 					printf("g_discard_frame:%d\n",g_discard_frame);
-					discard_frame_count++;
-					
-					if (discard_frame_count >=5)
-					{
-						printf("discard_frame_count >=5 \n");
-						
-						discard_frame_count = 0;
-						
-						//return 0;
-					}
-				}
 				frameCount = 0;
-				//return 0;
 			}
 		}
 
@@ -831,7 +692,6 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 		//printf("data : %d \n", *data);
 		if (0x67 == *data)
 		{
-			//printf("this is I frame \n");
 		    /*Removed debug info for speed up
 		    printf(" \n idr frame size = %d \n",size);
 		    
@@ -905,6 +765,7 @@ step:
 				discard_p_frame = 1;
 				return 0;
 			}
+
 			//else if((g_width != append_info->width ) || (g_height != append_info->height) || (g_frameRate != append_info->frameRate))
 			else if ((g_width != append_info->width ) || (g_height != append_info->height) || (g_frameRate != append_info->frameRate) || audio_change)
 			{
@@ -941,10 +802,9 @@ step:
 		}
 		else
 		{
-			//printf("this is p frame \n");
 	    	//printf(" \n ************not idr frame : %d \n", idr_flag);
-	    	if (idr_flag) //from wang
-				return 0; //idr farme not come
+	    	if (idr_flag) //wang
+				return 0;
 			
 			if(!g_sysctl_configed)
 			{
@@ -961,9 +821,7 @@ step:
 			idr_frame = 0;
 		}
 		if(!idr_frame)
-		{
 			cpSize = size;
-		}
 		else
 		{
 			cpSize = size - sizeof(H264_APPEND_INFO_s);
@@ -975,46 +833,27 @@ step:
 
        //printf("allocate block \n");
         
-tryAgain:
-		
+tryAgain:	
 		ret = SLMDEV_mallocBlockWrite(im_devman, &buf, cpSize);
-		if (SL_NO_ERROR != ret)
-		{
-			printf("pv SLMDEV_mallocBlockWrite failed \n");
-			usleep(100000);
-			
-			reboot1();
-			//return 0;
+		if (SL_NO_ERROR != ret) {		
+			//printf("pv SLMDEV_mallocBlockWrite failed \n");
+			usleep(10000);
 			goto tryAgain;
 		}
 
 		//printf("allocate block ok\n");
-#if 0
-		//discard test
-		static int test_no;
-		test_no++;
-		if (test_no > 100 && test_no < 1000)
-		{
-			memset(pframe, 0, cpSize/2);
-		}
-		if (test_no > 5000)
-		{
-			test_no = 0;
-		}
-#endif
-		
 		memcpy(buf, pframe, cpSize);
 
 		ret = list_push_data(list, buf);
-		if (ret)
+		if(ret)
 		{
 			printf("fail to push data\n");
 			return NULL;
 		}
-		else
-		{
-		    //printf("list push data ok \n");
-		}
+		//else
+		//{
+		//    printf("list push data ok \n");
+		//}
 	}
 	
 	return 0;
@@ -1130,12 +969,12 @@ static int wacPushFrameToMDev(unsigned char *pframe, int  size)
 		//audio_config(g_fs, g_audio_bits, g_chns);
 		//rtsp_audio_client_config(g_fs, g_audio_bits, g_chns);
 step:
-		if((append_info->width > 1920) || (append_info->height > 1088) || (append_info->frameRate > 60)) 
-		{
+		if((append_info->width > 1920) || (append_info->height > 1088) || (append_info->frameRate > 60)) {
 			log_note("abnoamrl width or height or frameRate.maybe reason of miss data\n");
 			discard_p_frame = 1;
 			return 0;
 		}
+
 		else if((g_width != append_info->width ) || (g_height != append_info->height) || (g_frameRate != append_info->frameRate) || audio_change)
 		{
 			audio_change = 0;
@@ -1194,8 +1033,7 @@ step:
 #endif
 tryAgain:
 	ret = SLMDEV_mallocBlockWrite(im_devman, &buf, cpSize);
-	if (SL_NO_ERROR != ret) 
-	{		
+	if (SL_NO_ERROR != ret) {		
 		printf("pv SLMDEV_mallocBlockWrite failed \n");
 		//usleep(10000);
 		usleep(2000);
@@ -1234,16 +1072,14 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 	void *buf;
 	//SL_U32 interval;
 	SL_S32 ret;
-	SL_U32 dd;
 	static SL_S32 cnt = 0;
 	//static struct timeval time_begin = {0};
 	//static struct timeval time_end = {0};
-	
+
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	while (1) 
-	{
-		//printf("g_sysctl_configed = %d \n", g_sysctl_configed);
+	while (1) {
+
 		if(!g_sysctl_configed)
 		{
 			usleep(2000);
@@ -1259,19 +1095,7 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 			usleep(5000);
 			continue;
 		}
-#if 0
-		//add for wang in 20181218
-		ret = SLSYSCTL_getTimeoutDev(&dd);
-		if (dd == vpu_dev)
-		{
-			log_err("SLSYSCTL_getTimeoutDev need reboot\n");
-			reboot1();
-			break;
-		}
-		printf("ret: %d \n", ret);
-		printf("dd: %d \n", dd);
-		printf("vpu_dev: %d \n", vpu_dev);
-#endif
+
 		//FIXME
 		if(!g_cnt)
 		{
@@ -1980,9 +1804,9 @@ try_again:
 				else 
 					break;	
 			}
-			//printf("value:%d\n",value);
+			//	printf("value:%d\n",value);
 			if(value < 50000) {
-				//printf("repeat=\n");
+				//			printf("repeat=\n");
 				value =0;
 				continue; //not handle repeat code
 			}
@@ -2062,7 +1886,7 @@ try_again:
 		close(sock_cli);
 		sleep(2);
 		goto try_again;
-		//exit(1);
+		//	exit(1);
 	}
 
 #endif
@@ -2171,13 +1995,22 @@ try_again:
 #endif
 #endif
 
+/*******Jason add 20180830*****/
+static int rx_switch_multicast_main(void)
+{
+	printf("rx_switch_multicast_main start --------------------------\n");
+	rx_switch_multicast();
+
+	return 0;
+}
+
+
 /* For usysctl testing */
 int main(int argc, char* argv[])
 {
-	SL_S32 ret = -1, i;
-	SL_S32 dd = -1;
+	SL_S32 ret = -1, i;	
 	RTSP_STATE_e state;
-	char str_tmp[50];
+
 	char configs[128];
 	//AppWriteCfgInfotoFile();
 #if 0
@@ -2211,25 +2044,6 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	
-#if 1
-	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create watchdogHandle Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-
-#if 1
-	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
-	if (ret) {
-		log_err("Failed to Create uartWatchdogHandler Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-
 #ifdef 	WEB_ENABLE
 	InitShareMem();
 	AppInitCfgInfoDefault();
@@ -2251,21 +2065,9 @@ int main(int argc, char* argv[])
     }
     strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
     //if(strcmp("192.168.1.5",share_mem->sm_eth_setting.strEthIp)!=0)
-    
 	init_eth();//   zhou
 	
 #endif
-
-#if 1
-	ret = pthread_create(&IP_switch_handle, NULL, IP_switch, NULL);
-	if (ret) {
-		log_err("Failed to Create IP_switch Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-	sleep(1);
-	
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, "V4.0 System Starting");
@@ -2274,10 +2076,8 @@ int main(int argc, char* argv[])
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
 	//sleep(1);
 #endif
-
-
 #if 1
-	ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_report, NULL);
+	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
 		reboot1();
@@ -2293,16 +2093,21 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#ifdef APP_IO
-#if 0
-	ret = pthread_create(&app_rx_io_ctl_handler, NULL, app_rx_io_ctl_main, NULL);
+/******** jason add 20180830 *****************/
+#ifdef SWIT_MULTICAST
+    //printf("rx_witch_multicast_main test start : [main]\n");   
+	ret = pthread_create(&switch_multicast_handler, NULL, rx_switch_multicast_main, NULL);
 	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
+		log_err("Failed to Create tx_witch_multicast_main Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
 		return ret;
 	}
 #endif
 
-#if 0
+	//while(1) sleep(1);
+#ifdef APP_IO
+#if 1
 	ret = pthread_create(&app_rx_light_ctl_handler, NULL, app_rx_light_ctl_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_rx_light_ctl_main Thread\n");
@@ -2310,11 +2115,15 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-
-	//while (1) sleep(1);
+#if 1
+	ret = pthread_create(&app_rx_io_ctl_handler, NULL, app_rx_io_ctl_main, NULL);
+	if (ret) {
+		log_err("Failed to Create rtspOpen Thread\n");
+		return ret;
+	}
+#endif
 	sleep(1); //wait IO init ok
-	signal_light_flash();
-	
+	//signal_light_flash();
 #endif
 	
 #ifdef WEB_ENABLE
@@ -2326,7 +2135,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	
+
 #if 0
 	memset(&client_param, 0x00, sizeof(client_param_t));
 #if 1
@@ -2370,21 +2179,21 @@ int main(int argc, char* argv[])
 	if (ret) {
 		log_err("Failed to Create rtspOpen Thread\n");
 		return ret;
-		}
+	}
 #endif
 #if 1
 	ret = pthread_create(&app_rx_signal_ch_handler, NULL, app_rx_signal_ch_main, NULL);
 	if (ret) {
 		log_err("Failed to Create rtspOpen Thread\n");
 		return ret;
-		}
+	}
 #endif
 #if 1
 	ret = pthread_create(&app_rx_data_ch_handler, NULL, app_rx_data_ch_main, NULL);
 	if (ret) {
 		log_err("Failed to Create rtspOpen Thread\n");
 		return ret;
-		}
+	}
 #endif
 #endif
 
@@ -2407,12 +2216,13 @@ int main(int argc, char* argv[])
 	}
 	
 #ifdef APP_RTP
+
 #if 1
-	ret = pthread_create(&app_rtp_main_handler, NULL, app_rtp_main, NULL);
+	ret = pthread_create(&checkWr_handler, NULL, check_wr_thread, NULL);
 	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
+		printf("Failed to create audio check wr thread, %d\n", ret);
 		return ret;
-		}	
+	}
 #endif
 
 #if 1
@@ -2424,11 +2234,11 @@ int main(int argc, char* argv[])
 #endif
 
 #if 1
-	ret = pthread_create(&checkWr_handler, NULL, check_wr_thread, NULL);
+	ret = pthread_create(&app_rtp_main_handler, NULL, app_rtp_main, NULL);
 	if (ret) {
-		printf("Failed to create audio check wr thread, %d\n", ret);
+		log_err("Failed to Create rtspOpen Thread\n");
 		return ret;
-	}
+	}	
 #endif
 
 #endif
@@ -2476,47 +2286,21 @@ int main(int argc, char* argv[])
 	signal(SIGTERM, signalHandle);
 	signal(SIGIO, signalioHandle);
 #endif
-	//trigger();
-	char tmp = 0;
 	
 	while (1)
 	{
+		static unsigned int timeOutReset = 0;
+		//printf("timeOutReset : %d \n", timeOutReset);
 		sleep(1);
-		//printf("tmp:%d \n", tmp);
-		//printf("display_flag: %d\n", display_flag);
-		if (key_display || display_flag)
+		/*
+		timeOutReset++;
+		if (timeOutReset > 43200)
+		//if (timeOutReset > 120)
 		{
-			if (0==tmp)
-			{
-				sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
-				process_osd_text_solid(10, 20, str_tmp);
-			}
-			tmp = 1;
-		}
-		else
-		{
-			if (1==tmp)
-			{
-				process_osd_disable();
-				tmp = 0;
-			}
-		}
-		
-#if 0
-		//add for wang in 20181219
-		ret = SLSYSCTL_getTimeoutDev(&dd);
-		if (dd == vpu_dev)
-		{
-			log_err("SLSYSCTL_getTimeoutDev need reboot\n");
 			reboot1();
-			break;
+			printf("time out reset \n");
 		}
-		printf("ret: %d \n", ret);
-		printf("dd: %d \n", dd);
-		printf("vpu_dev: %d \n", vpu_dev);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthMulticast);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthIp);
-#endif
+		*/
 	}
 	
 #if 0

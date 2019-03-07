@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -12,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <sl_debug.h>
-
 #include "config.h"
 #include "cfginfo.h"
 #include "Setting.h"
@@ -20,8 +18,7 @@
 
 //#define CONFIG_FILE ("/user/configs/config.conf")
 
-#define CONFIG_FILE1 ("/tmp/configs/modeName.conf")
-#define CONFIG_FILE ("/tmp/configs/config.conf")
+#define CONFIG_FILE ("/tmp/config.conf")
 #define NETWORK_INFO         ("Info1")
 #define IP           ("IP")
 #define SERVERIP           ("SERVERIP")
@@ -36,9 +33,6 @@ CFG_INFO_S cfginfo;
 
 int AppInitCfgInfoDefault(void)
 {
-	int i;
-	char s[40];
-	
     //RUN_STATUS.ucHDMIStatus = HDMI_OUT;
     share_mem->sm_run_status.ucInputStatus = NONE;
     share_mem->sm_run_status.usWidth = 0;
@@ -53,10 +47,10 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_run_status.strSoftwareVer, SW_VERSION);
     
     //ETH
-    strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.200");
+    strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.3");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
-    strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");
-    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.1");      
+    strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");  
+    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.44");      
     
     //WLAN
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
@@ -69,7 +63,7 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_wlan_setting.ucWlanEnable=DISABLE; 
     
     //ENCODER
-    share_mem->sm_encoder_setting.usEncRate = 8000;
+    share_mem->sm_encoder_setting.usEncRate = 1000;
     share_mem->sm_encoder_setting.ucInterval = 30;
     share_mem->sm_encoder_setting.ucIQP = 36;
     share_mem->sm_encoder_setting.ucPQP = 40;
@@ -91,54 +85,14 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, "main");
     //printf("init interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
 
-	//client IP and Multicast group
-	//share_mem->sm_group_pack.ucIpAddress[0] = 0;
-	for (i=0; i<128; i++)
-	{
-		share_mem->sm_group_pack.ucMultiAddress[i] = 1;
-	}
-	
-	for (i=0; i<128; i++)
-	{
-		
-		sprintf(s,"");
-		//printf(s);
-		strcpy(share_mem->sm_group_rename.rxRename[i], s);
-		//printf(s);
-	}
-	
-	for (i=0; i<24; i++)
-	{
-		
-		sprintf(s,"");
-		
-		strcpy(share_mem->sm_group_rename.txRename[i], s);
-		//printf(s);
-		//printf("share_mem->sm_group_rename.txRename[%d] : %s \n", i, share_mem->sm_group_rename.txRename[i]);
-	}
-	
-	//mode
-	for (i=0; i<10; i++)
-	{
-		sprintf(s,"");
-		strcpy(share_mem->sm_mode_rename.modeRename[i], s);
-	}
-	
-	share_mem->ucCurrentMode = 1;
-	
-	//share_mem->sm_group_pack.uuid = "0";
-	//strcpy(share_mem->sm_group_pack.ucIpAddress,"000");
-    //strcpy(share_mem->sm_group_pack.ucMultiAddress,"000");
-    //strcpy(share_mem->sm_group_pack.uuid,"000");
-	
     return 1;
 }
 
 int AppInitCfgInfoFromFile(int *fp)
 {	
-	int iRetCode = 0, i;
+	
+	int iRetCode = 0; 
 	char strTemp[20];
-	char s[40];
 
     printf("open config file \n");
 	*fp = open(CONFIG_FILE, O_RDONLY);
@@ -158,7 +112,7 @@ int AppInitCfgInfoFromFile(int *fp)
     printf("get eth ip \n");
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_IP",share_mem->sm_eth_setting.strEthIp);  
 	
-	if (iRetCode)  
+	if(iRetCode)  
 	{  
 		log_err("get Eth IP failed, %d !\n", iRetCode); 
 		return -2;
@@ -180,14 +134,14 @@ int AppInitCfgInfoFromFile(int *fp)
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_IP",share_mem->sm_wlan_setting.strWlanIp);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_MASK",share_mem->sm_wlan_setting.strWlanMask);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_GATEWAY",share_mem->sm_wlan_setting.strWlanGateway);
-	//printf("%s %d\n",strTemp,iRetCode);
+	 printf("%s %d\n",strTemp,iRetCode);
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_DHCP_SWITCH",strTemp);
 	share_mem->sm_wlan_setting.ucWlanDHCPSwitch = atoi(strTemp);
-	//printf("%s %d\n",strTemp,iRetCode);
+//	printf("%s %d\n",strTemp,iRetCode);
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_SSID",share_mem->sm_wlan_setting.strWlanSSID);
-	//printf("%s %d\n",strTemp,iRetCode);
+//printf("%s %d\n",strTemp,iRetCode);
     iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_PSK",share_mem->sm_wlan_setting.strWlanPSK);
-	//printf("%s %d\n",strTemp,iRetCode);
+//    printf("%s %d\n",strTemp,iRetCode);
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_ENCRYPTION",strTemp);
 	share_mem->sm_wlan_setting.ucWlanEyp = atoi(strTemp);
 
@@ -200,7 +154,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	printf("Enc_rate %s %d\n",strTemp,share_mem->sm_encoder_setting.usEncRate);	
 	
 	iRetCode = GetConfigStringValue(*fp,"ETH","INTERVAL",strTemp);  
-	//printf("%s %d\n",strTemp,iRetCode);
+//	printf("%s %d\n",strTemp,iRetCode);
 	share_mem->sm_encoder_setting.ucInterval = atoi(strTemp);
 	printf("interval %s %d\n",strTemp,share_mem->sm_encoder_setting.ucInterval);	
 		
@@ -210,7 +164,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	
     iRetCode = GetConfigStringValue(*fp,"ETH","PQP",strTemp);
 	share_mem->sm_encoder_setting.ucPQP = atoi(strTemp);
-	//printf("%s %d\n",strTemp,iRetCode);
+//printf("%s %d\n",strTemp,iRetCode);
 
     iRetCode = GetConfigStringValue(*fp,"ETH","FRAME_RATE",strTemp);
 	share_mem->sm_encoder_setting.ucFrameRate = atoi(strTemp);
@@ -253,73 +207,6 @@ int AppInitCfgInfoFromFile(int *fp)
         strcpy(share_mem->sm_rtsp_setting.strRTSPIp, share_mem->sm_wlan_setting.strWlanIp);
     }
     */
-	//group
-	for (i=0; i<128; i++)
-	{
-		sprintf(s,"GROUP_MULTICAST[%d]", i);
-		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		//printf(strTemp);
-		share_mem->sm_group_pack.ucMultiAddress[i] = atoi(strTemp);
-		//printf("share_mem->sm_group_pack.ucMultiAddress[%d] : %d \n", i, share_mem->sm_group_pack.ucMultiAddress[i]);
-	}
-	//uuid
-	for (i=0; i<128; i++)
-	{
-		sprintf(s,"GROUP_UUID[%d]", i);
-		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		//printf(strTemp);
-		share_mem->sm_group_pack.uuid[i] = atoi(strTemp);
-	}
-	
-	//rx rename
-	for (i=0; i<128; i++)
-	{
-		sprintf(s,"GROUP_RXNAME[%d]", i);
-		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		//printf(strTemp);
-		strcpy(share_mem->sm_group_rename.rxRename[i], strTemp);
-		//printf("share_mem->sm_group_rename.rxRename[%d] : %s \n", i, share_mem->sm_group_rename.rxRename[i]);
-	}
-	
-	//tx rename
-	for (i=0; i<24; i++)
-	{
-		sprintf(s,"GROUP_TXNAME[%d]", i);
-		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		//printf(strTemp);
-		strcpy(share_mem->sm_group_rename.txRename[i], strTemp);
-		
-		//printf("share_mem->sm_group_rename.txRename[%d] : %s \n", i, share_mem->sm_group_rename.txRename[i]);
-	}
-	close(fp);
-	
-#if 1
-	//mode rename
-	printf("open config file \n");
-	*fp = open(CONFIG_FILE1, O_RDONLY);
-	printf("fp = %d, *fp = %d\n",fp,*fp);
-	if(*fp < 0)
-	{
-		printf("%s open failed\n",CONFIG_FILE);
-		return -1;
-	}
-	for (i=0; i<10; i++)
-	{
-		sprintf(s,"MODE[%d]", i);
-		iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-		//printf(strTemp);
-		strcpy(share_mem->sm_mode_rename.modeRename[i], strTemp);
-		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
-	}
-	//current mode
-	sprintf(s,"CurrentMode");
-	iRetCode = GetConfigStringValue(*fp,"ETH",s,strTemp);
-	//printf(strTemp);
-	share_mem->ucCurrentMode = atoi(strTemp);
-
-	printf("end");
-	close(fp);
-#endif
 	
 #if 0   
 	printf("Info -----------------------------------\n");  
@@ -328,27 +215,27 @@ int AppInitCfgInfoFromFile(int *fp)
 
 	printf("-----------------------------------------------\n\n");
 #endif
-
    // printf("file interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
 	return 0;
 }
 
 int AppWriteCfgInfotoFile(void)
 {
-	int iRetCode = 0 , i; 
-	char strTemp[200];
-    FILE* fp;
+	int iRetCode = 0; 
+	char strTemp[20];
+    FILE* fp;    
     fp = fopen(CONFIG_FILE, "w");
     printf("write conf file \n");
     
     //Section Eth
     //fwrite("[ETH]\r\n",strlen("[ETH]\r\n"),1,fp);
     fprintf(fp,"[ETH]\n");
+   // fprintf(fp,"ETH_IP=%s\n",share_mem->sm_eth_setting.strEthIp);
     fprintf(fp,"ETH_IP=%s\n",share_mem->sm_eth_setting.strEthIp);
     fprintf(fp,"ETH_MASK=%s\n",share_mem->sm_eth_setting.strEthMask);
     fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
 	fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
-	
+  
     //Section WLAN
     //fprintf(fp,"[WLAN]\n");
     fprintf(fp,"WLAN_DHCP_SWITCH=%d\n",share_mem->sm_wlan_setting.ucWlanDHCPSwitch);
@@ -359,7 +246,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"WLAN_PSK=%s\n",share_mem->sm_wlan_setting.strWlanPSK);
     fprintf(fp,"WLAN_ENCRYPTION=%d\n",share_mem->sm_wlan_setting.ucWlanEyp);
     fprintf(fp,"WLAN_ENABLE=%d\n",share_mem->sm_wlan_setting.ucWlanEnable);  
-    
+          
     //Section ENCODER
     //fprintf(fp,"[ENCODER]\n");
     fprintf(fp,"ENC_RATE=%d\n",share_mem->sm_encoder_setting.usEncRate);
@@ -367,114 +254,30 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"IQP=%d\n",share_mem->sm_encoder_setting.ucIQP);
     fprintf(fp,"PQP=%d\n",share_mem->sm_encoder_setting.ucPQP);
     fprintf(fp,"FRAME_RATE=%d\n",share_mem->sm_encoder_setting.ucFrameRate);
-	//printf("ENC_RATE=%d\n",share_mem->sm_encoder_setting.usEncRate);
-	//printf("INTERVAL=%d\n",share_mem->sm_encoder_setting.ucInterval);
-    //printf("FRAME_RATE=%d\n",share_mem->sm_encoder_setting.ucFrameRate);
-    
+   // printf("ENC_RATE=%d\n",share_mem->sm_encoder_setting.usEncRate);
+   // printf("INTERVAL=%d\n",share_mem->sm_encoder_setting.ucInterval);
+    printf("FRAME_RATE=%d\n",share_mem->sm_encoder_setting.ucFrameRate);
     //Section RTMP
     //fprintf(fp,"[RTMP]\n");
     fprintf(fp,"RTMP_SWITCH=%d\n",share_mem->sm_rtmp_setting.ucRTMPSwitch);
     fprintf(fp,"RTMP_URL=%s\n",share_mem->sm_rtmp_setting.strRTMPUrl);
     fprintf(fp,"RTMP_INTERFACE=%d\n",share_mem->sm_rtmp_setting.ucRTMPInterface);
     fprintf(fp,"RTMP_PORT=%d\n",share_mem->sm_rtmp_setting.usRTMPPort);
-    
+            
     //Section RTSP
     //fprintf(fp,"[RTSP]\n");
     fprintf(fp,"RTSP_SWITCH=%d\n",share_mem->sm_rtsp_setting.ucRTSPSwitch);
     fprintf(fp,"RTSP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTSPPort);
     fprintf(fp,"RTP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTPPort);
     fprintf(fp,"RTP_BROADCAST_IP=%s\n",share_mem->sm_rtsp_setting.strRTPBroadcastIp);
-    fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
+     fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
     fprintf(fp,"RTSP_URL=%s\n",share_mem->sm_rtsp_setting.strRTSPUrl);
     
-    //group ip address 
-    #if 0
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_IP[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.ucIpAddress[i]);
-		//fprintf(fp,"\n");
-	}
-    #endif
-    
-    //multicast
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_MULTICAST[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.ucMultiAddress[i]);
-		//fprintf(fp,"\n");
-		//printf("%d", share_mem->sm_group_pack.ucMultiAddress[i]);
-	}
-    
-    //uuid
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_UUID[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.uuid[i]);
-		//fprintf(fp,"\n");
-	}
-    
-    //rx rename
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp, "GROUP_RXNAME[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_group_rename.rxRename[i]);
-		//printf("%s \n", share_mem->sm_group_rename.rxRename[i]);
-	}
-    
-    //tx rename
-    for (i=0; i<24; i++)
-    {
-		fprintf(fp, "GROUP_TXNAME[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_group_rename.txRename[i]);
-	}
-	
-	fprintf(fp,"[END]");
-	fclose(fp);
-	
-	//mode rename
-	fp = fopen(CONFIG_FILE1, "w");
-	fprintf(fp,"[ETH]\n");
-	
-    for (i=0; i<10; i++)
-    {
-		fprintf(fp, "MODE[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
-		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
-	}
-	//current mode
-	fprintf(fp, "CurrentMode=");
-	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
-	
-	//printf("end");
     fprintf(fp,"[END]");
-	fclose(fp);
+    
+    fclose(fp);
+    
 }
-
-int AppWrinteModeInfotoFile(void)
-{
-	int iRetCode = 0 , i; 
-	char strTemp[200];
-    FILE* fp;
-	
-	fp = fopen(CONFIG_FILE1, "w");
-	fprintf(fp,"[ETH]\n");
-	
-    for (i=0; i<10; i++)
-    {
-		fprintf(fp, "MODE[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
-		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
-	}
-	//current mode
-	fprintf(fp, "CurrentMode=");
-	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
-	
-	//printf("end");
-    fprintf(fp,"[END]");
-	fclose(fp);
-}
-
 #if 0
 int AppInitCfgInfoFromFile(int *fp)
 {
@@ -696,7 +499,7 @@ int AppInitCfgInfoDefault(void)
 int AppInitCfgInfoFromFile(int *fp)
 {
 	int iRetCode = 0; 
-	char strTemp[40];
+	char strTemp[20];
 
 	*fp = open(CONFIG_FILE, O_RDWR);
 	if(*fp < 0)
@@ -901,7 +704,7 @@ int update_cfg_info(int fpConfig, CFG_INFO_S *pcfginfo)
 	write(fpConfig,cfginfobuff, strlen(cfginfobuff));
 	sync();
 	close(fpConfig);
-	return 0;
+	return 0;   
 }
 
 CFG_INFO_S *GetCfgInfo()

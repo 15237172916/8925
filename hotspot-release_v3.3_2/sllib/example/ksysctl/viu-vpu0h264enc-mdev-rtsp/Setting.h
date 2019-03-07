@@ -2,7 +2,7 @@
 #define _SETTING_H_
 
 #define HD_VERSION "HW11.2"
-#define SW_VERSION "SW21.1"
+#define SW_VERSION "SW21.2.20190225"
 
 #define RTMP_ENABLE 1
 #define RTMP_DISABLE 0
@@ -33,7 +33,7 @@ typedef struct{
     unsigned char ucRTMPStatus;
     unsigned char ucWiFiStatus;
     char strHardwareVer[20];
-    char strSoftwareVer[20];
+    char strSoftwareVer[20]
 }RUN_STATUS;
 
 RUN_STATUS run_status;
@@ -84,37 +84,4 @@ typedef struct{
     unsigned char ucRTSPInterface;
 }RTSP_SETTING;
 RTSP_SETTING rtsp_setting;
-
-//wang
-typedef struct
-{
-	unsigned char ucIpAddress[128]; 
-	unsigned char ucMultiAddress[128]; 
-	unsigned int uuid[128]; 
-
-} GROUP_PACK_S;
-GROUP_PACK_S group_pack;
-
-typedef struct
-{
-	char rxRename[128][40];
-	char txRename[24][40];
-	
-} GROUP_RENAME_S;
-GROUP_RENAME_S group_rename;
-
-typedef struct
-{
-	char modeRename[10][20];
-} MODE_RENAME_S;
-MODE_RENAME_S mode_rename;
-
-
-
-
-
 #endif
-
-
-
-

@@ -17,7 +17,7 @@ int InitShareMem(void)
 
 	share_mem = (struct shared_use_st*)shmat(shmid, (void*)0, 0);  
 	if(share_mem == NULL)  
-	{
+	{  
 		printf("shmat failed\n");	
 		exit(0);  
 	}
@@ -50,9 +50,8 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 			printf("web start \n");
 			AppWriteCfgInfotoFile();
 #if 1
-			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast); //get now multicast address
-			//init_eth(); //set ip address
-#endif
+			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
+#endif	
 			web_flag = 1;
 			share_mem->ucUpdateFlag = 0;
 			printf("web end \n");
@@ -63,7 +62,7 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 }
 
 #else
-
+ 
 SL_POINTER  sharemem_handle(SL_POINTER Args)
 {
     while(1)

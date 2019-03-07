@@ -2,7 +2,7 @@
 #define _SETTING_H_
 
 #define HD_VERSION "HW11.2"
-#define SW_VERSION "SW21.1"
+#define SW_VERSION "SW21.2.20190225"
 
 #define RTMP_ENABLE 1
 #define RTMP_DISABLE 0

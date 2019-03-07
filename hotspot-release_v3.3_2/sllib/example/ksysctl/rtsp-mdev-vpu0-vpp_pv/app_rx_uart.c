@@ -36,7 +36,6 @@
 static SL_U32 fd;  			//fd is uart descriptor
 extern char serverip[128];
 
-#if 0
 SL_ErrorCode_t SLUART_Setopt(SL_S32 fd, 
                              SL_U32 nSpeed, 
                              SL_U32 nBits, 
@@ -240,7 +239,6 @@ SL_ErrorCode_t SLUART_Write(SL_U8 *WriteBuffer, SL_U32 WriteLength)
     }
     return SL_NO_ERROR;
 }
-#endif
 
 void uart_init(void)
 {
@@ -274,9 +272,8 @@ void *app_rx_uart_main(void)
     
 ReOpen: 
 
-    //fd_uart = SLUART_Open(nOpenParam);
-	fd_uart = SLUART_Open(&fd, nOpenParam, UART_DEVICE_NAME);
-    if(fd_uart != 0)
+    fd_uart = SLUART_Open(nOpenParam);
+	if(fd_uart != 0)
 	{
 		printf("uart fd : %d \n", fd_uart);
 		printf("SLUART_Open error\n");
@@ -355,8 +352,7 @@ ReSocket:
 #endif		
 		//else if ((fds.revents & POLLIN) == POLLIN)
 		{
-			//errCode = SLUART_Read(rbuff, sizeof(rbuff));
-            errCode = SLUART_Read(fd, rbuff, sizeof(rbuff));
+			errCode = SLUART_Read(rbuff, sizeof(rbuff));
 			if (errCode != 0)
 			{
 				printf("SLUART_Read error\n");
@@ -392,9 +388,8 @@ ReSocket:
 
 		
 	
-		//errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		errCode = SLUART_Write(fd, wbuff, sizeof(wbuff));
-        if (errCode != 0)
+		errCode = SLUART_Write(wbuff, sizeof(wbuff));
+		if (errCode != 0)
 		{
 			printf("SLUART_Write error\n");
 		}
@@ -464,9 +459,8 @@ ReConnect:
 			memset(rbuff, 0, sizeof(rbuff));
 		    memset(wbuff, 0, sizeof(wbuff));
 			
-			//errCode = SLUART_Read(rbuff, sizeof(rbuff));
-			errCode = SLUART_Read(fd, rbuff, sizeof(rbuff));
-            if (errCode != 0)
+			errCode = SLUART_Read(rbuff, sizeof(rbuff));
+			if (errCode != 0)
 			{
 				printf("SLUART_Read error\n");
 			}
@@ -496,9 +490,8 @@ ReConnect:
 			}
 			//printf("*0x%x", wbuff[0]);
 			
-			//errCode = SLUART_Write(wbuff, sizeof(wbuff));
-			errCode = SLUART_Write(fd, wbuff, sizeof(wbuff));
-            if(errCode != 0)
+			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+			if(errCode != 0)
 			{
 				printf("SLUART_Write error\n");
 				return -1;
@@ -511,9 +504,8 @@ ReConnect:
 #endif
     
     close(sock_client);
-    //errCode = SLUART_Close(); 
-	errCode = SLUART_Close(fd);
-    if(errCode != 0)
+    errCode = SLUART_Close(); 
+	if(errCode != 0)
 	{
 		printf("SLUART_Close error\n");
 		return -1;

@@ -13,6 +13,8 @@
 
 #include "app_rx_io_ctl.h"
 
+
+
 #define SYSFS_GPIO_DIR  "/sys/class/gpio"
 
 extern SL_BOOL gbTestMode;
@@ -25,12 +27,6 @@ extern SL_BOOL gbTestMode;
 
 extern char multicast[20];
 extern char web_flag;
-
-//extern char save_264file_flag;
-extern int process_osd_text_solid(int x, int y, const char *text);
-extern int process_osd_disable(void);
-
-char key_display = 0;
 
 //extern SHOWDATA g_ShowData;
 
@@ -459,7 +455,7 @@ void  *app_rx_io_ctl_main(void)
                 }
 #endif
 
-#if 0 //20180809 change video level
+#if 0 //20180809
 				printf("*********************flag = %d*****************\n ", flag);
 				g_ShowData.bShowFlag = SL_TRUE;
 		        g_ShowData.cText ="Change Video Level";
@@ -470,7 +466,7 @@ void  *app_rx_io_ctl_main(void)
 					printf("Send Remote Command case 1\n");            
 				}
 #endif
-#if 0	//change mulitcast 
+#if 0
 				printf("*********************flag = %d*****************\n ", flag);
 				unsigned int add, add1;
 				char str[20] = {0};
@@ -493,12 +489,6 @@ void  *app_rx_io_ctl_main(void)
 				printf("\n");
 				share_mem->ucUpdateFlag = 1;
 #endif			
-
-#if 0	//display IP address in the screen
-				//process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
-
-
-#endif
 		        break;
 	       }
 		
@@ -515,6 +505,7 @@ void  *app_rx_io_ctl_main(void)
                     g_ShowData.bShowFlag = SL_TRUE;
 		            g_ShowData.cText ="Data Test On";		    
                  
+                
                     if(SL_FALSE == g_RemoteCmd.bSendFlag)
                     {
                         printf("g_RemoteCmd.uCmdBuf[0]= %d before set\n", g_RemoteCmd.uCmdBuf[0]);
@@ -621,133 +612,3 @@ SL_U32 get_key_value(void)
 	
 	return value;
 }
-
-void *IP_switch(void)
-{
-	SL_U32 value, tmp1, tmp2, key, key_count = 0;
-	char state = 0;
-	
-	char str[20] = {0};
-	char str_tmp[100] = {0};
-	
-#if 1 //
-	GPIO_openFd(IP_SWITCH_1);
-	GPIO_export(IP_SWITCH_1);	   			
-	GPIO_setDir(IP_SWITCH_1, GPIO_INPUT);
-   
-
-	GPIO_openFd(IP_SWITCH_2);
-	GPIO_export(IP_SWITCH_2);	   			
-	GPIO_setDir(IP_SWITCH_2, GPIO_INPUT);
-	
-
-	GPIO_openFd(IP_SWITCH_3);
-	GPIO_export(IP_SWITCH_3);	   			
-	GPIO_setDir(IP_SWITCH_3, GPIO_INPUT);
-
-
-	GPIO_openFd(IP_SWITCH_4);
-	GPIO_export(IP_SWITCH_4);
-	GPIO_setDir(IP_SWITCH_4, GPIO_INPUT);
-	
-	
-	GPIO_openFd(IP_SWITCH_5);
-	GPIO_export(IP_SWITCH_5);	
-	GPIO_setDir(IP_SWITCH_5, GPIO_INPUT);
-#if 1	
-	GPIO_openFd(IP_SWITCH_6);
-	GPIO_export(IP_SWITCH_6);
-	GPIO_setDir(IP_SWITCH_6, GPIO_INPUT);
-	
-	
-	GPIO_openFd(IP_SWITCH_7);
-	GPIO_export(IP_SWITCH_7);	
-	GPIO_setDir(IP_SWITCH_7, GPIO_INPUT);
-#endif
-	GPIO_openFd(OSD_MULTICAST);
-	GPIO_export(OSD_MULTICAST);	
-	GPIO_setDir(OSD_MULTICAST, GPIO_INPUT);
-#endif
-	
-	
-	printf("-----------IP switch-----------\n");
-	while (1)
-	{
-		tmp1 = 0x00;
-		
-		GPIO_getValue(IP_SWITCH_1, &value); //1
-		tmp1 |= value; //0x01
-		tmp1 = tmp1 << 1; //0x02
-		GPIO_getValue(IP_SWITCH_2, &value); //1
-		tmp1 = tmp1 | value; //0x03
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(IP_SWITCH_3, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(IP_SWITCH_4, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(IP_SWITCH_5, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(IP_SWITCH_6, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(IP_SWITCH_7, &value);
-		tmp1 |= value;
-		
-		//printf("tmp1 = 0x%x \n", tmp1);
-		#if 1
-		if (tmp2 != tmp1)
-		{
-			tmp2 = tmp1;
-			sprintf(str, "192.168.1.%d", tmp1+1);
-			strcpy(share_mem->sm_eth_setting.strEthIp, str);
-			//printf(share_mem->sm_eth_setting.strEthIp);
-			AppWriteCfgInfotoFile();
-			init_eth(); //ip configer
-		}
-		#endif
-		
-		GPIO_getValue(OSD_MULTICAST, &key);
-		
-		if (!key)
-		{
-			usleep(300000);
-			key_count++;
-			printf("key_count : %d \n", key_count);
-			if (!key)
-			{
-				if (0==state)
-				{
-					printf("\n\n OSD Multicast display \n\n");
-					key_display = 1;
-					state = 1;
-					//save_264file_flag = 1;
-				}
-				else
-				{
-					printf("\n\n OSD Multicast disable \n\n");
-					state = 0;
-					key_display = 0;
-					//save_264file_flag = 0;
-				}
-			}
-			if (key_count > 10)
-			{
-				printf("reboot \n");
-				reboot1();
-			}
-		}
-		else
-		{
-			key_count = 0;
-		}
-		
-		usleep(20000);
-	}
-}
-
-
-
-

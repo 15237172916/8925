@@ -55,11 +55,12 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define LED_OFF 1
 #define LED_FLASH 2
 
-#define KEY_IO		    8 	//GPIO1_8
-#define LED_SIG_LOW 	6 	//GPIO1_6
-#define LED_SIG_MOD		4	//GPIO1_4
-#define LED_SIG_HIG		5	//GPIO1_5
-#define LED_HDMI		7	//GPIO1_7
+//#define KEY_IO		8 		//GPIO1_8
+#define KEY_IO			32		//GPIO2_00  //v2.5 use
+//#define LED_SIG_LOW 	6 	//GPIO1_6
+//#define LED_SIG_MOD		4	//GPIO1_4
+//#define LED_SIG_HIG		5	//GPIO1_5
+//#define LED_HDMI		7	//GPIO1_7
 #define LED_SYS_STA     30  //GPIO1_30
 
 #define GPIO_OUTPUT		1	//gpio mode is output
@@ -68,16 +69,6 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define GPIO_HIG_STA	1	//gpio output mode is high 
 #define GPIO_LOW_STA	0	//gpio output mode is low
 
-//IP switch IO 
-#define IP_SWITCH_7		30 //GPIO1_30
-#define IP_SWITCH_6		5 //GPIO1_05
-#define IP_SWITCH_5		6 //GPIO1_06
-#define IP_SWITCH_4		7 //GPIO1_07
-#define IP_SWITCH_3		4 //GPIO1_04
-#define IP_SWITCH_2		36 //GPIO2_04
-#define IP_SWITCH_1		34 //GPIO2_02
-
-#define OSD_MULTICAST 	32 //GPIO2_00
 
 
 void signal_light_all_off(void);
@@ -90,7 +81,4 @@ void test_light(char value);
 void HDMI_light_off(void);
 void HDMI_light_on(void);
 SL_U32 get_key_value(void);
-
-void *IP_switch(void);
-
 #endif

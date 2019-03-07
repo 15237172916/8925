@@ -37,10 +37,10 @@ rm ./boa
 ln -s /user/web/boa ./boa
 
 #cgi
-rm ./cgi-bin/upload_web.cgi
-ln -s /user/web/cgi-bin/upload_web.cgi ./cgi-bin/upload_web.cgi
-rm ./cgi-bin/upload_ko.cgi
-ln -s /user/web/cgi-bin/upload_ko.cgi ./cgi-bin/upload_ko.cgi
+#rm ./cgi-bin/upload_web.cgi
+#ln -s /user/web/cgi-bin/upload_web.cgi ./cgi-bin/upload_web.cgi
+#rm ./cgi-bin/upload_ko.cgi
+#ln -s /user/web/cgi-bin/upload_ko.cgi ./cgi-bin/upload_ko.cgi
 rm ./cgi-bin/upload.cgi
 ln -s /user/web/cgi-bin/upload.cgi ./cgi-bin/upload.cgi
 rm ./cgi-bin/sys_default.cgi

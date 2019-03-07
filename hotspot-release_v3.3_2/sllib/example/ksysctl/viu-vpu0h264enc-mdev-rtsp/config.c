@@ -2,10 +2,6 @@
 #include <stdlib.h>  
 #include <string.h>  
 #include <sl_debug.h>
-#include <unistd.h>
-#include <sys/types.h>
-
-
 #include "config.h"  
   
 int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char *pOutKeyValue)  
@@ -17,15 +13,13 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	int cnt = 0;  
 	int seek = 0;  
 
-	usleep(1000); //cup 
-
 	iRetCode = lseek(fpConfig, 0, SEEK_SET);
 	if (iRetCode < 0) {
 		log_err("'lseek' failed, request offset = 0");
 		return -1;
 	}
 	/*test*/  
-#if 0 
+#if 0    
 	printf("pInSectionName: %s !\n",pInSectionName); 
 	printf("pInKeyName: %s !\n",pInKeyName); 
 #endif
@@ -112,7 +106,7 @@ int GetKeyValue(int fpConfig,char *pInKeyName,char *pOutKeyValue)
 	unsigned int uiLen;  
 	int iRetCode = 0;  
 	int cnt = 0;  
-	int seek = 0;
+	int seek = 0;  
 
 	memset(szBuffer,0,sizeof(szBuffer));      
 	while(1)  

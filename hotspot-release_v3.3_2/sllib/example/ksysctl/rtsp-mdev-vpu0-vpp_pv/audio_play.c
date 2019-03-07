@@ -17,6 +17,7 @@ extern char idr_flag;
 
 void audio_close(void)
 {
+	
 	if (audio_fd > 0)
 	{
 		close(audio_fd);
@@ -24,12 +25,6 @@ void audio_close(void)
 		
 		printf("\n\n ***audio close \n\n");
 	}
-	
-	
-	
-	
-	
-	
 	//sleep(1);
 }
 
@@ -193,8 +188,9 @@ void audio_play(unsigned char * src, unsigned frameSize)
 			printf("can't open %s",outfilename);
 			return;
 		}   
-	}
-	if (outfile)
+	}   
+
+	if(outfile)
 	{   
 		if(DUMP_COUNT_TOTAL>dump_count)
 			fwrite(src, frameSize, 1, outfile);
@@ -209,6 +205,7 @@ void audio_play(unsigned char * src, unsigned frameSize)
 	
 	if((audio_dma_out.wrPtr + frameSize) < (audio_dma_out.start_addr + audio_dma_out.size))
 	{
+		
 		dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
 		memcpy(dst, src, frameSize);
 		audio_dma_out.wrPtr += frameSize;

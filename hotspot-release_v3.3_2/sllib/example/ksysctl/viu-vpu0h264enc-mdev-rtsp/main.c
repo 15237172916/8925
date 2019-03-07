@@ -45,10 +45,6 @@
 #include "drv_sii9293.h"
 #endif
 #include "app_rtp_tx.h"
-#include "app_tx_broadcast.h"
-
-#include "uart_watchdog.h"
-
 
 #if 1
 #define IR_DATA_LENGTH 2040
@@ -60,17 +56,6 @@
 
 //#define IR_DEBUG
 //#define ENABLE_GET_IR
-#define VIU_DISPLAY
-//#define VIU_OUTPUT
-#define VIU_OUT_FRAMES 1
-//#define H264_OUTPUT
-#define WEB_ENABLE
-//#define APP_CODE
-//#define KVM_UART
-#define DEBUG_OFF
-//#define APP_IO
-#define APP_RTP
-//#define SWIT_MULTICAST
 
 
 #ifdef ENABLE_GET_IR
@@ -87,11 +72,23 @@ typedef struct
 #define WIDTH 1920
 #define HEIGHT 1080
 
-#include "app_tx_io_ctl.h"
+#define VIU_DISPLAY
+//#define VIU_OUTPUT
+#define VIU_OUT_FRAMES 1
+//#define H264_OUTPUT
+#define WEB_ENABLE
+//#define APP_CODE
+//#define KVM_UART
+#define DEBUG_OFF
+//#define APP_IO
+#define APP_RTP
+#define  SWIT_MULTICAST
+
 
 #ifdef APP_CODE
 #include "app_tx_signal_ch.h"
 #include "app_tx_data_ch.h"
+#include "app_tx_io_ctl.h"
 
 //static pthread_t server_broadcast_handler;
 static pthread_t app_tx_handler;
@@ -115,7 +112,7 @@ static pthread_t app_tx_uart_handler;
 
 #endif
 char 	web_flag;
-char multicast[20] = "239.255.42.1";
+char multicast[20] = "239.255.42.44";
 #ifdef WEB_ENABLE
 #include "sharemem.h"
 
@@ -125,7 +122,6 @@ static pthread_t ConfigHandle;
 
 int key=0;
 LIST_BUFFER_S *list;
-
 
 
 extern CFG_INFO_S cfginfo;
@@ -152,8 +148,7 @@ static pthread_t	watchdogHandle;
 static pthread_t	setBitrateHandle;
 static pthread_t 	PullFromList_handler;
 
-static pthread_t controlHandle;
-static pthread_t uartWatchdogHandler;
+static pthread_t 	switch_multicast_handler;   //Jason add
 
 #ifdef RINGBUFF
 static pthread_t audio_handler;
@@ -197,7 +192,6 @@ static SL_U32 need_feed_dog = 1;
 //static SL_S32 g_bitrate = 12000;//12M is good;
 //static SL_S32 g_bitrate = 10000;//10M is good;
 static SL_S32 g_bitrate = 8000;//8M is good;
-//static SL_S32 g_bitrate = 6000;//
 //static SL_S32 g_bitrate = 5000;//bad kadun;
 //static SL_S32 g_bitrate = 2000;//
 //static SL_S32 g_bitrate = 4000;//
@@ -205,7 +199,6 @@ static SL_S32 g_bitrate = 8000;//8M is good;
 
 
 SL_S32 bad_network = 0; //for eric
-
 
 void *mutexlock;
 #define DEV_IO_NAME		"/dev/silan_testio"
@@ -225,7 +218,7 @@ typedef struct
 
 
 #ifdef APP_CODE
-SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
+static SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
 
 //COMMAND g_TxCommand; //remove for link issue 2017-06-09
 //SL_BOOL g_bDataTestEn=FALSE;
@@ -365,17 +358,12 @@ int printf_log(const char *log)
 
 int reboot1(void)
 {
-#if 0
-	printf("\n\n reboot1 \n");
-	return 0;
-#endif
-
 	int fd;
 	int res = 0;
 	SILANWORDR data;
 
-	//system("cd /;umount /user");
-	//system("cd /;umount /debug");
+	system("cd /;umount /user");
+	system("cd /;umount /debug");
 
 	fd = open(DEV_IO_NAME, O_RDWR);
 	if(fd < 0){
@@ -634,12 +622,13 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 				total_stream = 0;
 				frameCnt = 0;
 			}
+
 		}
 #endif
 		ret = list_push_data(list, buf);
 		if(ret > 0)
 		{
-			printf("fail to push data,list is full\n");
+			//printf("fail to push data,list is full\n");
 			need_feed_dog = 0;
 			list_flush_data(list);
 			need_feed_dog = 1;
@@ -1317,8 +1306,8 @@ static SL_S32 SLVENC_setCfg(SLVENC_Cfg_s *cfg, video_info_s *video_info)
 	cfg->chnParam[0].format = 0;
 	cfg->chnParam[0].picWidth = cvp.reso_wi;
 	cfg->chnParam[0].picQp = 32;//28;
-	//cfg->chnParam[0].frameSkipDisable = 0; //discard frame
-	cfg->chnParam[0].frameSkipDisable = 1; //need not discard frame
+	//cfg->chnParam[0].frameSkipDisable = 0; //dicard frame
+	cfg->chnParam[0].frameSkipDisable = 1; //need not dicard frame
 
 	cfg->chnParam[0].picHeight = cvp.reso_hi;
 
@@ -1373,9 +1362,9 @@ static SL_S32 SLVENC_setCfg(SLVENC_Cfg_s *cfg, video_info_s *video_info)
 
 		cfg->chnParam[0].intraCostWeight = 0; //400
 	}
-	else if((cfg->chnParam[0].bitRate > 6000) && (cfg->chnParam[0].bitRate <= 20000))
+	else if((cfg->chnParam[0].bitRate > 6000) && (cfg->chnParam[0].bitRate <= 12000))
 	{
-		cfg->chnParam[0].IdrQp = 25;//26;//20;//26; //IdrQp 16 ~ 50
+		cfg->chnParam[0].IdrQp = 20;//26;//20;//26; //IdrQp 16 ~ 50
 
 		cfg->chnParam[0].maxQp = 30;//30;//46; //16~ 50
 
@@ -1436,7 +1425,7 @@ static SL_S32 setBitrate(SLVENC_Cfg_s *cfg, SL_U32 bitRate)
 	return 0;
 }
 
-SL_S32 SLVENC_setBitrate(SL_U32 bitRate)
+static SL_S32 SLVENC_setBitrate(SL_U32 bitRate)
 {
 	SL_S32 ret;
 	printf("new bitrate is : %d \n", bitRate);
@@ -2122,7 +2111,7 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 				//printf("audio_dma_in.wrPtr : %d \n", audio_dma_in.wrPtr);
 				//printf("audio_dma_in.rdPtr : %d \n", audio_dma_in.rdPtr);
 				//printf("audio_dma_in.size : %d \n", audio_dma_in.size);
-			
+				
 				valid_size = audio_dma_in.size + audio_dma_in.wrPtr - audio_dma_in.rdPtr;
 
 				valid_size_1 = audio_dma_in.size + audio_dma_in.start_addr - audio_dma_in.rdPtr;
@@ -2667,6 +2656,14 @@ static SL_POINTER  config_handle(SL_POINTER Args)//             for zhou 1.29
 }
 #endif
 
+static int tx_switch_multicast_main(void)
+{
+	printf("tx_switch_multicast_main  start \n");
+	tx_switch_multicast();
+	
+	return 0;
+}
+
 int main(int argc, char* argv[])
 {
 	SL_S32 ret = -1;
@@ -2686,9 +2683,37 @@ int main(int argc, char* argv[])
 	close(fd_config);
 #endif
 	printf("********************system starting***************************\n");
-	System_running();
+#ifdef WEB_ENABLE
 
-#if 1
+	InitShareMem();
+	
+	AppInitCfgInfoDefault();
+    printf("cfg init ok \n");
+    
+    ret = AppInitCfgInfoFromFile(&fd_config);
+
+    printf("ret = %d\n",ret);
+    if(ret<0)
+    {
+        if (NULL!=fd_config)
+            close(fd_config);
+        printf("build default config.conf \n");
+        AppWriteCfgInfotoFile();
+    }
+    else
+    {
+        printf("cfg get from file \n");
+        close(fd_config);
+    }
+    strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
+    //if(strcmp("192.168.1.3",share_mem->sm_eth_setting.strEthIp)!=0)
+		init_eth();//   zhou
+		//sleep(1);
+
+#endif
+
+	SLOS_CreateMutex(&mutexlock);
+#ifdef DEBUG_OFF
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
@@ -2697,94 +2722,13 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
+	register_pull_method(PullFromMdev,PullFromDsp, PushToMdev);
 
-#if 1
-	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
-	if (ret) {
-		log_err("Failed to Create uartWatchdogHandler Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-
-#ifdef WEB_ENABLE
-
-    InitShareMem();
-    AppInitCfgInfoDefault();
-    
-    ret = AppInitCfgInfoFromFile(&fd_config);
-    printf("*****\n\n ret = %d \n\n****",ret);
-    if (ret<0)
-    {
-        if (NULL!=fd_config)
-            close(fd_config);
-        printf("build default config.conf \n");
-        AppWriteCfgInfotoFile();
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config0.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config1.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config2.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config3.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config4.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config5.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config6.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config7.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config8.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config9.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config10.conf");
-    }
-    else
-    {
-		printf("file fp = %d \n", fd_config);
-        printf("cfg get from file \n");
-        close(fd_config);
-    }
-    
-    printf("cfg init ok \n");
-    
-    strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
-    //if(strcmp("192.168.1.3",share_mem->sm_eth_setting.strEthIp)!=0)
-		//init_eth();//   zhou
-		//sleep(1);
-#endif
-
-#if 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-	Init_Multicast_and_IP(); //ip and multicast set
-	init_eth();
-	
-	//get ip address
-	static long int ip_add = -1, i;
-	//printf(share_mem->sm_eth_setting.strEthIp);
-	inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
-	//printf("ip addr : 0x%x \n", ip_add);
-	ip_add = ntohl(ip_add); //host
-	//printf("ip addr : %d \n", ip_add);
-	ip_add &= 0xFF;
-	printf("ip address : %d \n", ip_add);
-	
-	if (201 == ip_add)
-	{
-		ret = pthread_create(&controlHandle, NULL, control_slave, NULL);
-		if (ret) 
-		{
-			log_err("Failed to Create controlHandle Thread\n");
-			log_err("%d reboot",__LINE__);
-			reboot1();
-			return ret;
-		}
-	}
-#endif
-
-	SLOS_CreateMutex(&mutexlock);
-
-	//while (1) sleep(9);
-	//register_pull_method(PullFromMdev,PullFromDsp, PushToMdev);
-	
 #ifdef H264_OUTPUT
 	ret = h264_output();
 #endif
 
-#ifdef KVM_UART
+#ifdef KVM_UART 
 	ret = pthread_create(&app_tx_uart_handler, NULL, app_tx_uart_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_tx_uart_handler Thread\n");
@@ -2793,8 +2737,19 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	//while (1) sleep(9);
 
+/******** jason add 20180830 *****************/
+#ifdef SWIT_MULTICAST
+    printf("tx_witch_multicast_main test start : [main]\n");   
+	ret = pthread_create(&switch_multicast_handler, NULL, tx_switch_multicast_main, NULL);
+	if (ret) {
+		log_err("Failed to Create tx_witch_multicast_main Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+	//while (1) sleep(1);
 #ifdef ENABLE_GET_IR
 	init_dsp_ir();
 	ret = pthread_create(&get_ir_handler, NULL, get_ir, NULL);
@@ -2806,6 +2761,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
+	//while (1) sleep(1);
 #ifdef WEB_ENABLE
 	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
 	if (ret) {
@@ -2814,10 +2770,7 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
-	
 #endif
-
-#if 1
 
 #if 1
 	ret = pthread_create(&chip_handler, NULL, sii9293_handler, NULL);
@@ -2839,6 +2792,8 @@ int main(int argc, char* argv[])
 	}
 #endif
 
+	sleep(3);
+
 #ifdef RINGBUFF
 	ret = pthread_create(&audio_handler, NULL, audio_transfer, NULL);
 	if (ret) {
@@ -2858,7 +2813,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	sleep(3);
+
 #ifdef APP_RTP
     printf("pull from list start \n");
 	ret = pthread_create(&PullFromList_handler, NULL, PullFromList, NULL);
@@ -2868,9 +2823,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#endif
 
-	//while (1) sleep(1);
 
 #if 0//def RTSP_ENABLE
 
