@@ -1,0 +1,7 @@
+update commond:
+	./UpGradeServer RX rtsp-mdev-vpu0-vpp_pv /tmp/rtsp-mdev-vpu0-vpp_pv
+	./UpGradeServer TX viu-vpu0h264enc-mdev-rtsp /tmp/viu-vpu0h264enc-mdev-rtsp
+
+
+
+
