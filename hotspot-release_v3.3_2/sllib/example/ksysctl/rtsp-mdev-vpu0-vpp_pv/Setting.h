@@ -2,7 +2,7 @@
 #define _SETTING_H_
 
 #define HD_VERSION "HW11.2"
-#define SW_VERSION "SW21.1"
+#define SW_VERSION "HSV761_V1.0.1.190408_R"
 
 #define RTMP_ENABLE 1
 #define RTMP_DISABLE 0
