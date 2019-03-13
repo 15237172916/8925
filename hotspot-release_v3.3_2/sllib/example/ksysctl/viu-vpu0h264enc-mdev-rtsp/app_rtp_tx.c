@@ -19,8 +19,12 @@
 #include "app_rtp_tx.h"
 #include "ring_buffer.h"
 
+#include "crc.h"
 //#define RTP_UDP
 //#define OUTPUT_H264
+ 
+#define CHECKSUM_AUDIO
+//#define CHECKSUM_VIDEO
 
 extern volatile int viu_started; //main
 extern volatile int viu_configed;
@@ -28,7 +32,7 @@ extern void *mutexlock;
 extern LIST_BUFFER_S *list;
 
 extern int flushMdev(void);
-extern char HDMI_lost;
+extern unsigned char HDMI_lost;
 
 extern char web_flag;
 extern char multicast[20];
@@ -40,6 +44,17 @@ static FILE * outfile1  = NULL;
 char outfilename[128] = "./test1.264";
 char outDisplay[20] = "/tmp/out.264";
 
+
+static unsigned short csum(unsigned char *buf, int nwords)
+{
+	//unsigned long sum;
+	unsigned short check;
+	
+	check = crc_check(buf, nwords);
+	//usleep(1000);
+	return (unsigned short)(~check);
+}
+
 #if 1
 //UDP
 SL_POINTER PullFromList(SL_POINTER p)
@@ -48,7 +63,7 @@ SL_POINTER PullFromList(SL_POINTER p)
 	SL_S32 ret, len, pos , tmp_len;
 	unsigned char *dst;
 	unsigned char *pStream;
-	
+	unsigned char *pCheck="0abc"; //send flag with HDMI check signal
 	SLVENC_ExtendStream_info_s *stream;
 
 	dst = malloc(2*1024*1024); //FIXME
@@ -81,7 +96,7 @@ SL_POINTER PullFromList(SL_POINTER p)
     servlen_addr_length = sizeof(server_addr);
     
 ReSocket:
-	web_flag = 0; //
+	web_flag = 0;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(RTP_PORT);
@@ -133,6 +148,11 @@ ReSocket:
 		perror("setsockopt");
 	}
 #endif
+#if 0
+	char nochecksum=0;
+	//setsockopt(sock_cli, IPPROTO, UDP_NO);
+
+#endif
 	struct timezone tz;
 	struct timeval tv1, tv2;
 	struct timeval timeout = {2,0};
@@ -155,6 +175,20 @@ ReSocket:
 			close(sock_cli);
 			goto ReSocket;
 		}
+		//check HDMi signal 
+		if (HDMI_lost)
+		{
+			len = sendto(sock_cli, pCheck, sizeof(pCheck), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
+			if (len <= 0)
+			{
+				perror("sendto");
+				close(sock_cli);
+				goto ReSocket;
+			}
+			sleep(1);
+		}
+		else
+		{
 
 		/***************Video data****************/
 #if 1
@@ -162,7 +196,7 @@ ReSocket:
 		if (list_fetch_data(list, &buf)) //
 		{
 			//printf("list fetch failed \n");
-			usleep(5000);
+			usleep(1000);
 			continue;
 		}
 		else
@@ -188,13 +222,43 @@ ReSocket:
 			if (stream->header_size) //Idr Frame
 			{
 	#if 1
+				//printf("this is I frame \n");
 				//printf("stream->header_size : %d \n", stream->header_size);
 				//printf("stream->stream_size : %d \n", stream->stream_size);
+				
 				DataHead.iLen =  stream->header_size + stream->stream_size; //NAL len
+				
 				tmp_len = stream->stream_size + stream->header_size;
 				memcpy(dst, (unsigned char *)stream + stream->header_offset_addr, stream->header_size);
 				memcpy(dst + stream->header_size, (unsigned char *)stream + stream->stream_offset_addr, stream->stream_size);
-			
+				pStream = (unsigned char *)dst;
+				//printf("I frame, video data lenght: %d \n", DataHead.iLen);
+#ifdef CHECKSUM_VIDEO
+				if (DataHead.iLen < CHECK_SUM_COUNT)
+				{
+					DataHead.usChecksum = csum((unsigned char *)pStream, DataHead.iLen); //check sum
+				}
+				else
+				{
+					DataHead.usChecksum = csum((unsigned char *)pStream, CHECK_SUM_COUNT); 
+				}
+#endif
+				//printf("DataHead.usChecksum: %x \n", DataHead.usChecksum);
+				//printf("*pStream: %x \n", *pStream);
+				#if 0
+				int m, n;
+				unsigned char * p = stream;
+				for (m=256; m>0; m--)
+				{
+					for (n=40; n>0; n--)
+					{
+						printf("%x",*p);
+						p+=1;
+					}
+					printf("\n");
+				}
+				#endif
+				
 				//send Data Header
 				len = sendto(sock_cli, &DataHead, sizeof(DataHead), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 				if(len <= 0)
@@ -207,8 +271,6 @@ ReSocket:
 				}
 				//printf("send len : %d \n", len);
 				//printf("stream->header_size : %d \n", stream->header_size);
-				
-				pStream = (unsigned char *)dst;
 				
 				//send I frame data header
 				while (tmp_len > UDP_MTU)
@@ -254,6 +316,25 @@ ReSocket:
 			{
 				DataHead.iLen =  stream->stream_size;
 				
+				tmp_len = stream->stream_size;
+				pStream = (unsigned char *)stream + stream->stream_offset_addr;//dst;
+				//printf("P frame, video data lenght: %d \n", DataHead.iLen);
+#ifdef CHECKSUM_VIDEO
+				if (DataHead.iLen < CHECK_SUM_COUNT)
+				{
+					DataHead.usChecksum = csum((unsigned char *)pStream, DataHead.iLen); //check sum
+				}
+				else
+				{
+					DataHead.usChecksum = csum((unsigned char *)pStream, CHECK_SUM_COUNT);
+				}
+#endif
+
+				//printf("video data lenght: %d \n", DataHead.iLen);
+				//printf("DataHead.usChecksum: %x \n", DataHead.usChecksum);
+				//printf("*stream: %x \n", *pStream);
+				
+				
 				//send data header
 				len = sendto(sock_cli, &DataHead, sizeof(DataHead), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 				if(len <= 0)
@@ -265,9 +346,7 @@ ReSocket:
 				}
 				
 				//printf("Send data len = %d \n",len);
-				tmp_len = stream->stream_size;
-				//memcpy(dst, (unsigned char *)stream + stream->stream_offset_addr, stream->stream_size);
-				pStream = (unsigned char *)stream + stream->stream_offset_addr;//dst;
+				
 				//send data body(264 NAL)
 				while (tmp_len > UDP_MTU)
 				{
@@ -320,6 +399,28 @@ ReSocket:
 			
 			//printf("\n*****************************************************\n");
 			
+			RingPullFromByteStreamMemoryBuffer(buf, FETCH_COUNT);
+			tmp_len = FETCH_COUNT;
+			pStream = (unsigned char *)buf;//(unsigned char *)dst;
+			//printf("pStream: %d \n", *pStream);
+#ifdef CHECKSUM_AUDIO
+			DataHead.usChecksum = csum(pStream, FETCH_COUNT);
+#endif
+			//printf("usChecksum: %x \n", DataHead.usChecksum);
+			#if 0
+			int m, n;
+			unsigned char * p = pStream;
+			for (m=256; m>0; m--)
+			{
+				for (n=40; n>0; n--)
+				{
+					printf("%x",*p);
+					p+=1;
+				}
+				printf("\n");
+			}
+			#endif
+			
 			//send Data Header
 			len = sendto(sock_cli, &DataHead, sizeof(DataHead), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 			if(len <= 0)
@@ -330,11 +431,7 @@ ReSocket:
 				//goto ReSocket;
 			}
 			
-			RingPullFromByteStreamMemoryBuffer(buf, FETCH_COUNT);
-			
-			//send audio data 
-			tmp_len = FETCH_COUNT;
-			pStream = (unsigned char *)buf;//(unsigned char *)dst;
+			//loop send audio data
 			while (tmp_len > UDP_MTU)
 			{
 				len = sendto(sock_cli, pStream, UDP_MTU, 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
@@ -362,7 +459,8 @@ ReSocket:
 		else
 		{
 			//printf("ringbuffer not full \n");
-			usleep(2000);
+			usleep(1000);
+		}
 		}
 #endif
 	}

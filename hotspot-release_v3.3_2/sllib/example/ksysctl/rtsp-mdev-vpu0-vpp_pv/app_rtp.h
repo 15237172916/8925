@@ -16,6 +16,8 @@
 #define CECKHEAD	0x1A1B1C1D
 #define UDP_MTU		15000
 
+#define CHECK_SUM_COUNT 1024*50
+
 typedef struct
 {
     unsigned int iProbe;
@@ -23,6 +25,7 @@ typedef struct
 	unsigned char uSeq:8;
 	unsigned int  iLen:24;
 	unsigned int iTimeStamp;
+	unsigned short int usChecksum :16;
 }DATAHEAD;
 
 enum PACKETTYPE

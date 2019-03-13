@@ -46,30 +46,38 @@
 #include "cfginfo.h" 
 #include "wifi_sta.h" 
 #include <sys/time.h>
-
 #include "audio_ioctl.h" 
-
 #include "app_rtp.h"
+#include "ir.h"
 
-//#define IR_DEBUG
-//#define ENABLE_IR_SEND
+
+
 //#define APP_CODE
 #define WEB_ENABLE
-//#define KVM_UART
+#define KVM_UART
 //#define APP_IO
-#define APP_RTP 
-#define  SWIT_MULTICAST
+#define APP_RTP
+//#define  SWIT_MULTICAST
+#define IP_SWITCH;
+#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
+#define ENABLE_IR_SEND
 
 #define AUDIO_SUPPORT
 #define VIDEO_SUPPORT
 
-#if 1
-#define IR_DATA_LENGTH 2040
-#define IR_DATA_NUM 2
-#else
-#define IR_DATA_LENGTH 1360
-#define IR_DATA_NUM 3
+
+
+
+
+
+//For IR
+#ifdef ENABLE_GET_IR
+static pthread_t get_ir_handler;
 #endif
+#ifdef ENABLE_IR_SEND
+static pthread_t send_ir_handle;
+#endif
+volatile SL_U32 interface;      //jsson cancel 'static' for bothway ir
 
 #ifdef APP_IO
 #include "app_rx_io_ctl.h"
@@ -89,8 +97,6 @@ static pthread_t app_rx_handler;
 
 static pthread_t app_rx_signal_ch_handler;
 static pthread_t app_rx_data_ch_handler;
-
-
 #endif
 
 #include "app_igmp.h"
@@ -119,21 +125,6 @@ static pthread_t ConfigHandle;
 
 client_param_t client_param;
 
-#ifdef ENABLE_IR_SEND
-
-#define IR_CLIENT_PORT  7998
-#define BUFFER_SIZE 1024
-
-
-typedef struct
-{
-    unsigned char num[IR_DATA_LENGTH];
-}Node;
-static SL_U32 dsp_dev;
-
-static pthread_t send_ir_handle;
-
-#endif
 
 #define NUM_RETRY       50000
 #define USLEEP_TIME     5*1000
@@ -207,10 +198,9 @@ static pthread_t rtspHandle_video;
 static pthread_t watchdogHandle;
 static pthread_t wifiHandle;
 
-static pthread_t  switch_multicast_handler;   //Jason add
-static pthread_t  Udp_multicast_handler;
-
-
+static pthread_t 	witch_multicast_handler;   //Jason add
+static pthread_t 	ip_swtich_handler;
+extern void *IP_switch(void);
 
 static SL_POINTER join_ret;
 static SL_POINTER join_ret1;
@@ -228,7 +218,7 @@ const char * server_running ="Check TX's input signal";
 const char * hdmi_pullout = "Check TX's input signal";
 #endif
 
-char serverip[20] = "192.168.1.3";
+char serverip[20] = "192.168.1.200";
 char multicast[20] = "239.255.42.44";
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
@@ -238,7 +228,7 @@ int process_osd_text_solid(int x, int y, const char *text);
 int process_osd_disable(void);
 #define DEV_IO_NAME		"/dev/silan_testio"
 
-static unsigned char *dsp_ir_start_addr_va;
+
 
 typedef struct
 {
@@ -1636,379 +1626,22 @@ static SL_POINTER  wifi_handle(SL_POINTER Args)
 
 	return NULL;
 }
-#ifdef ENABLE_IR_SEND
-static int init_dsp_ir(void)
+
+/*******jason add 20180830*****/
+static int rx_witch_multicast_main(void)
 {
-	int audio_fd = -1;
-	audio_fd=open("/dev/silan-dsp-ir", O_RDWR);
-	if(audio_fd<0){
-		printf("fail to open /dev/silan-dsp-ir\n");
-		return -1;
-	}
+	printf("rx_witch_multicast_main  start \n");
 
-	unsigned int tmp =  (unsigned long)mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, audio_fd, 0); //map 8k
-
-	dsp_ir_start_addr_va = (unsigned char *)tmp;
-
-	printf("\n***dsp_ir_start_addr_va:%x\n",dsp_ir_start_addr_va);
-
-	memset((unsigned char *)dsp_ir_start_addr_va,0x00,0x1000);
+	rx_witch_multicast();
 
 	return 0;
 }
-#if 1
-static SL_POINTER  send_ir(SL_POINTER Args)
-{
-	///sockfd
-	struct ifreq if0;
-	int sock_cli;
-	static int offset = 0;
-	static int value = 0;
-	static int cnt = 0;
-
-	printf ("%s started.\n", __func__);
-	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	int needSend=72*3*2;
-	unsigned char *dst=(unsigned char*)malloc(sizeof(Node));
-
-	unsigned short *dst1=(unsigned short*)malloc(72*3*2);
-
-
-	int i;
-	int j;
-
-	init_dsp_ir();
-#if 1
-try_again:
-	//sock_cli = socket(AF_INET,SOCK_STREAM, 0); //TCP
-	sock_cli = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  //UDP
-	
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(sock_cli,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(IR_CLIENT_PORT);
-	if(netInterface == INTERFACE_WLAN0)
-		servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
-	else
-		//servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-		servaddr.sin_addr.s_addr = inet_addr(serverip);
-
-	if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-	{
-		perror("connect");
-		close(sock_cli);
-		sleep(2);
-		goto try_again;
-	}
-
-#endif
-	while(1)
-	{
-		if((*(dsp_ir_start_addr_va + offset)) != 0)
-		{
-			usleep(100000);//FIXME let m0 capture entire data
-			memcpy(dst, (unsigned char *)(dsp_ir_start_addr_va + offset),IR_DATA_LENGTH);
-			memset((unsigned char *)(dsp_ir_start_addr_va + offset),0x00,IR_DATA_LENGTH); //FIXME
-			memset((unsigned char *)dst1,0x00,72*3*2); //FIXME
-#if 0
-			printf("dst[0]:%x\n",dst[0]);
-			printf("dst[1]:%x\n",dst[1]);
-			printf("dst[2]:%x\n",dst[2]);
-#endif
-			dst1[214] = dst[2] * 50; //FIXME 
-			//dst1[70] = dst[2] * 100 / 2; //FIXME 
-
-#if 1
-			j=0;
-			i=0;
-			while(i<=IR_DATA_LENGTH)	
-			{
-				if(*(dst + i) == 0xff)
-				{
-					if(value > 0)
-					{
-#ifdef IR_DEBUG
-						printf("-%d ",value);
-#endif
-						dst1[j] = value* 2 /dst[2];
-						j++;
-						value = 0;
-					}
-					if(i%2)
-					{
-#ifdef IR_DEBUG
-						printf("*%d ",*(unsigned short *)(dst + i + 1));
-#endif
-						dst1[j] = (*(unsigned short *)(dst + i + 1)) * 2 /dst[2] ;
-						j++;
-						i = i + 3;
-					}
-					else
-					{
-
-#ifdef IR_DEBUG
-						printf("*%d ",*(unsigned short *)(dst + i + 2));
-#endif
-						dst1[j] = (*(unsigned short *)(dst + i + 2)) * 2 /dst[2] ;
-						j++;
-						i = i + 4;
-					}
-				}
-				else if(*(dst + i) > 10)
-				{
-					value += *(dst + i);
-					i++;
-				}
-				else
-				{
-					i++;
-				}
-			}
-			if(j>=71*3)
-			{
-				printf("\n\n*** bad ir code\n");
-				offset += IR_DATA_LENGTH;
-				if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-					offset = 0;
-				continue;
-			}
-
-			dst1[j] = dst1[j-2];//FIXME
-//#ifdef IR_DEBUG
-			printf("j %d====\n\n",j);
-#if 1
-			for(j=0;j<215 ;j++)
-				printf("-%d",dst1[j]);
-			printf("\n");
-#endif
-#endif
-
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-
-#if 0
-			for(i = 0; i < 3600; i++) {
-				if(*(dst + i)>0)
-					value += *(dst + i);
-				else 
-					break;	
-			}
-			//	printf("value:%d\n",value);
-			if(value < 50000) {
-				//			printf("repeat=\n");
-				value =0;
-				continue; //not handle repeat code
-			}
-#endif
-			value =0;
-		} else {
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-			usleep(10000);
-			continue;
-		}
-#if 1
-		printf("send start\n");
-		int len=0;
-		len=send(sock_cli, dst1, needSend,0);
-		if(len <= 0)
-		{
-			perror("ERRPR");
-			printf("re-connect!\n");
-			close(sock_cli);
-			sleep(2);
-			goto try_again;
-		}
-		printf("send over\n");
-		if(len != needSend)
-			printf("actual send len:%d\n",len);
-#endif
-		usleep(10000);
-	}
-	free(dst);
-	close(sock_cli);
-
-	return 0;
-}
-#else
-static SL_POINTER  send_ir(SL_POINTER Args)
-{
-	///sockfd
-	struct ifreq if0;
-	int sock_cli;
-	static int offset = 0;
-	static int value = 0;
-	static int cnt = 0;
-
-	int needSend=sizeof(Node);
-	unsigned char *dst=(unsigned char*)malloc(needSend);
-	int i;
-
-	init_dsp_ir();
-#if 1
-try_again:
-	sock_cli = socket(AF_INET,SOCK_STREAM, 0);
-
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(sock_cli,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(IR_CLIENT_PORT);
-	if(netInterface == INTERFACE_WLAN0)
-		servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
-	else
-		servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-
-	if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-	{
-		perror("connect");
-		close(sock_cli);
-		sleep(2);
-		goto try_again;
-		//	exit(1);
-	}
-
-#endif
-	while(1)
-	{
-
-		if((*(dsp_ir_start_addr_va + offset)) != 0)
-		{
-			usleep(100000);//FIXME let m0 capture entire data must > 50ms
-			memcpy(dst, (unsigned char *)(dsp_ir_start_addr_va + offset),IR_DATA_LENGTH);
-#ifdef IR_DEBUG
-			i=0;
-			while(i<=IR_DATA_LENGTH)	
-			{
-				//	printf("%d :%x\n",i,*(dst + i));
-				if(*(dst + i) == 0xff)
-				{
-					//printf("line:%d\n",__LINE__);
-					if(value > 0)
-					{
-						printf("-%d ",value);
-						value = 0;
-					}
-					if(i%2)
-					{
-						printf("*%d ",*(unsigned short *)(dst + i + 1));
-						i = i + 3;
-					}
-					else
-					{
-
-						printf("*%d ",*(unsigned short *)(dst + i + 2));
-
-						i = i + 4;
-					}
-				}
-				else if(*(dst + i) > 10)
-				{
-					//printf("line:%d\n",__LINE__);
-					value += *(dst + i);
-					i++;
-				}
-				else
-				{
-				i++;
-				}
-			}
-				printf("=====\n\n");
-#endif
-				memset((unsigned char *)(dsp_ir_start_addr_va + offset),0x00,IR_DATA_LENGTH); //FIXME
-
-				offset += IR_DATA_LENGTH;
-				if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-					offset = 0;
-
-#if 0
-				for(i = 0; i < 3600; i++) {
-					if(*(dst + i)>0)
-						value += *(dst + i);
-					else 
-						break;	
-				}
-				//	printf("value:%d\n",value);
-				if(value < 50000) {
-					//			printf("repeat=\n");
-					value =0;
-					continue; //not handle repeat code
-				}
-#endif
-				value =0;
-		} else {
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-			usleep(10000);
-			continue;
-		}
-#if 1
-		printf("send start\n");
-		int len=0;
-		len=send(sock_cli, dst, needSend,0);
-		if(len <= 0)
-		{
-			perror("ERRPR");
-			printf("re-connect!\n");
-			close(sock_cli);
-			sleep(2);
-			goto try_again;
-		}
-		printf("send over\n");
-		if(len != needSend)
-			printf("actual send len:%d\n",len);
-#endif
-#ifdef IR_DEBUG
-		//printf("\ncnt:%d\n",cnt);
-		//cnt ++;
-#endif
-		usleep(10000);
-	}
-	free(dst);
-	close(sock_cli);
-	printf("Send over!!!\n");
-
-	return 0;
-}
-#endif
-#endif
-
-/*******Jason add 20180830*****/
-static int rx_switch_multicast_main(void)
-{
-	printf("rx_switch_multicast_main start --------------------------\n");
-	rx_switch_multicast();
-
-	return 0;
-}
-
 
 /* For usysctl testing */
 int main(int argc, char* argv[])
 {
-	SL_S32 ret = -1, i;	
+	SL_S32 ret = -1, i;
+	
 	RTSP_STATE_e state;
 
 	char configs[128];
@@ -2070,8 +1703,8 @@ int main(int argc, char* argv[])
 #endif
 	osd_display_init();
 	osd_sysctl_config();
-	process_osd_text_solid(10, 10, "V4.0 System Starting");
-	//process_osd_text_solid(10, 10, "V4.0 System Starting");
+	process_osd_text_solid(10, 10, "V2.7 System Starting");
+	sleep(1);
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
 	//sleep(1);
@@ -2084,6 +1717,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
+
 	
 #ifdef KVM_UART
 	ret = pthread_create(&app_rx_uart_handler, NULL, app_rx_uart_main, NULL);
@@ -2095,19 +1729,51 @@ int main(int argc, char* argv[])
 
 /******** jason add 20180830 *****************/
 #ifdef SWIT_MULTICAST
-    //printf("rx_witch_multicast_main test start : [main]\n");   
-	ret = pthread_create(&switch_multicast_handler, NULL, rx_switch_multicast_main, NULL);
+    printf("rx_witch_IpAddress_main test start : [main]\n");   
+	ret = pthread_create(&witch_multicast_handler, NULL, rx_witch_multicast_main, NULL);
 	if (ret) {
-		log_err("Failed to Create tx_witch_multicast_main Thread\n");
+		log_err("Failed to Create tx_witch_IpAddress_main Thread\n");
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
 #endif
 
-	//while(1) sleep(1);
+#ifdef IP_SWITCH
+    printf("IP_SWITCH test start : [main]\n");   
+	ret = pthread_create(&ip_swtich_handler, NULL, IP_switch, NULL);
+	if (ret) {
+		log_err("Failed to Create tx_witch_IpAddress_main Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+
+
+/********* Jason add for  bothway IR test 20181121 ***********************/
+#ifdef ENABLE_GET_IR
+	ret = pthread_create(&get_ir_handler, NULL, get_ir, NULL);
+	if (ret) {
+		log_err("Failed to Create get_ir Thread, %d\n", ret);
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+#ifdef ENABLE_IR_SEND
+	ret = pthread_create(&send_ir_handle, NULL, send_ir, NULL);
+	if (ret) {
+		log_err("Failed to send_ir Thread\n");
+		reboot1();
+		return ret;
+	}
+#endif
+/**************** End for bothway ir ************************************/	
+//	while(1) sleep(1);
+	
 #ifdef APP_IO
-#if 1
+#if 0
 	ret = pthread_create(&app_rx_light_ctl_handler, NULL, app_rx_light_ctl_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_rx_light_ctl_main Thread\n");
@@ -2115,7 +1781,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 1
+#if 0
 	ret = pthread_create(&app_rx_io_ctl_handler, NULL, app_rx_io_ctl_main, NULL);
 	if (ret) {
 		log_err("Failed to Create rtspOpen Thread\n");
@@ -2197,15 +1863,6 @@ int main(int argc, char* argv[])
 #endif
 #endif
 
-#ifdef ENABLE_IR_SEND
-	ret = pthread_create(&send_ir_handle, NULL, send_ir, NULL);
-	if (ret) {
-		log_err("Failed to send_ir Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-	
 	//while (1) sleep(1);
 	
 	ret = pthread_create(&iHandle, NULL, MDEV_Input_ThreadFunc, (void *)im_devman);

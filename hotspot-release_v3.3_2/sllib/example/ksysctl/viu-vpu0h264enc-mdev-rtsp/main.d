@@ -29,7 +29,9 @@ main.o: \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/cfginfo.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/wifi_ap.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/ring_buffer.h \
+ /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/ir.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/drv_sii9293.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/app_rtp_tx.h \
+ /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/app_tx_uart.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/sharemem.h \
  /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/Setting.h
