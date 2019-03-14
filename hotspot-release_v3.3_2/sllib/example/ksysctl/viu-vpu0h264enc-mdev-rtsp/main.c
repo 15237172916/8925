@@ -48,7 +48,7 @@
 #include "app_tx_broadcast.h"
 
 #include "uart_watchdog.h"
-
+#include "../version.h"
 
 #if 1
 #define IR_DATA_LENGTH 2040
@@ -2686,7 +2686,9 @@ int main(int argc, char* argv[])
 	close(fd_config);
 #endif
 	printf("********************system starting***************************\n");
+	printf(PRINT_VERSION);
 	System_running();
+	
 
 #ifdef DEBUG_OFF
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);

@@ -1938,7 +1938,7 @@ void *sii9293_handler(void *p)
 			case WaitSync:
 				printf("WaitSync \n");
 				waitSyncCount++;
-				if (WaitSyncCount > 200)
+				if (waitSyncCount > 200)
 				{
 					printf("wait sync time out !\n reboot\n");
 					reboot1();
