@@ -1853,17 +1853,17 @@ int  audio_config(void)
 
 void *sii9293_handler(void *p)
 {
-	printf("9293\n");
 	video_info_s *video_info;
 	audio_info_s *audio_info;
 	int ret = -1, timeOutReset_5V = 0;
+	int waitSyncCount = 0;
 	unsigned int tmp = 0;
 	extern volatile int viu_started;
 	extern volatile int viu_configed;
 	
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	//device_reset();
+	device_reset();
 	sleep(1);
 	chip_init();
 	//sleep(3); //yuliubing FIXME
@@ -1914,9 +1914,10 @@ void *sii9293_handler(void *p)
 #endif
 				HDMI_lost = 1;
 				timeOutReset_5V++;
-				if (timeOutReset_5V > 300)
+				if (timeOutReset_5V > 1000)
 				{
 					reboot1();
+
 				}
 				if (audioOut_trigger)
 				{
@@ -1936,6 +1937,12 @@ void *sii9293_handler(void *p)
 				
 			case WaitSync:
 				printf("WaitSync \n");
+				waitSyncCount++;
+				if (waitSyncCount > 200)
+				{
+					printf("wait sync time out !\n reboot\n");
+					reboot1();
+				}	
 				//sleep(3);
 				if(Is_Sync_stable())
 					chip->video_status = CheckSync;
@@ -2008,7 +2015,8 @@ void *sii9293_handler(void *p)
 			
 			case VideoOn:
 				//printf("VideoOn \n");
-#ifdef APP_CODE
+#ifdef APP_CODE	
+				waitSyncCount = 0;				
 				//gbBandwidthDetectMode = SL_FALSE;
 				HDMI_light_on();
 #endif

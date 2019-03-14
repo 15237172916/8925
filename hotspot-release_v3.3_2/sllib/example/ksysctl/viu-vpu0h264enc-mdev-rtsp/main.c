@@ -48,7 +48,7 @@
 #include "app_tx_broadcast.h"
 
 #include "uart_watchdog.h"
-
+#include "../version.h"
 
 #if 1
 #define IR_DATA_LENGTH 2040
@@ -2686,9 +2686,11 @@ int main(int argc, char* argv[])
 	close(fd_config);
 #endif
 	printf("********************system starting***************************\n");
+	printf(PRINT_VERSION);
 	System_running();
+	
 
-#if 1
+#ifdef DEBUG_OFF
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
@@ -2748,7 +2750,7 @@ int main(int argc, char* argv[])
 		//sleep(1);
 #endif
 
-#if 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+#if 1 
 	Init_Multicast_and_IP(); //ip and multicast set
 	init_eth();
 	
@@ -2784,7 +2786,7 @@ int main(int argc, char* argv[])
 	ret = h264_output();
 #endif
 
-#ifdef KVM_UART
+#ifdef KVM_UART 
 	ret = pthread_create(&app_tx_uart_handler, NULL, app_tx_uart_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_tx_uart_handler Thread\n");

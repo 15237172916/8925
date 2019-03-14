@@ -53,6 +53,7 @@
 
 #include "app_rx_broadcast.h"
 #include "uart_watchdog.h"
+#include "../version.h"
 
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
@@ -2180,6 +2181,7 @@ int main(int argc, char* argv[])
 	char str_tmp[50];
 	char configs[128];
 	//AppWriteCfgInfotoFile();
+	printf(PRINT_VERSION);
 #if 0
 	ret = InitCfgInfo(&fd_config);
 	if(!ret) {
@@ -2268,7 +2270,7 @@ int main(int argc, char* argv[])
 	
 	osd_display_init();
 	osd_sysctl_config();
-	process_osd_text_solid(10, 10, "V4.0 System Starting");
+	process_osd_text_solid(10, 10, OSD_VERSION);
 	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
