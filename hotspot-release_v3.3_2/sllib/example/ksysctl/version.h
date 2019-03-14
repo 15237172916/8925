@@ -22,16 +22,16 @@
 #ifndef _VERSION_H_
 #define _VERSION_H_
 
-#define PRODUCT_NAME   "HSV761"     //product name
+#define PRODUCT_NAME   "HSV701"     //product name
 #define VER_ID1      "1"          //major version id 
-#define VER_ID2      "0"          //minor version id 
-#define VER_ID3      "1"             //sbuversion id 
+#define VER_ID2      "1"          //minor version id 
+#define VER_ID3      "0"             //sbuversion id 
 #define BUILDING      "20190213"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV761 V1.0.1.190213_R"
-#define WEB_VERSION      "V1.0.1.190213"
-#define OSD_VERSION      "V1.0.1"
+#define PRINT_VERSION    "HSV761 V1.1.0.190213_R"
+#define WEB_VERSION      "V1.1.0.190213"
+#define OSD_VERSION      "V1.1.0"
 
 
 
