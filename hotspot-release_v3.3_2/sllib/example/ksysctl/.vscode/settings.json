@@ -1,3 +1,7 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "files.associations": {
+        "app_rx_signal_ch.h": "c",
+        "version.h": "c"
+    }
 }

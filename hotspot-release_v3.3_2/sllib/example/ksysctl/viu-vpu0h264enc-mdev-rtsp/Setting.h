@@ -1,8 +1,8 @@
 #ifndef _SETTING_H_
 #define _SETTING_H_
-
+#include "../version.h"
 #define HD_VERSION "HW11.2"
-#define SW_VERSION "SW21.2.20190225"
+#define SW_VERSION WEB_VERSION
 
 #define RTMP_ENABLE 1
 #define RTMP_DISABLE 0
