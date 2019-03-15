@@ -45,6 +45,7 @@
 #include "drv_sii9293.h"
 #endif
 #include "app_rtp_tx.h"
+#include "../version.h"
 
 #if 1
 #define IR_DATA_LENGTH 2040
@@ -2685,6 +2686,7 @@ int main(int argc, char* argv[])
 	close(fd_config);
 #endif
 	printf("********************system starting***************************\n");
+	printf(PRINT_VERSION);
 #ifdef WEB_ENABLE
 
 	InitShareMem();

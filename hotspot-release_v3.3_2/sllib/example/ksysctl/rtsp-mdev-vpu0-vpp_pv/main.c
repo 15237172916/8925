@@ -50,6 +50,7 @@
 #include "audio_ioctl.h" 
 
 #include "app_rtp.h"
+#include "../version.h"
 
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
@@ -2012,6 +2013,7 @@ int main(int argc, char* argv[])
 	RTSP_STATE_e state;
 
 	char configs[128];
+	printf(PRINT_VERSION);
 	//AppWriteCfgInfotoFile();
 #if 0
 	ret = InitCfgInfo(&fd_config);
@@ -2070,7 +2072,7 @@ int main(int argc, char* argv[])
 #endif
 	osd_display_init();
 	osd_sysctl_config();
-	process_osd_text_solid(10, 10, "V4.0 System Starting");
+	process_osd_text_solid(10, 10, OSD_VERSION);
 	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
