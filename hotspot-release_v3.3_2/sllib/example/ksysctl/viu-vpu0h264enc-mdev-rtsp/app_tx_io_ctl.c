@@ -549,7 +549,7 @@ void Init_Multicast_and_IP(void)
 	#endif
 	
 	printf("tmp1 = 0x%x \n", tmp1);
-	//tmp1+=1;
+	tmp1+=1; //701 need open 
 	sprintf(str, "239.255.42.%d", tmp1); //multicast address
 	strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
 	printf(str);
