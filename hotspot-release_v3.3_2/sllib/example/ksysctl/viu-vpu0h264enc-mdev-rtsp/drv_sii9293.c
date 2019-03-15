@@ -1863,7 +1863,7 @@ void *sii9293_handler(void *p)
 	
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	device_reset();
+	//device_reset();
 	sleep(1);
 	chip_init();
 	//sleep(3); //yuliubing FIXME
