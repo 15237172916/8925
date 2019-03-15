@@ -12,6 +12,7 @@
 
 extern char multicast[20];
 extern char web_flag;
+extern char switch_flag;
 char report_succeed = 1;
 
 unsigned short csum(unsigned short *buf, int nwords)
@@ -71,7 +72,9 @@ void *app_igmp_report()
     memset(&server_addr, 0, sizeof(server_addr));
     
 ReSocket:
-    web_flag = 0;
+	printf("IGMP RESOCKET\n");
+	switch_flag=0;
+    //web_flag = 0;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(IGMP_PORT);
 	//server_addr.sin_addr.s_addr=htonl(INADDR_BROADCAST); //UDP broadcast address 
@@ -152,7 +155,7 @@ Resend:
 		//IGMP_config(IGMP_REPORT);
 		//printf("report succeed : %d \n", report_succeed);
 		//printf("web_flag = %d \n", web_flag);
-		if (1 == web_flag)
+		if (1 == switch_flag)
 		{
 			report_succeed = 0;
 			server_addr.sin_addr.s_addr=inet_addr(LEAVE_ADDR);
@@ -173,7 +176,7 @@ Resend:
 		}
 		
 		//printf("send igmp len : %d \n", len);
-		usleep(500000); //0.5s
+		usleep(100000); //0.1s
 	}
 }
 

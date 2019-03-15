@@ -40,16 +40,34 @@
 #include "wifi_ap.h"
 #include "ring_buffer.h"
 #include <sys/time.h>
-#include "ir.h"
-
 #if 1
 //#include "drv_sii9293_register.h"
 #include "drv_sii9293.h"
 #endif
 #include "app_rtp_tx.h"
 
+#if 1
+#define IR_DATA_LENGTH 2040
+#define IR_DATA_NUM 2
+#else
+#define IR_DATA_LENGTH 1360
+#define IR_DATA_NUM 3
+#endif
+
+//#define IR_DEBUG
+//#define ENABLE_GET_IR
 
 
+#ifdef ENABLE_GET_IR
+#define IR_SERVER_PORT    7998
+#define LENGTH_OF_LISTEN_QUEUE     20
+#define BUFFER_SIZE                1024
+
+typedef struct
+{
+    unsigned char num[IR_DATA_LENGTH];
+}Node;
+#endif
 
 #define WIDTH 1920
 #define HEIGHT 1080
@@ -65,8 +83,7 @@
 //#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
-#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
-#define ENABLE_IR_SEND 		//get ir data from m0 and transfer to TX 
+
 
 #ifdef APP_CODE
 #include "app_tx_signal_ch.h"
@@ -92,18 +109,10 @@ char connect_state_b = 0;
 
 #include "app_tx_uart.h"
 static pthread_t app_tx_uart_handler;
-#endif
 
-//For IR
-#ifdef ENABLE_GET_IR
-static pthread_t get_ir_handler;
 #endif
-#ifdef ENABLE_IR_SEND
-static pthread_t send_ir_handle;
-#endif
-
 char 	web_flag;
-char multicast[20] = "239.255.42.44";
+char multicast[20] = "239.255.42.02";
 #ifdef WEB_ENABLE
 #include "sharemem.h"
 
@@ -129,7 +138,9 @@ extern int audio_configed;
 
 static pthread_t rtspserver;
 static pthread_t chip_handler;
-
+#ifdef ENABLE_GET_IR
+static pthread_t get_ir_handler;
+#endif
 static pthread_t noteLive_handle;
 static pthread_t  pushMdev2List_handle;
 static pthread_t  viu_output_handle;
@@ -172,7 +183,7 @@ H264_APPEND_INFO_s h264_append_info;
 
 extern int audioIn_trigger;
 extern int audioOut_trigger;
-volatile SL_U32 interface;      //jsson cancel 'static' for bothway ir
+static SL_U32 interface;
 static server_param_t server_param;
 static SL_U32 need_feed_dog = 1;
 //static SL_S32 g_bitrate = 40000;//20M cpu high;
@@ -2375,6 +2386,257 @@ static SL_POINTER  watchdog_handle(SL_POINTER Args)
 	return NULL;
 }
 
+#ifdef ENABLE_GET_IR
+static int send_to_dsp(unsigned char *buf, int len)
+{
+	static int offset = 0;
+
+	//while(*(unsigned char *)(dsp_ir_start_addr_va + offset))
+	{
+		printf("send to dsp while \n");
+		usleep(10000);
+	}
+	memcpy((unsigned char *)(dsp_ir_start_addr_va + offset), buf, len);
+
+	offset += IR_DATA_LENGTH;
+	if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
+		offset = 0;
+	
+}
+
+static int init_dsp_ir(void)
+{
+	int audio_fd = -1;
+	audio_fd=open("/dev/silan-dsp-ir", O_RDWR);
+	if(audio_fd<0){
+		printf("fail to open /dev/silan-dsp-ir\n");
+		return -1;
+	}
+
+	unsigned int tmp =  (unsigned long)mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, audio_fd, 0);
+
+	dsp_ir_start_addr_va = (unsigned char *)tmp;
+
+	memset((unsigned char *)dsp_ir_start_addr_va,0x00,0x1000);
+
+	return 0;
+}
+
+#if 1
+static SL_POINTER  get_ir(SL_POINTER Args)
+{
+	struct ifreq if0;
+	int needRecv;
+	unsigned char *buffer;
+	unsigned short *tmp;
+	// set socket's address information
+	struct sockaddr_in   server_addr;
+
+	printf ("%s started.\n", __func__);
+	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
+
+	bzero(&server_addr, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
+	server_addr.sin_port = htons(IR_SERVER_PORT);
+
+	// create a stream socket
+	//int server_socket = socket(PF_INET, SOCK_STREAM, 0); //TCP
+	int server_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);  //UDP
+	if (server_socket < 0)
+	{
+		printf("Create Socket Failed!\n");
+		exit(1);
+	}
+
+	if(interface == INTERFACE_WLAN0)
+	{
+		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
+		if(ioctl(server_socket,SIOCGIFHWADDR,&if0)<0)
+		{
+			printf("ioctl SIOCGIFHWADDR error\n");
+			return -1;
+		}
+	}
+
+	//bind
+	if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	{
+		printf("Server Bind Port: %d Failed!\n", IR_SERVER_PORT);
+		exit(1);
+	}
+ReListen:
+#if 0 //0:UDP 1:TCP
+	// listen
+	if (listen(server_socket, LENGTH_OF_LISTEN_QUEUE))
+	{
+		printf("Server Listen Failed!\n");
+		exit(1);
+	}
+
+	printf("listen ok\n");
+	struct sockaddr_in client_addr;
+	socklen_t length = sizeof(client_addr);
+	
+	int new_server_socket = accept(server_socket, (struct sockaddr*)&client_addr, &length);
+	if (new_server_socket < 0)
+	{
+		printf("Server Accept Failed!\n");
+		//break;
+	}
+#endif
+	//needRecv=sizeof(Node);
+	needRecv=72*3*2;
+	buffer=(unsigned char*)malloc(needRecv);
+	memset(buffer,0x00,needRecv);
+	int pos=0;
+	int len;
+	while(1)
+	{
+		pos=0;
+		while(pos < needRecv)
+		{
+			//len = recv(new_server_socket, buffer + pos, needRecv-pos, 0);// TCP block receive 
+			len = recv(server_socket, buffer + pos, needRecv - pos, 0);  //UDP
+			if (len < 0)
+			{
+				printf("Server Recieve Data Failed!\n");
+				break;
+			}
+
+			pos+=len;
+
+		}
+		if(needRecv != pos)
+			printf("pos=%d \n",pos);
+		printf("send ir \n");
+#ifdef IR_DEBUG
+		tmp = (unsigned short *)buffer;
+		int i;
+		//for (i=0;i<72;i++)
+		for (i=0;i<215;i++)
+		{
+			printf("%d ",tmp[i]);
+		}
+		printf("\n");
+#endif
+		send_to_dsp(buffer, pos);
+		printf("send to dsp \n");
+		usleep(20000); //FIXME
+	}
+	//close(new_server_socket);
+	free(buffer);
+	close(server_socket);
+
+	return 0;
+}
+
+#else
+static SL_POINTER  get_ir(SL_POINTER Args)
+{
+	struct ifreq if0;
+	int needRecv;
+	unsigned char *buffer;
+	unsigned char *tmp;
+	// set socket's address information
+	struct sockaddr_in   server_addr;
+
+	printf ("%s started.\n", __func__);
+	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
+
+	bzero(&server_addr, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
+	server_addr.sin_port = htons(IR_SERVER_PORT);
+
+	// create a stream socket
+	int server_socket = socket(PF_INET, SOCK_STREAM, 0);
+	if (server_socket < 0)
+	{
+		printf("Create Socket Failed!\n");
+		exit(1);
+	}
+
+	if(interface == INTERFACE_WLAN0)
+	{
+		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
+		if(ioctl(server_socket,SIOCGIFHWADDR,&if0)<0)
+		{
+			printf("ioctl SIOCGIFHWADDR error\n");
+			return -1;
+		}
+	}
+
+	//bind
+	if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
+	{
+		printf("Server Bind Port: %d Failed!\n", IR_SERVER_PORT);
+		exit(1);
+	}
+#if 0 //
+	// listen
+	if (listen(server_socket, LENGTH_OF_LISTEN_QUEUE))
+	{
+		printf("Server Listen Failed!\n");
+		exit(1);
+	}
+
+	printf("listen ok\n");
+	struct sockaddr_in client_addr;
+	socklen_t length = sizeof(client_addr);
+	int new_server_socket = accept(server_socket, (struct sockaddr*)&client_addr, &length);
+	if (new_server_socket < 0)
+	{
+		printf("Server Accept Failed!\n");
+		//break;
+	}
+#endif
+
+	needRecv=sizeof(Node);
+	buffer=(unsigned char*)malloc(needRecv);
+	memset(buffer,0x00,needRecv);
+	int pos=0;
+	int len;
+	while(1)
+	{
+		pos=0;
+		while(pos < needRecv)
+		{
+			len = recv(new_server_socket, buffer + pos, needRecv-pos, 0);//block receive 
+			if (len < 0)
+			{
+				printf("Server Recieve Data Failed!\n");
+				break;
+			}
+
+			pos+=len;
+
+		}
+		if(needRecv != pos)
+			printf("pos=%d \n",pos);
+
+#ifdef IR_DEBUG
+		tmp = (unsigned short *)buffer;
+		int i;
+		//for (i=0;i<needRecv/2;i++)
+		for (i=0;i<6;i++)
+		{
+			printf("%d ",tmp[i]);
+		}
+		printf("\n");
+#endif
+		send_to_dsp(buffer, pos);
+		usleep(20000); //FIXME
+	}
+	close(new_server_socket);
+	free(buffer);
+	close(server_socket);
+
+	return 0;
+}
+
+#endif
+#endif
 
 #ifdef WEB_ENABLE
 static SL_POINTER  config_handle(SL_POINTER Args)//             for zhou 1.29
@@ -2489,9 +2751,9 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-
-///**********************************Jason add for  bothway IR test 20181121 *****************************************************//
+	//while (1) sleep(1);
 #ifdef ENABLE_GET_IR
+	init_dsp_ir();
 	ret = pthread_create(&get_ir_handler, NULL, get_ir, NULL);
 	if (ret) {
 		log_err("Failed to Create get_ir Thread, %d\n", ret);
@@ -2500,19 +2762,8 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-#ifdef ENABLE_IR_SEND
-	ret = pthread_create(&send_ir_handle, NULL, send_ir, NULL);
-	if (ret) {
-		log_err("Failed to send_ir Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-///**********************************End for bothway ir *****************************************************//
-//while (1) sleep(1);
 
-
-
+	//while (1) sleep(1);
 #ifdef WEB_ENABLE
 	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
 	if (ret) {

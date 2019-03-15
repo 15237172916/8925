@@ -48,7 +48,6 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 		if(1==share_mem->ucUpdateFlag)
 		{
 			printf("web start \n");
-			eth_setting = share_mem->sm_eth_setting;
 			AppWriteCfgInfotoFile();
 #if 1
 			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);

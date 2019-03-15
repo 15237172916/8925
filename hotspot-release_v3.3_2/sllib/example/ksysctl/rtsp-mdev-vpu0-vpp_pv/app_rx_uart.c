@@ -30,12 +30,29 @@
 //#define UART_DEVICE_NAME    "/dev/ttyAMA2"
 
 #define UART_PORT	8810
-//#define UDP_UART    
-#define TCP_UART          //jason
+#define UDP_UART    
+//#define TCP_UART          //jason
 
 
 static SL_U32 fd;  			//fd is uart descriptor
 extern char serverip[128];
+extern char multicast[20];
+extern char report_succeed;
+extern char web_flag;
+extern char switch_flag;
+char MK_multicast[][20] = {"239.255.42.01","239.255.42.02",\
+"239.255.42.03","239.255.42.04","239.255.42.05","239.255.42.06",\
+"239.255.42.07","239.255.42.08","239.255.42.09","239.255.42.10"};
+typedef enum
+{
+	STATE0,
+	STATE1,
+	STATE2,
+	STATE3,
+	STATE4,
+	STATE5,
+	STATE6,
+}STATE;
 
 SL_ErrorCode_t SLUART_Setopt(SL_S32 fd, 
                              SL_U32 nSpeed, 
@@ -246,6 +263,160 @@ void uart_init(void)
 	
 }
 
+
+/*
+ * func: Functions handled when switching multicast addresses
+ * author:wgg
+ */
+ /*
+void Multicast_Handle(int sock_server,struct ip_mreq mreq1)
+{
+
+	setsockopt(sock_server, IPPROTO_IP, IP_DROP_MEMBERSHIP,&mreq1, sizeof(mreq1));
+	usleep(100);
+	struct ip_mreq mreq;      
+	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+	setsockopt(sock_server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	
+}*/
+
+
+/*
+ * func:judge mouse and keyboard values
+ * author:wgg
+ */
+int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
+{
+	char dest[3] = {""};
+	char com_multicast[]="239.255.42.";
+	int num;
+	switch(cur_state)
+		{
+			case STATE0:
+				if(buff[0]==0x57)
+					cur_state=STATE1;
+				else
+					cur_state=STATE0;
+				break;
+			case STATE1:
+				if(buff[0]==0xab)
+					cur_state=STATE2;
+				else
+					cur_state=STATE0;
+				break;
+			case STATE2:
+				if(buff[0]==0x01)
+					cur_state=STATE3;
+				else
+					cur_state=STATE0;
+				break;
+			case STATE3:
+				if(buff[0]==0x01 || buff[0]==0x10)
+					cur_state=STATE4;
+				else
+					cur_state=STATE0;
+				break;
+			case STATE4:
+				if(buff[0]==0x00)
+					cur_state=STATE5;
+				else
+					cur_state=STATE0;
+				break;
+			case STATE5:
+				if(buff[0]==0x59 || buff[0]==0x1e)			//1
+				{
+					strcpy(multicast, MK_multicast[0]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5a || buff[0]==0x1f)		//2
+				{
+					strcpy(multicast, MK_multicast[1]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5b || buff[0]==0x20)		//3
+				{
+					strcpy(multicast, MK_multicast[2]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5c || buff[0]==0x21)		//4
+				{
+					strcpy(multicast, MK_multicast[3]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5d || buff[0]==0x22)		//5
+				{
+					strcpy(multicast, MK_multicast[4]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5e || buff[0]==0x23)		//6
+				{
+					strcpy(multicast, MK_multicast[5]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x5f || buff[0]==0x24)		//7
+				{
+					strcpy(multicast, MK_multicast[6]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x60 || buff[0]==0x25)		//8
+				{
+					strcpy(multicast, MK_multicast[7]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x61 || buff[0]==0x26)		//9
+				{
+					strcpy(multicast, MK_multicast[8]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x62 || buff[0]==0x27)		//0
+				{
+					strcpy(multicast, MK_multicast[9]);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x56 || buff[0]==0x2d)		//-
+				{
+					strncpy(dest, multicast+11,3);
+					num=atoi(dest);
+					num--;
+					sprintf(dest,"%d",num);
+					strcat(com_multicast,dest);
+					strcpy(multicast,com_multicast);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else if(buff[0]==0x57 || buff[0]==0x2e)		//+
+				{
+					strncpy(dest, multicast+11,3);
+					num=atoi(dest);
+					num++;
+					sprintf(dest,"%d",num);
+					strcat(com_multicast,dest);
+					strcpy(multicast,com_multicast);
+					switch_flag=1;
+					cur_state=STATE6;
+				}
+				else
+					cur_state=STATE0;
+				break;
+				default:
+				cur_state=STATE0;
+		}
+		return cur_state;
+}
+
+
+
 /*
  * func: control mouse and key by tcp or udp 
  * author: Jason chen, 2018/8/29
@@ -254,12 +425,11 @@ void *app_rx_uart_main(void)
 {
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
-
-	SL_U8 rbuff[1] = {0};
-    SL_U8 wbuff[1] = {0};
+	
+	SL_U8 rbuff[1];
+	SL_U8 wbuff[1];
     int fd_uart = -1;
-    int len = 0;
-   // SL_ErrorCode_t fd_uart;   //jason
+
 
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
     memset(wbuff, 0, sizeof(wbuff));
@@ -279,13 +449,145 @@ ReOpen:
 		sleep(1);
 		goto ReOpen;
 	}
-	//poll
-    struct pollfd fds;
-    fds.fd = 5;        //uart descriptor
-    fds.events = POLLIN;
+
 	
-	//Jason add  for select 
-	int val = 0;
+    
+#ifdef UDP_UART 
+	
+	//socker set
+    int sock_server;
+    struct sockaddr_in server_addr,client_addr;
+    int ret = 0;
+    socklen_t clielen_addr_length;  
+    clielen_addr_length = sizeof(client_addr);  
+
+ReSocket:
+	
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(UART_PORT);
+    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
+
+  
+	sock_server = socket(AF_INET, SOCK_DGRAM, 0); //UDP
+	if (sock_server < 0)
+    {
+        printf("uart Create Socket Failed!\n");
+        perror("socket");
+        sleep(1);
+        goto ReSocket;
+    }
+    printf("kvm server socket create ok, sock_server is = %d\n", sock_server);
+    
+    if (bind(sock_server, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+	{
+		perror("bind");
+		printf("Server Bind Port: %d Failed!\n", UART_PORT);
+		close(sock_server);
+		sleep(1);
+		goto ReSocket;
+	}
+	printf("kvm server bind ok \n");
+	
+	//set Multicast loop
+	int loop=1;    //1:on  0:off
+	ret = setsockopt(sock_server,IPPROTO_IP,IP_MULTICAST_LOOP,&loop,sizeof(loop));
+	if(ret < 0)
+	{
+		printf("kvm set multicast loop error \n");
+		perror("setsockopt");
+	}
+	
+	//set multicast address
+	struct ip_mreq mreq;      
+	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+
+	//add multicast group
+	ret = setsockopt(sock_server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	if(ret < 0)
+	{
+		printf("kvm set multicast error \n");
+		perror("setsockopt");
+	}
+	
+	int reuse = 1;
+	ret = setsockopt(sock_server, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+	if(ret < 0)
+	{
+		printf("kvm set multicast reuse error \n");
+		perror("setsockopt");
+	}
+	
+#if 1
+    struct timeval timeout;
+	int val;
+    timeout.tv_sec = 5;                 //设置3s超时
+    timeout.tv_usec = 0;
+    
+    val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+    if(val < 0)
+    {
+		printf("time out setting failed\n");
+	}
+    val = setsockopt(sock_server,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+    if(val < 0)
+    {
+		printf("time out setting failed\n");
+	}
+#endif
+	printf("start while\n");
+	STATE cur_state=STATE0;
+	
+	while (1)
+    {	
+		memset(rbuff, 0, sizeof(rbuff));
+		memset(wbuff, 0, sizeof(wbuff));
+		if (0 == report_succeed)
+		{
+			close(sock_server);				//if use kvm,must be closed first this sock
+			puts(multicast);
+			goto ReSocket;
+			
+		}
+		if (recvfrom(sock_server, wbuff, sizeof(wbuff), \
+			0, (struct sockaddr *)&client_addr, &clielen_addr_length) <= 0)
+		{
+			perror("recvfrom");
+			printf("uart revfrom failed \n");
+			close(sock_server);
+			goto ReSocket;
+		}
+
+		errCode = SLUART_Write(wbuff, sizeof(wbuff));
+		if (errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+		}		
+		errCode = SLUART_Read(rbuff, sizeof(rbuff));
+		if (errCode != 0)
+		{
+			printf("SLUART_Read error\n");
+		}					
+
+		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
+		
+		if(sendto(sock_server, rbuff, sizeof(rbuff), \
+			0, (struct sockaddr *)&client_addr, clielen_addr_length) <= 0)
+		{
+			perror("sendto");
+			printf("uart send failed \n");
+			sleep(1);
+			close(sock_server);
+			goto ReSocket;
+		}
+		
+    }
+    close(sock_server);
+
+#endif
+
+#ifdef TCP_UART
 
 	//socker 
     int sock_client;
@@ -296,108 +598,9 @@ ReOpen:
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
-   // servaddr.sin_addr.s_addr = inet_addr(serverip);
-    //servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-   servaddr.sin_addr.s_addr = inet_addr("192.168.1.200");   //TCP
-    
-#ifdef UDP_UART 
-    
-ReSocket:
-	sock_client = socket(AF_INET,SOCK_DGRAM, 0); //UDP
-	if (sock_client < 0)
-    {
-        printf("uart Create Socket Failed!\n");
-        perror("socket");
-        sleep(1);
-        close(sock_client);
-        goto ReSocket;
-    }
-    printf("jason test sock_client = %d\n", sock_client);
-    
-    struct timeval timeout;
-
-    timeout.tv_sec = 5;                 //设置3s超时
-    timeout.tv_usec = 0;
-    
-    val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
-    if(val < 0)
-    {
-		printf("time out setting failed\n");
-	}
-    val = setsockopt(sock_client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
-    if(val < 0)
-    {
-		printf("time out setting failed\n");
-	}
-
-	while (1)
-    {
-#if 0
-		//struct timeval timeout = {3, 0}; 						// select 等待 3 秒，3 秒轮询， 要非阻塞就置 0			
-		FD_ZERO(&select_set);
-		FD_SET(5, &select_set);
-					
-		maxfd = sock_client > fd ? sock_client +1 : fd +1;   		//fd is uart descriptor
+    servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");   //TCP
 
 
-		if(-1 == select(maxfd, &select_set, NULL, NULL,NULL))       //select for uart
-		{
-			perror("select");
-		}
-		
-		if(FD_ISSET(fd, &select_set))   							//Blocking events
-#endif		
-		//else if ((fds.revents & POLLIN) == POLLIN)
-		{
-			errCode = SLUART_Read(rbuff, sizeof(rbuff));
-			if (errCode != 0)
-			{
-				printf("SLUART_Read error\n");
-			}					
-			//printf("jason1 rbuff is = [%x] \n", rbuff[0]);
-			
-
-			if (sendto(sock_client, rbuff, sizeof(rbuff), \
-				0, (struct sockaddr *)&servaddr, sizeof(servaddr)) <= 0)
-			{
-				perror("sendto");
-				printf("uart send failed \n");
-				sleep(1);
-				close(sock_client);
-				goto ReSocket;
-			}
-			//printf("jason test ********  sendto OK \n");
-			//printf("jason1 sendto is = [%x] \n", rbuff[0]);		
-	
-		}	
-				
-
-		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
-			0, (struct sockaddr_in *) &servaddr, &servlen_addr_length) <= 0)
-		{
-			perror("recvfrom");
-			printf("uart revfrom failed \n");
-			close(sock_client);
-			goto ReSocket;
-		}
-		//printf("jason test recvfrom ----------------OK \n");	
-		//printf("Jason test  RX recvfrom is [%s]\n", wbuff);   	//jason test
-
-		
-	
-		errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		if (errCode != 0)
-		{
-			printf("SLUART_Write error\n");
-		}
-		//printf("Jason test SLUART_Write is [%x]\n", wbuff[0]);   //jason test			
-		memset(rbuff, 0, sizeof(rbuff));
-		memset(wbuff, 0, sizeof(wbuff));
-    }
-    
-#endif
-
-#ifdef TCP_UART
 
 ReSocket:
     sock_client = socket(AF_INET,SOCK_STREAM, 0);  //TCP
@@ -464,10 +667,11 @@ ReSocket:
 			//return -1;
 		}
 	}
+	close(sock_client);	
 
 #endif
     
-    close(sock_client);
+    
     errCode = SLUART_Close(); 
 	if(errCode != 0)
 	{

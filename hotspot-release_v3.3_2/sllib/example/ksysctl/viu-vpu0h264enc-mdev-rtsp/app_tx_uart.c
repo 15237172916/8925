@@ -23,14 +23,17 @@
 //#define UART_DEVICE_NAME    "/dev/ttyAMA2"
 
 #define UART_PORT	8810
-//#define UDP_UART   
-#define TCP_UART          //Jason add
+#define UDP_UART   
+//#define TCP_UART          //Jason add
 
 static SL_U32 fd;
 extern char serverip[128];
+extern char multicast[20];
+extern char web_flag;
+#ifdef TCP_UART
 SL_U8 rebuff[1] = {0};    
 pthread_mutex_t lock_kvm; 
-
+#endif
 SL_ErrorCode_t SLUART_Setopt(SL_S32 fd, 
                              SL_U32 nSpeed, 
                              SL_U32 nBits, 
@@ -288,6 +291,7 @@ int IsLinkDownOrUp(void)
 	}
 }
 
+#ifdef TCP_UART
 /*
  *func:Thread processing receives information from the client 
  * 		key select
@@ -369,6 +373,7 @@ Rerecv:
 	}					
 }
 
+#endif
 
 /*
  * func: control mouse and key by tcp or udp 
@@ -378,15 +383,110 @@ void *app_tx_uart_main(void)
 {
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
-    pthread_mutex_init(&lock_kvm,NULL);
 	//uart set
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
     nOpenParam->speed = 115200;
     nOpenParam->bits = 8;
     nOpenParam->event = 'N';
     nOpenParam->stop = 1;
+     
+    SL_U8 rbuff[1];
+	SL_U8 wbuff[1];
+    //open uart 
+    errCode = SLUART_Open(nOpenParam);
+	if(errCode != 0)
+	{
+		printf("SLUART_Open error\n");
+		//return -1;
+	}
+	 
+#ifdef UDP_UART
+	 //socker 
+    int sock_client;
+    struct sockaddr_in servaddr;
+    socklen_t servlen_addr_length;
+    servlen_addr_length = sizeof(servaddr);
     
-    //socker set
+ReSocket: 
+	web_flag = 0;   
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(UART_PORT);
+    servaddr.sin_addr.s_addr = inet_addr(multicast);
+
+	//create socket
+	sock_client = socket(AF_INET,SOCK_DGRAM, 0); //UDP
+    if (sock_client < 0)
+    {
+		perror("socket");
+		sleep(1);
+		goto ReSocket;
+	}
+	printf("sock_client = %d\n", sock_client);
+//	int reuse = 1;
+//	setsockopt(sock_client, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+
+    struct timeval timeout;
+	int val;
+    timeout.tv_sec = 5;                 //设置3s超时
+    timeout.tv_usec = 0;
+    
+    val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+    if(val < 0)
+    {
+		printf("time out setting failed\n");
+	}
+    val = setsockopt(sock_client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+    if(val < 0)
+    {
+		printf("time out setting failed\n");
+	}
+
+	while (1)
+    {
+		memset(rbuff, 0, sizeof(rbuff));
+		memset(wbuff, 0, sizeof(wbuff));
+
+		errCode = SLUART_Read(rbuff, sizeof(rbuff));
+		if (errCode != 0)
+		{
+			printf("SLUART_Read error\n");
+		}
+			
+		if (sendto(sock_client, rbuff, sizeof(rbuff), \
+			0, (struct sockaddr *)&servaddr, servlen_addr_length) <= 0)
+		{
+			perror("sendto");
+			printf("uart send failed \n");
+			close(sock_client);
+			//sleep(1);
+			goto ReSocket;
+		}
+		
+		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
+			0, (struct sockaddr_in *) &servaddr, &servlen_addr_length) <= 0) 
+		{
+			perror("recvfrom");
+			printf("uart revfrom failed \n");
+			close(sock_client);
+			goto ReSocket;
+		}	
+		
+		errCode = SLUART_Write(wbuff, sizeof(wbuff));
+		if(errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+			return -1;
+		}
+			
+			
+    }  
+    close(sock_client);
+#endif   
+
+#ifdef TCP_UART
+	pthread_mutex_init(&lock_kvm,NULL);
+//socker set
     int sock_server;
     struct sockaddr_in servaddr;
     struct sockaddr_in client;  //jason add
@@ -403,111 +503,8 @@ void *app_tx_uart_main(void)
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
     //servaddr.sin_addr.s_addr = inet_addr(INADDR_ANY);
-    servaddr.sin_addr.s_addr = inet_addr("192.168.1.200");
-     
-    
-    //open uart 
-    errCode = SLUART_Open(nOpenParam);
-	if(errCode != 0)
-	{
-		printf("SLUART_Open error\n");
-		//return -1;
-	}
-	 
-#ifdef UDP_UART
-	 
-ReSocket:
-	//create socket
-	sock_server = socket(AF_INET, SOCK_DGRAM, 0);     //UDP
-	if (sock_server < 0)
-	{
-		printf("uart Create Socket Failed!\n");
-		perror("socket");
-		sleep(1);
-		goto ReSocket;
-	}
-	printf("server socket create ok, sock_server is = %d\n", sock_server);
-	//bind
-	if (bind(sock_server, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0)
-	{
-		perror("bind");
-		printf("Server Bind Port: %d Failed!\n", UART_PORT);
-		sleep(1);
-		close(sock_server);
-		goto ReSocket;
-	}
-	printf("server bind ok \n");
-	
+    servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
 
-    struct timeval timeout;
-
-    timeout.tv_sec = 3;                 //设置3s超时
-    timeout.tv_usec = 0;
-    
-    ret = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
-    if(ret < 0)
-    {
-		printf(" SO_SNDTIMEO time out setting failed\n");
-	}
-    ret = setsockopt(sock_server,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
-    if(ret < 0)
-    {
-		printf(" SO_RCVTIMEO time out setting failed\n");
-	}
-
-	
-	while (1)
-    {
-
-		if (recvfrom(sock_server, wbuff, sizeof(wbuff), \
-			0, (struct sockaddr_in *) &client, &clielen_addr_length) <= 0)    //jason add
-		{
-			perror("recvfrom");
-			printf("uart revfrom failed \n");
-			goto ReSocket;
-		}
-		else
-			//printf("jason test recvfrom OK ****************\n");
-			//printf("jason revfrom is : [%x]\n", wbuff[0]);		
-
-#if 1
-
-		errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		if(errCode != 0)
-		{
-			printf("SLUART_Write error\n");
-			return -1;
-		}
-		//printf("jason SLUART_Write is : [%x]\n", wbuff[0]);     //jason test
-#endif	
-
-		
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));
-		if (errCode != 0)
-		{
-			printf("SLUART_Read error\n");
-		}
-	//	printf(" jason read TX rbuff back is = [%x] \n", rbuff[0]);
-		
-	
-		if (sendto(sock_server, rbuff, sizeof(rbuff), \
-			0, (struct sockaddr *)&client, clielen_addr_length) <= 0)
-		{
-			perror("sendto");
-			printf("uart send failed \n");
-			//sleep(1);
-			goto ReSocket;
-		}
-		//printf("jason  TX test sendto OK ****************\n");
-		//	printf(" jason sendto RX  back is = [%x] \n", rbuff[0]);
-			
-		memset(rbuff, 0, sizeof(rbuff));
-		memset(wbuff, 0, sizeof(wbuff));	
-    }  
-    
-#endif   
-
-#ifdef TCP_UART
 
 ReSocket:
 	if (IsLinkDownOrUp())
@@ -560,10 +557,11 @@ ReSocket:
 			}
 		}					
 	}
-#endif  
 	pthread_mutex_destroy(&lock_kvm);
 	close(sock_server);
-	close(cfd);   
+	close(cfd); 
+#endif  
+	close(sock_client);  
     errCode = SLUART_Close();
 	if(errCode != 0)
 	{
