@@ -540,7 +540,7 @@ ReSocket:
 	STATE cur_state=STATE0;
 	
 	while (1)
-    {	
+    {
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
 		if (0 == report_succeed)
@@ -571,7 +571,7 @@ ReSocket:
 		}					
 
 		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
-		
+		printf(multicast);
 		if(sendto(sock_server, rbuff, sizeof(rbuff), \
 			0, (struct sockaddr *)&client_addr, clielen_addr_length) <= 0)
 		{
