@@ -61,6 +61,21 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define GPIO_LOW_STA	0	//gpio output mode is low
 
 
+#if 1 //
+//Multicast address switch io port
+#define MULTICAST_SWITCH_1		34 	//GPIO02_02
+#define MULTICAST_SWITCH_2		36	//GPIO02_04
+
+#define MULTICAST_SWITCH_3		4	//GPIO01_04
+#define MULTICAST_SWITCH_4		7	//GPIO01_07
+#define MULTICAST_SWITCH_5		6	//GPIO01_06
+#define MULTICAST_SWITCH_6		5	//GPIO01_05
+#define MULTICAST_SWITCH_7		30	//GPIO01_30
+#endif
+
+
+
+
 void HDMI_light_off(void);
 void HDMI_light_on(void);
 
