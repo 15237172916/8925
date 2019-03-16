@@ -80,5 +80,6 @@ void HDMI_light_off(void);
 void HDMI_light_on(void);
 
 SL_U32 get_key_value(void);
+void Init_Multicast_and_IP(void);
 
 #endif
