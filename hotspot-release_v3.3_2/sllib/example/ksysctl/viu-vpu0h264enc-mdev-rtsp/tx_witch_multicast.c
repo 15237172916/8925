@@ -82,7 +82,7 @@ void *tx_witch_multicast(void)
 		tmp = i*8 + j*4 + k*2 + m;
 		
 		if(tmp2 != tmp)
-		{			
+		{	
 			strcpy(share_mem->sm_eth_setting.strEthMulticast, witch_multicast+tmp);		
 			share_mem->ucUpdateFlag = 1;
 			tmp2 = tmp;
