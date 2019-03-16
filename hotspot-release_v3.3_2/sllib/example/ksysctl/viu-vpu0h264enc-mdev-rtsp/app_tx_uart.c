@@ -428,7 +428,7 @@ ReSocket:
 
     struct timeval timeout;
 	int val;
-    timeout.tv_sec = 5;                 //设置3s超时
+    timeout.tv_sec = 1;                 //设置3s超时
     timeout.tv_usec = 0;
     
     val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
@@ -458,9 +458,9 @@ ReSocket:
 		{
 			perror("sendto");
 			printf("uart send failed \n");
-			close(sock_client);
+			//close(sock_client);
 			//sleep(1);
-			goto ReSocket;
+			//goto ReSocket;
 		}
 		
 		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
@@ -468,9 +468,9 @@ ReSocket:
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			close(sock_client);
-			goto ReSocket;
-		}	
+			//close(sock_client);
+			//goto ReSocket;
+		}
 		
 		errCode = SLUART_Write(wbuff, sizeof(wbuff));
 		if(errCode != 0)
@@ -480,7 +480,7 @@ ReSocket:
 		}
 			
 			
-    }  
+    }
     close(sock_client);
 #endif   
 

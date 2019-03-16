@@ -113,7 +113,7 @@ static pthread_t app_tx_uart_handler;
 
 #endif
 char 	web_flag;
-char multicast[20] = "239.255.42.02";
+char multicast[20] = "239.255.42.01";
 #ifdef WEB_ENABLE
 #include "sharemem.h"
 

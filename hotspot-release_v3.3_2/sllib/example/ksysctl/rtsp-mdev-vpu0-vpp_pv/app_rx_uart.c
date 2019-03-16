@@ -292,125 +292,126 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 	char com_multicast[]="239.255.42.";
 	int num;
 	switch(cur_state)
-		{
-			case STATE0:
-				if(buff[0]==0x57)
-					cur_state=STATE1;
-				else
-					cur_state=STATE0;
-				break;
-			case STATE1:
-				if(buff[0]==0xab)
-					cur_state=STATE2;
-				else
-					cur_state=STATE0;
-				break;
-			case STATE2:
-				if(buff[0]==0x01)
-					cur_state=STATE3;
-				else
-					cur_state=STATE0;
-				break;
-			case STATE3:
-				if(buff[0]==0x01 || buff[0]==0x10)
-					cur_state=STATE4;
-				else
-					cur_state=STATE0;
-				break;
-			case STATE4:
-				if(buff[0]==0x00)
-					cur_state=STATE5;
-				else
-					cur_state=STATE0;
-				break;
-			case STATE5:
-				if(buff[0]==0x59 || buff[0]==0x1e)			//1
-				{
-					strcpy(multicast, MK_multicast[0]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5a || buff[0]==0x1f)		//2
-				{
-					strcpy(multicast, MK_multicast[1]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5b || buff[0]==0x20)		//3
-				{
-					strcpy(multicast, MK_multicast[2]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5c || buff[0]==0x21)		//4
-				{
-					strcpy(multicast, MK_multicast[3]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5d || buff[0]==0x22)		//5
-				{
-					strcpy(multicast, MK_multicast[4]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5e || buff[0]==0x23)		//6
-				{
-					strcpy(multicast, MK_multicast[5]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x5f || buff[0]==0x24)		//7
-				{
-					strcpy(multicast, MK_multicast[6]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x60 || buff[0]==0x25)		//8
-				{
-					strcpy(multicast, MK_multicast[7]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x61 || buff[0]==0x26)		//9
-				{
-					strcpy(multicast, MK_multicast[8]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x62 || buff[0]==0x27)		//0
-				{
-					strcpy(multicast, MK_multicast[9]);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x56 || buff[0]==0x2d)		//-
-				{
-					strncpy(dest, multicast+11,3);
-					num=atoi(dest);
-					num--;
-					sprintf(dest,"%d",num);
-					strcat(com_multicast,dest);
-					strcpy(multicast,com_multicast);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else if(buff[0]==0x57 || buff[0]==0x2e)		//+
-				{
-					strncpy(dest, multicast+11,3);
-					num=atoi(dest);
-					num++;
-					sprintf(dest,"%d",num);
-					strcat(com_multicast,dest);
-					strcpy(multicast,com_multicast);
-					switch_flag=1;
-					cur_state=STATE6;
-				}
-				else
-					cur_state=STATE0;
-				break;
-				default:
+	{
+		case STATE0: //
+			if(buff[0]==0x57)
+				cur_state=STATE1;
+			else
 				cur_state=STATE0;
+			break;
+		case STATE1:
+			if(buff[0]==0xab)
+				cur_state=STATE2;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE2:
+			if(buff[0]==0x01)
+				cur_state=STATE3;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE3:
+			if(buff[0]==0x01 || buff[0]==0x10)
+				cur_state=STATE4;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE4:
+			if(buff[0]==0x00)
+				cur_state=STATE5;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE5:
+			if(buff[0]==0x59 || buff[0]==0x1e)			//1
+			{
+				strcpy(multicast, MK_multicast[0]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5a || buff[0]==0x1f)		//2
+			{
+				strcpy(multicast, MK_multicast[1]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5b || buff[0]==0x20)		//3
+			{
+				strcpy(multicast, MK_multicast[2]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5c || buff[0]==0x21)		//4
+			{
+				strcpy(multicast, MK_multicast[3]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5d || buff[0]==0x22)		//5
+			{
+				strcpy(multicast, MK_multicast[4]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5e || buff[0]==0x23)		//6
+			{
+				strcpy(multicast, MK_multicast[5]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x5f || buff[0]==0x24)		//7
+			{
+				strcpy(multicast, MK_multicast[6]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x60 || buff[0]==0x25)		//8
+			{
+				strcpy(multicast, MK_multicast[7]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x61 || buff[0]==0x26)		//9
+			{
+				strcpy(multicast, MK_multicast[8]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x62 || buff[0]==0x27)		//0
+			{
+				strcpy(multicast, MK_multicast[9]);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x56 || buff[0]==0x2d)		//-
+			{
+				strncpy(dest, multicast+11,3);
+				num=atoi(dest);
+				num--;
+				sprintf(dest,"%d",num);
+				strcat(com_multicast,dest);
+				strcpy(multicast,com_multicast);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else if(buff[0]==0x57 || buff[0]==0x2e)		//+
+			{
+				strncpy(dest, multicast+11,3);
+				num=atoi(dest);
+				num++;
+				sprintf(dest,"%d",num);
+				strcat(com_multicast,dest);
+				strcpy(multicast,com_multicast);
+				switch_flag=1;
+				cur_state=STATE6;
+			}
+			else
+				cur_state=STATE0;
+			break;
+
+		default:
+			cur_state=STATE0;
 		}
 		return cur_state;
 }
@@ -522,7 +523,7 @@ ReSocket:
 #if 1
     struct timeval timeout;
 	int val;
-    timeout.tv_sec = 5;                 //设置3s超时
+    timeout.tv_sec = 1;                 //设置3s超时
     timeout.tv_usec = 0;
     
     val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
@@ -538,7 +539,7 @@ ReSocket:
 #endif
 	printf("start while\n");
 	STATE cur_state=STATE0;
-	
+	int i = 0;
 	while (1)
     {
 		memset(rbuff, 0, sizeof(rbuff));
@@ -555,31 +556,43 @@ ReSocket:
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			close(sock_server);
-			goto ReSocket;
+			//close(sock_server);
+			//goto ReSocket;
 		}
 
 		errCode = SLUART_Write(wbuff, sizeof(wbuff));
 		if (errCode != 0)
 		{
 			printf("SLUART_Write error\n");
-		}		
+		}
+		
+		
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));
 		if (errCode != 0)
 		{
 			printf("SLUART_Read error\n");
-		}					
+		}
+		
+		i++;
+		printf("0x%x", *rbuff);
+		
+		if (20==i)
+		{
+			printf("\n");
+			i = 0;
+		}
 
+		//printf("0x%x", rbuff);
 		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
-		printf(multicast);
+		//printf(multicast);
 		if(sendto(sock_server, rbuff, sizeof(rbuff), \
 			0, (struct sockaddr *)&client_addr, clielen_addr_length) <= 0)
 		{
 			perror("sendto");
 			printf("uart send failed \n");
 			sleep(1);
-			close(sock_server);
-			goto ReSocket;
+			//close(sock_server);
+			//goto ReSocket;
 		}
 		
     }
