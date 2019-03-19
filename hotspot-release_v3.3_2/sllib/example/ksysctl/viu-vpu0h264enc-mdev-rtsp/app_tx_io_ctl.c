@@ -512,7 +512,7 @@ SL_U32 get_key_value(void)
 }
 
 #if 1
-void Init_Multicast_and_IP(void)
+void Init_Multicast(void)
 {
 	SL_U32 value = 0, tmp1, tmp2, i = 10;
 	char str[50] = {0};
@@ -554,9 +554,9 @@ void Init_Multicast_and_IP(void)
 	strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
 	
 	printf(str);
-	//sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
-	//strcpy(share_mem->sm_eth_setting.strEthIp, str);
-	//printf(str);
+	sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
+	strcpy(share_mem->sm_eth_setting.strEthIp, str);
+	printf(str);
 	AppWriteCfgInfotoFile();
 	init_eth();
 	//tmp2 = tmp1;

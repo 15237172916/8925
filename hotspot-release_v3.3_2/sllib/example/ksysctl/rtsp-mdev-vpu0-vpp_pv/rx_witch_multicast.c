@@ -8,7 +8,7 @@
 
 
 extern char multicast[20];
-extern char switch_flag;
+extern char web_flag;
 
  /*func: It's config multicast by witch
  *author: Jason chen, 2018/8/30
@@ -103,7 +103,7 @@ void *rx_witch_multicast(void)
 			{
 				tmp=!tmp;
 				strcpy(multicast, witch_multicast+tmp);
-				switch_flag=1;
+				web_flag = 1;
 			}
 		}
 		else if(get_key_value()==1)

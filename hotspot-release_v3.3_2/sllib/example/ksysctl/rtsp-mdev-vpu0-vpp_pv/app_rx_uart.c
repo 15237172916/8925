@@ -39,7 +39,10 @@ extern char serverip[128];
 extern char multicast[20];
 extern char report_succeed;
 extern char web_flag;
-extern char switch_flag;
+extern char rtp_switch_flag;
+
+char kvm_switch_flag;
+
 char MK_multicast[][20] = {"239.255.42.01","239.255.42.02",\
 "239.255.42.03","239.255.42.04","239.255.42.05","239.255.42.06",\
 "239.255.42.07","239.255.42.08","239.255.42.09","239.255.42.10"};
@@ -269,15 +272,15 @@ void uart_init(void)
  * author:wgg
  */
  /*
-void Multicast_Handle(int sock_server,struct ip_mreq mreq1)
+void Multicast_Handle(int sock_client,struct ip_mreq mreq1)
 {
 
-	setsockopt(sock_server, IPPROTO_IP, IP_DROP_MEMBERSHIP,&mreq1, sizeof(mreq1));
+	setsockopt(sock_client, IPPROTO_IP, IP_DROP_MEMBERSHIP,&mreq1, sizeof(mreq1));
 	usleep(100);
 	struct ip_mreq mreq;      
 	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-	setsockopt(sock_server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	setsockopt(sock_client, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 	
 }*/
 
@@ -327,61 +330,61 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 			if(buff[0]==0x59 || buff[0]==0x1e)			//1
 			{
 				strcpy(multicast, MK_multicast[0]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5a || buff[0]==0x1f)		//2
 			{
 				strcpy(multicast, MK_multicast[1]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5b || buff[0]==0x20)		//3
 			{
 				strcpy(multicast, MK_multicast[2]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5c || buff[0]==0x21)		//4
 			{
 				strcpy(multicast, MK_multicast[3]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5d || buff[0]==0x22)		//5
 			{
 				strcpy(multicast, MK_multicast[4]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5e || buff[0]==0x23)		//6
 			{
 				strcpy(multicast, MK_multicast[5]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5f || buff[0]==0x24)		//7
 			{
 				strcpy(multicast, MK_multicast[6]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x60 || buff[0]==0x25)		//8
 			{
 				strcpy(multicast, MK_multicast[7]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x61 || buff[0]==0x26)		//9
 			{
 				strcpy(multicast, MK_multicast[8]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x62 || buff[0]==0x27)		//0
 			{
 				strcpy(multicast, MK_multicast[9]);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x56 || buff[0]==0x2d)		//-
@@ -392,7 +395,7 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 				sprintf(dest,"%d",num);
 				strcat(com_multicast,dest);
 				strcpy(multicast,com_multicast);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x57 || buff[0]==0x2e)		//+
@@ -403,7 +406,7 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 				sprintf(dest,"%d",num);
 				strcat(com_multicast,dest);
 				strcpy(multicast,com_multicast);
-				switch_flag=1;
+				kvm_switch_flag=1;
 				cur_state=STATE6;
 			}
 			else
@@ -431,7 +434,6 @@ void *app_rx_uart_main(void)
 	SL_U8 wbuff[1];
     int fd_uart = -1;
 
-
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
     memset(wbuff, 0, sizeof(wbuff));
     memset(rbuff, 0, sizeof(rbuff));
@@ -451,112 +453,139 @@ ReOpen:
 		goto ReOpen;
 	}
 
-	
-    
 #ifdef UDP_UART 
 	
 	//socker set
-    int sock_server;
+    int sock_client;
     struct sockaddr_in server_addr,client_addr;
     int ret = 0;
     socklen_t clielen_addr_length;  
     clielen_addr_length = sizeof(client_addr);  
 
 ReSocket:
-	
+	web_flag = 0;
+
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(UART_PORT);
-    server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-
-  
-	sock_server = socket(AF_INET, SOCK_DGRAM, 0); //UDP
-	if (sock_server < 0)
+    //server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
+	server_addr.sin_addr.s_addr = inet_addr(multicast);
+	//printf(multicast);
+	sock_client = socket(AF_INET, SOCK_DGRAM, 0); //UDP
+	if (sock_client < 0)
     {
         printf("uart Create Socket Failed!\n");
         perror("socket");
         sleep(1);
         goto ReSocket;
     }
-    printf("kvm server socket create ok, sock_server is = %d\n", sock_server);
-    
-    if (bind(sock_server, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-	{
-		perror("bind");
-		printf("Server Bind Port: %d Failed!\n", UART_PORT);
-		close(sock_server);
-		sleep(1);
-		goto ReSocket;
-	}
-	printf("kvm server bind ok \n");
-	
+	//printf(multicast);
+    printf("kvm server socket create ok, sock_client is = %d\n", sock_client);
+
+#if 1
 	//set Multicast loop
-	int loop=1;    //1:on  0:off
-	ret = setsockopt(sock_server,IPPROTO_IP,IP_MULTICAST_LOOP,&loop,sizeof(loop));
+	int loop = 0;    //1:on  0:off
+	ret = setsockopt(sock_client,IPPROTO_IP,IP_MULTICAST_LOOP,&loop,sizeof(loop));
 	if(ret < 0)
 	{
 		printf("kvm set multicast loop error \n");
 		perror("setsockopt");
 	}
-	
+#endif
+#if 0
 	//set multicast address
-	struct ip_mreq mreq;      
+	struct ip_mreq mreq;
 	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	//add multicast group
-	ret = setsockopt(sock_server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	ret = setsockopt(sock_client, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
 	if(ret < 0)
 	{
 		printf("kvm set multicast error \n");
 		perror("setsockopt");
 	}
-	
+#endif
+#if 0
 	int reuse = 1;
-	ret = setsockopt(sock_server, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+	ret = setsockopt(sock_client, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
 	if(ret < 0)
 	{
 		printf("kvm set multicast reuse error \n");
 		perror("setsockopt");
 	}
-	
+#endif
+
 #if 1
     struct timeval timeout;
 	int val;
     timeout.tv_sec = 1;                 //设置3s超时
     timeout.tv_usec = 0;
     
-    val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+    val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
     if(val < 0)
     {
 		printf("time out setting failed\n");
 	}
-    val = setsockopt(sock_server,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+    val = setsockopt(sock_client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
     if(val < 0)
     {
 		printf("time out setting failed\n");
 	}
 #endif
-	printf("start while\n");
+	//printf("start while\n");
 	STATE cur_state=STATE0;
 	int i = 0;
 	while (1)
     {
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
-		if (0 == report_succeed)
+
+		if (1 == rtp_switch_flag)
 		{
-			close(sock_server);				//if use kvm,must be closed first this sock
-			puts(multicast);
+			printf("\n\n ******************KVM start socket ***********************\n");
+			printf(multicast);
+			rtp_switch_flag = 0;
+			close(sock_client);				//if use kvm,must be closed first this sock
 			goto ReSocket;
-			
 		}
-		if (recvfrom(sock_server, wbuff, sizeof(wbuff), \
-			0, (struct sockaddr *)&client_addr, &clielen_addr_length) <= 0)
+		
+		errCode = SLUART_Read(rbuff, sizeof(rbuff));
+		if (errCode != 0)
+		{
+			printf("SLUART_Read error\n");
+		}
+		#if 0
+		i++;
+		if (0 != *rbuff)
+			printf("0x%x", *rbuff);
+		
+		if (20==i)
+		{
+			printf("\n");
+			i = 0;
+		}
+		#endif
+		//printf("0x%x \n", *rbuff);
+		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
+		//printf(multicast);
+		//printf("\n");
+		if(sendto(sock_client, rbuff, sizeof(rbuff), \
+			0, (struct sockaddr *)&server_addr, sizeof(server_addr)) <= 0)
+		{
+			perror("sendto");
+			printf("uart send failed \n");
+			//sleep(1);
+			//close(sock_client);
+			//goto ReSocket;
+		}
+
+		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
+			0, (struct sockaddr *)&server_addr, &clielen_addr_length) <= 0)
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			//close(sock_server);
+			//close(sock_client);
 			//goto ReSocket;
 		}
 
@@ -566,37 +595,8 @@ ReSocket:
 			printf("SLUART_Write error\n");
 		}
 		
-		
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));
-		if (errCode != 0)
-		{
-			printf("SLUART_Read error\n");
-		}
-		
-		i++;
-		printf("0x%x", *rbuff);
-		
-		if (20==i)
-		{
-			printf("\n");
-			i = 0;
-		}
-
-		//printf("0x%x", rbuff);
-		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
-		//printf(multicast);
-		if(sendto(sock_server, rbuff, sizeof(rbuff), \
-			0, (struct sockaddr *)&client_addr, clielen_addr_length) <= 0)
-		{
-			perror("sendto");
-			printf("uart send failed \n");
-			sleep(1);
-			//close(sock_server);
-			//goto ReSocket;
-		}
-		
     }
-    close(sock_server);
+    close(sock_client);
 
 #endif
 

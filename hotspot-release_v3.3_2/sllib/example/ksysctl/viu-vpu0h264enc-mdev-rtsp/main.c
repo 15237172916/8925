@@ -2687,6 +2687,9 @@ int main(int argc, char* argv[])
 #endif
 	printf("********************system starting***************************\n");
 	printf(PRINT_VERSION);
+	System_running();
+
+	
 #ifdef WEB_ENABLE
 
 	InitShareMem();
@@ -2709,9 +2712,11 @@ int main(int argc, char* argv[])
         printf("cfg get from file \n");
         close(fd_config);
     }
-    strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
+    
     //if(strcmp("192.168.1.3",share_mem->sm_eth_setting.strEthIp)!=0)
-		init_eth();//   zhou
+	Init_Multicast(); //multicast address init
+	strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
+	init_eth();//   zhou
 		//sleep(1);
 
 #endif

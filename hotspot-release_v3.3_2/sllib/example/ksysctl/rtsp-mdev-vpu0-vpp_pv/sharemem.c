@@ -1,6 +1,6 @@
 #include "sharemem.h"
 
-extern char web_flag;
+char web_flag;
 extern char multicast[20];
 extern char serverip[20];
 

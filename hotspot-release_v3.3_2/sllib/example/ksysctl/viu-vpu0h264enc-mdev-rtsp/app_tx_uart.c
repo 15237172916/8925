@@ -402,7 +402,7 @@ void *app_tx_uart_main(void)
 	 
 #ifdef UDP_UART
 	 //socker 
-    int sock_client;
+    int sock_server, ret;
     struct sockaddr_in servaddr;
     socklen_t servlen_addr_length;
     servlen_addr_length = sizeof(servaddr);
@@ -412,31 +412,74 @@ ReSocket:
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
-    servaddr.sin_addr.s_addr = inet_addr(multicast);
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    //servaddr.sin_addr.s_addr = inet_addr(multicast);
 
 	//create socket
-	sock_client = socket(AF_INET,SOCK_DGRAM, 0); //UDP
-    if (sock_client < 0)
+	sock_server = socket(AF_INET,SOCK_DGRAM, 0); //UDP
+    if (sock_server < 0)
     {
 		perror("socket");
 		sleep(1);
 		goto ReSocket;
 	}
-	printf("sock_client = %d\n", sock_client);
+	printf("sock_server = %d\n", sock_server);
+
+	if (bind(sock_server, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0)
+	{
+		perror("bind");
+		printf("Server Bind Port: %d Failed!\n", UART_PORT);
+		close(sock_server);
+		sleep(1);
+		goto ReSocket;
+	}
+    printf("bind socket ok \n");
+
 //	int reuse = 1;
-//	setsockopt(sock_client, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+//	setsockopt(sock_server, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+#if 1
+	//set Multicast loop
+	int loop = 0;    //1:on  0:off
+	ret = setsockopt(sock_server, IPPROTO_IP, IP_MULTICAST_LOOP,&loop,sizeof(loop));
+	if(ret < 0)
+	{
+		printf("kvm set multicast loop error \n");
+		perror("setsockopt");
+	}
+	
+	//set multicast address
+	struct ip_mreq mreq;
+	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+
+	//add multicast group
+	ret = setsockopt(sock_server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+	if(ret < 0)
+	{
+		printf("kvm set multicast error \n");
+		perror("setsockopt");
+	}
+	
+	int reuse = 1;
+	ret = setsockopt(sock_server, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
+	if(ret < 0)
+	{
+		printf("kvm set multicast reuse error \n");
+		perror("setsockopt");
+	}
+#endif
 
     struct timeval timeout;
 	int val;
     timeout.tv_sec = 1;                 //设置3s超时
     timeout.tv_usec = 0;
     
-    val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+    val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
     if(val < 0)
     {
 		printf("time out setting failed\n");
 	}
-    val = setsockopt(sock_client,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+    val = setsockopt(sock_server,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
     if(val < 0)
     {
 		printf("time out setting failed\n");
@@ -447,28 +490,12 @@ ReSocket:
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
 
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));
-		if (errCode != 0)
-		{
-			printf("SLUART_Read error\n");
-		}
-			
-		if (sendto(sock_client, rbuff, sizeof(rbuff), \
-			0, (struct sockaddr *)&servaddr, servlen_addr_length) <= 0)
-		{
-			perror("sendto");
-			printf("uart send failed \n");
-			//close(sock_client);
-			//sleep(1);
-			//goto ReSocket;
-		}
-		
-		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
-			0, (struct sockaddr_in *) &servaddr, &servlen_addr_length) <= 0) 
+		if (recvfrom(sock_server, wbuff, sizeof(wbuff), \
+			0, (struct sockaddr_in *) &servaddr, &servlen_addr_length) <= 0)
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			//close(sock_client);
+			//close(sock_server);
 			//goto ReSocket;
 		}
 		
@@ -476,17 +503,32 @@ ReSocket:
 		if(errCode != 0)
 		{
 			printf("SLUART_Write error\n");
-			return -1;
+			//return -1;
+		}
+
+		errCode = SLUART_Read(rbuff, sizeof(rbuff));
+		if (errCode != 0)
+		{
+			printf("SLUART_Read error\n");
 		}
 			
-			
+		if (sendto(sock_server, rbuff, sizeof(rbuff), \
+			0, (struct sockaddr *)&servaddr, sizeof(servaddr)) <= 0)
+		{
+			perror("sendto");
+			printf("uart send failed \n");
+			//close(sock_server);
+			//sleep(1);
+			//goto ReSocket;
+		}
+				
     }
-    close(sock_client);
+    close(sock_server);
 #endif   
 
 #ifdef TCP_UART
 	pthread_mutex_init(&lock_kvm,NULL);
-//socker set
+	//socker set
     int sock_server;
     struct sockaddr_in servaddr;
     struct sockaddr_in client;  //jason add
@@ -497,14 +539,13 @@ ReSocket:
     
     //Jason add  for select 
 	fd_set  select_set;
-      
+    
     clielen_addr_length = sizeof(client);  //jason add
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
     //servaddr.sin_addr.s_addr = inet_addr(INADDR_ANY);
     servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-
 
 ReSocket:
 	if (IsLinkDownOrUp())
@@ -561,7 +602,7 @@ ReSocket:
 	close(sock_server);
 	close(cfd); 
 #endif  
-	close(sock_client);  
+	close(sock_server);  
     errCode = SLUART_Close();
 	if(errCode != 0)
 	{

@@ -59,7 +59,7 @@
 #define KVM_UART
 //#define APP_IO
 #define APP_RTP
-#define  SWIT_MULTICAST
+//#define  SWIT_MULTICAST
 
 #define AUDIO_SUPPORT
 #define VIDEO_SUPPORT
@@ -109,9 +109,6 @@ static pthread_t app_rx_uart_handler;
 static pthread_t audio_handle;
 static pthread_t  checkWr_handler;
 extern void * check_wr_thread(void * Args);
-
-char 	web_flag;
-char 	switch_flag;
 
 #ifdef WEB_ENABLE
 #include "sharemem.h"

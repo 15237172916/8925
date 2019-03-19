@@ -24,8 +24,7 @@ extern int process_osd_text_solid(int x, int y, const char *text);
 extern int process_osd_disable(void);
 extern char multicast[20];
 extern char report_succeed;
-extern char web_flag;
-extern char switch_flag;
+char rtp_switch_flag = 0;
 char idr_flag = 0;
 char outfilename[128] = "./test2.264";
 
@@ -186,9 +185,8 @@ void *app_rtp_main()
 	
 ReSocket:
 	idr_flag = 1;
-	web_flag = 0;
-	report_succeed = 1;
-	
+	report_succeed = 0;
+
 	//struct tcp_info info;
 	bzero(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -289,9 +287,12 @@ ReSocket:
 	{
 Recv:
 		//printf("report succeed : %d \n", report_succeed);
-		if (0 == report_succeed)
+		if (1 == report_succeed)
 		{
-			printf("rtp_switch\n");
+			printf("\n -----------rtp start socket \n");
+			printf(multicast);
+			rtp_switch_flag = 1;
+			//printf("rtp_switch\n");
 			close(rtp_server_socket);
 			goto ReSocket;
 		}
