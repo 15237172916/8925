@@ -30,8 +30,8 @@
 #define CURRTNE_STATE "release" 
 
 #define PRINT_VERSION    "HSV592 V2.1.0.190219_R"
-#define WEB_VERSION      "V1.1.1.190219"
-#define OSD_VERSION      "V1.1.1"
+#define WEB_VERSION      "V2.1.1.190219"
+#define OSD_VERSION      "V2.1.1"
 
 
 
