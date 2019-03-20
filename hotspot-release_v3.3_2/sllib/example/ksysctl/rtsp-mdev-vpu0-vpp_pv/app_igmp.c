@@ -19,7 +19,7 @@ unsigned short csum(unsigned short *buf, int nwords)
 {
 	unsigned long sum;
 	
-	printf("buf : 0x%x \n", buf);
+	//printf("buf : 0x%x \n", buf);
 	
 	for (sum = 0; nwords > 0; nwords--)
 	{
@@ -179,7 +179,7 @@ Resend:
 		}
 		
 		//printf("send igmp len : %d \n", len);
-		usleep(100000); //0.1s
+		usleep(500000); //0.1s
 	}
 }
 

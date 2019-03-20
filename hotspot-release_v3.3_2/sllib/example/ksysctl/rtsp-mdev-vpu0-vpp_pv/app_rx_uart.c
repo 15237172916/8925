@@ -327,6 +327,7 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 				cur_state=STATE0;
 			break;
 		case STATE5:
+			printf("STATE5");
 			if(buff[0]==0x59 || buff[0]==0x1e)			//1
 			{
 				strcpy(multicast, MK_multicast[0]);
@@ -519,8 +520,8 @@ ReSocket:
 #if 1
     struct timeval timeout;
 	int val;
-    timeout.tv_sec = 1;                 //设置3s超时
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;                 //设置3s超时
+    timeout.tv_usec = 5000;
     
     val = setsockopt(sock_client,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
     if(val < 0)
@@ -535,15 +536,17 @@ ReSocket:
 #endif
 	//printf("start while\n");
 	STATE cur_state=STATE0;
-	int i = 0;
+	int i = 0, buf_tmp;
 	while (1)
     {
+		usleep(1000);
+ReRecv:
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
 
 		if (1 == rtp_switch_flag)
 		{
-			printf("\n\n ******************KVM start socket ***********************\n");
+			printf("\n\n ******************KVM start socket ***********************\n\n");
 			printf(multicast);
 			rtp_switch_flag = 0;
 			close(sock_client);				//if use kvm,must be closed first this sock
@@ -557,7 +560,7 @@ ReSocket:
 		}
 		#if 0
 		i++;
-		if (0 != *rbuff)
+		//if (0 != *rbuff)
 			printf("0x%x", *rbuff);
 		
 		if (20==i)
@@ -567,7 +570,9 @@ ReSocket:
 		}
 		#endif
 		//printf("0x%x \n", *rbuff);
-		cur_state=Judge_MK_Value(&rbuff[0],cur_state);
+		
+		cur_state = Judge_MK_Value(&rbuff[0],cur_state);
+		//buf_tmp = rbuff[0];
 		//printf(multicast);
 		//printf("\n");
 		if(sendto(sock_client, rbuff, sizeof(rbuff), \
@@ -575,9 +580,6 @@ ReSocket:
 		{
 			perror("sendto");
 			printf("uart send failed \n");
-			//sleep(1);
-			//close(sock_client);
-			//goto ReSocket;
 		}
 
 		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
@@ -585,8 +587,7 @@ ReSocket:
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			//close(sock_client);
-			//goto ReSocket;
+			goto ReRecv;
 		}
 
 		errCode = SLUART_Write(wbuff, sizeof(wbuff));

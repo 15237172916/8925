@@ -2011,6 +2011,8 @@ int main(int argc, char* argv[])
 
 	char configs[128];
 	printf(PRINT_VERSION);
+	
+
 	//AppWriteCfgInfotoFile();
 #if 0
 	ret = InitCfgInfo(&fd_config);
@@ -2070,6 +2072,7 @@ int main(int argc, char* argv[])
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, OSD_VERSION);
+	sleep(2);
 	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);

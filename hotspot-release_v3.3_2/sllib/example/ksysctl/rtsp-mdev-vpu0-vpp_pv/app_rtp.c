@@ -185,7 +185,7 @@ void *app_rtp_main()
 	
 ReSocket:
 	idr_flag = 1;
-	report_succeed = 0;
+	//report_succeed = 0;
 
 	//struct tcp_info info;
 	bzero(&server_addr, sizeof(server_addr));
@@ -203,7 +203,7 @@ ReSocket:
 		goto ReSocket;
 	}
 	
-    printf("Create Socket OK \n");
+    printf("rtp Create Socket OK \n");
     
     //bind
     if (bind(rtp_server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
@@ -286,11 +286,13 @@ ReSocket:
 	while (1)
 	{
 Recv:
+		usleep(100);
 		//printf("report succeed : %d \n", report_succeed);
 		if (1 == report_succeed)
 		{
 			printf("\n -----------rtp start socket \n");
 			printf(multicast);
+			report_succeed = 0;
 			rtp_switch_flag = 1;
 			//printf("rtp_switch\n");
 			close(rtp_server_socket);
@@ -305,7 +307,7 @@ Recv:
 			perror("recvfrom");
 			printf("Server Recieve Data Failed!\n");
 			timeOut++;
-			sleep(1);
+			sleep(2);
 			printf("time out : %d \n", timeOut);
 			if (timeOut > 6)
 			{
