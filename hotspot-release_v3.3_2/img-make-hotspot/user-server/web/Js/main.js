@@ -729,10 +729,8 @@ function updateModePageContent()
 	
 	if (parent.currentMode > min && parent.currentMode <= max)
 	{
-		console.log("test");
+		//console.log("test");
 	}
-
-
 }
 
 

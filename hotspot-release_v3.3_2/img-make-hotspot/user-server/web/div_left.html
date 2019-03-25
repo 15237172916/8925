@@ -14,18 +14,32 @@
 
 <style>
 
-body{
-	width: 100%; /*body部分占整个HTML的大小*/
+body {
+	width: 98%; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	background-color:#262626;
-	padding:0;
-	background-image:url(./css/logo.png);
+	background-color:#262626; 
+	border-style: none;
+	/*padding-right:2px;*/
+ 	border-right: 5px solid  white;
+	/*border-right-color: blue;*/
+	/*border-color: blue;*/
+	/*background-image:url(./css/logo.png);*/
 	/*opacity:0.4;*/
-	background-repeat:no-repeat;
-	background-attachment:fixed; /*背景图像固定*/
+	/*background-repeat:no-repeat;*/
+	/*background-attachment:fixed;*//*背景图像固定*/
 	background-size: 90%;
 	height: auto;	
 	background-position:0px 420px;
+}
+
+img{
+	position: absolute;
+	left:10px;
+	top:340px;
+	z-index:-10;
+	opacity: 0.6;
+	width:90%;
+	height:auto;
 }
 
 div{
@@ -207,6 +221,13 @@ function onclickButtonSelectTx(number)
 	{
 		if (tmp == 1) //check button state 
 		{
+			
+			if (0 == window.parent.tmp5)
+			{
+				alert("please close info display, then select source!");
+				return ;
+			}
+			
 			//alert(ButtonId);
 			//display selection panel of the source and change color of the button
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";
@@ -271,6 +292,13 @@ function onclickButtonSelectTx(number)
 		}
 		else
 		{
+			/*
+			if (0 == window.parent.tmp5)
+			{
+				alert("please close info display, then select source!");
+				return ;
+			}
+			*/
 			//ButtonId = "button"+number;
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
 			document.getElementById(ButtonId).style.backgroundColor="#4d4d4d";
@@ -345,11 +373,12 @@ function onclickButtonSelectTx(number)
 </head>
 <!--body class="body-button" onload="SetRxRename();-->
 <body class="body-button" onload="SelectButtonNameInit(1);">
+	<h2 style="color:white; text-align:center;"> Video switch deshboard </h2>
 	<div class="container">
         <div class="content">
             <!--form action="#" method="post" autocomplete="on"-->
 			<div class="addSelectRx">
-				<script>
+				<script>				
 					LoopButton();
 				</script>
 				<!--div class="div_button">
@@ -375,6 +404,7 @@ function onclickButtonSelectTx(number)
 							</div>	
 						</div>
 					</div-->
+					<img src="./css/logo.png">
 					<div>
 						<input id="leftPage-1" style="background-color: green" class="page" type='button' onclick="onclickButtonUpdateContent(1)" value="1">
 						<input id="leftPage-2" class="page" type='button' onclick="onclickButtonUpdateContent(2)" value="2">
@@ -404,4 +434,3 @@ function onclickButtonSelectTx(number)
 
 
 </body>
-</html>

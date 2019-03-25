@@ -229,6 +229,11 @@ function popupApply()
 	tmp = 1;
 	var ret;
 	var fade = document.getElementById("fade");
+	if (0 == window.parent.tmp5)
+	{
+		alert("please close info display, then apply this mode !");
+		return ;
+	}
 	ret =  modeStateNow(nowModeId);
 	//console.log(window.parent.modeName);
 	if (1==ret)
@@ -299,6 +304,7 @@ function popupApply()
 </head>
 <!--body class="body-button" onload="SetRxRename();-->
 <body class="body-button" onload="ModeInit(1);">
+	<h2 style="color:white; text-align:center;"> Scene preset </h2>
 	<div id="modlue">
 		<div id="cancleDiv">
 			<div class="MyBtn">
