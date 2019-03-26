@@ -2,13 +2,12 @@
 #include <sl_gpio.h>
 #include "sharemem.h"
 #include <string.h>
-#include "app_rx_io_ctl.h"
 
 
 
 
-extern char multicast[20];
-extern char web_flag;
+
+
 
  /*func: It's config multicast by witch
  *author: Jason chen, 2018/8/30
@@ -16,7 +15,6 @@ extern char web_flag;
  */
 void *rx_witch_multicast(void)
 {
-#if 0
 	static int tmp2;
 	int tmp;
 	SL_U32 value;
@@ -40,8 +38,7 @@ void *rx_witch_multicast(void)
 	GPIO_setDir(witch_multicast_4, GPIO_INPUT);
   
 	tmp2 = 18;   //frist time change init 
-
-
+	
 	while(1)
 	{
 		i=0; j=0; k=0; m=0;
@@ -73,44 +70,16 @@ void *rx_witch_multicast(void)
 				
 		if(tmp2 != tmp)
 		{
-			strcpy(share_mem->sm_eth_setting.strEthMulticast, witch_multicast+tmp);
 			share_mem->ucUpdateFlag = 1;
 			tmp2 = tmp;
-			puts(share_mem->sm_eth_setting.strEthMulticast);
+			puts(share_mem->sm_eth_setting.strEthIp);
 		}
 		//printf("tmp is %d\n", tmp);
 		sleep(1);
-
-
-
 	}
-#endif
-	int tmp=1;
-	GPIO_openFd(KEY_IO);  
-	GPIO_export(KEY_IO);	   			
-	GPIO_setDir(KEY_IO, GPIO_INPUT);
 	
-
-	printf("enter switch while\n");
-	while(1)
-	{
-		static int key_flag=1;
-		if(key_flag && (get_key_value()==0))
-		{
-			usleep(1000);
-			key_flag=0;
-			if(get_key_value()==0)
-			{
-				tmp=!tmp;
-				strcpy(multicast, witch_multicast+tmp);
-				web_flag = 1;
-			}
-		}
-		else if(get_key_value()==1)
-			key_flag=1;
-			
-		sleep(1);
-	}
+	
+	
 	
 	
 	
@@ -153,6 +122,97 @@ void *rx_witch_multicast(void)
 	return 0;
 }
 
+
+
+
+void *IP_switch(void)
+{
+	SL_U32 value, tmp1, tmp2, key, key_count = 0;
+	char state = 0;
+	
+	char str[20] = {0};
+	char str_tmp[100] = {0};
+	
+#if 1 //
+	GPIO_openFd(IP_SWITCH_1);
+	GPIO_export(IP_SWITCH_1);	   			
+	GPIO_setDir(IP_SWITCH_1, GPIO_INPUT);
+   
+
+	GPIO_openFd(IP_SWITCH_2);
+	GPIO_export(IP_SWITCH_2);	   			
+	GPIO_setDir(IP_SWITCH_2, GPIO_INPUT);
+	
+
+	GPIO_openFd(IP_SWITCH_3);
+	GPIO_export(IP_SWITCH_3);	   			
+	GPIO_setDir(IP_SWITCH_3, GPIO_INPUT);
+
+
+	GPIO_openFd(IP_SWITCH_4);
+	GPIO_export(IP_SWITCH_4);
+	GPIO_setDir(IP_SWITCH_4, GPIO_INPUT);
+	
+	
+	GPIO_openFd(IP_SWITCH_5);
+	GPIO_export(IP_SWITCH_5);	
+	GPIO_setDir(IP_SWITCH_5, GPIO_INPUT);
+#if 1	
+	GPIO_openFd(IP_SWITCH_6);
+	GPIO_export(IP_SWITCH_6);
+	GPIO_setDir(IP_SWITCH_6, GPIO_INPUT);
+	
+	
+	GPIO_openFd(IP_SWITCH_7);
+	GPIO_export(IP_SWITCH_7);	
+	GPIO_setDir(IP_SWITCH_7, GPIO_INPUT);
+#endif
+
+#endif
+	
+	
+	printf("-----------IP switch-----------\n");
+	while (1)
+	{
+		tmp1 = 0x00;
+		
+		GPIO_getValue(IP_SWITCH_1, &value); //1
+		tmp1 |= value; //0x01
+		tmp1 = tmp1 << 1; //0x02
+		GPIO_getValue(IP_SWITCH_2, &value); //1
+		tmp1 = tmp1 | value; //0x03
+		tmp1 = tmp1 << 1;
+		GPIO_getValue(IP_SWITCH_3, &value);
+		tmp1 |= value;
+		tmp1 = tmp1 << 1;
+		GPIO_getValue(IP_SWITCH_4, &value);
+		tmp1 |= value;
+		tmp1 = tmp1 << 1;
+		GPIO_getValue(IP_SWITCH_5, &value);
+		tmp1 |= value;
+		tmp1 = tmp1 << 1;
+		GPIO_getValue(IP_SWITCH_6, &value);
+		tmp1 |= value;
+		tmp1 = tmp1 << 1;
+		GPIO_getValue(IP_SWITCH_7, &value);
+		tmp1 |= value;
+		
+		//printf("tmp1 = 0x%x \n", tmp1);
+		#if 1
+		if (tmp2 != tmp1)
+		{
+			tmp2 = tmp1;
+			sprintf(str, "192.168.1.%d", tmp1+1);
+			strcpy(share_mem->sm_eth_setting.strEthIp, str);
+			puts(share_mem->sm_eth_setting.strEthIp);
+			AppWriteCfgInfotoFile();
+			init_eth(); //ip configer
+		}
+		#endif
+		
+		usleep(20000);
+	}
+}
 
 
 

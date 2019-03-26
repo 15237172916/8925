@@ -463,45 +463,6 @@ void HDMI_light_on(void)
 #endif
 }
 
-
-void System_running(void)
-{
-	//system running state led
-	GPIO_export(LED_SYS_STA);	   			
-	GPIO_setDir(LED_SYS_STA, GPIO_OUTPUT); //output
-	GPIO_setValue(LED_SYS_STA, GPIO_LOW_STA); //
-	
-	//SWITCH 
-	GPIO_openFd(MULTICAST_SWITCH_1);
-	GPIO_export(MULTICAST_SWITCH_1);	   			
-	GPIO_setDir(MULTICAST_SWITCH_1, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_2);
-	GPIO_export(MULTICAST_SWITCH_2);	   			
-	GPIO_setDir(MULTICAST_SWITCH_2, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_3);
-	GPIO_export(MULTICAST_SWITCH_3);	   			
-	GPIO_setDir(MULTICAST_SWITCH_3, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_4);
-	GPIO_export(MULTICAST_SWITCH_4);	   			
-	GPIO_setDir(MULTICAST_SWITCH_4, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_5);
-	GPIO_export(MULTICAST_SWITCH_5);	   			
-	GPIO_setDir(MULTICAST_SWITCH_5, GPIO_INPUT);
-#if 1
-	GPIO_openFd(MULTICAST_SWITCH_6);
-	GPIO_export(MULTICAST_SWITCH_6);	   			
-	GPIO_setDir(MULTICAST_SWITCH_6, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_7);
-	GPIO_export(MULTICAST_SWITCH_7);	   			
-	GPIO_setDir(MULTICAST_SWITCH_7, GPIO_INPUT);
-#endif
-}
-
 SL_U32 get_key_value(void)
 {
 	SL_U32 value;
@@ -511,57 +472,3 @@ SL_U32 get_key_value(void)
 	return value;
 }
 
-#if 1
-void Init_Multicast(void)
-{
-	SL_U32 value = 0, tmp1, tmp2, i = 10;
-	char str[50] = {0};
-	
-	printf("-----------IP switch-----------\n");
-	sleep(2);
-	//while(1)
-	{
-	tmp1 = 0x00;
-	
-	GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
-	tmp1 |= value; //0x01
-	//printf("value: %d \n", value);
-	tmp1 = tmp1 << 1; //0x02
-	GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
-	tmp1 = tmp1 | value; //0x03
-	//printf("value: %d \n", value);
-	tmp1 = tmp1 << 1;
-	GPIO_getValue(MULTICAST_SWITCH_3, &value);
-	tmp1 |= value;
-	tmp1 = tmp1 << 1;
-	GPIO_getValue(MULTICAST_SWITCH_4, &value);
-	tmp1 |= value;
-	tmp1 = tmp1 << 1;
-	GPIO_getValue(MULTICAST_SWITCH_5, &value);
-	tmp1 |= value;
-
-	tmp1 = tmp1 << 1;
-	GPIO_getValue(MULTICAST_SWITCH_6, &value);
-	tmp1 |= value;
-	tmp1 = tmp1 << 1;
-	GPIO_getValue(MULTICAST_SWITCH_7, &value);
-	tmp1 |= value;
-	
-	
-	printf("tmp1 = 0x%x \n", tmp1);
-	tmp1+=1; //701 need open 
-	sprintf(str, "239.255.42.%d", tmp1); //multicast address
-	strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
-	
-	printf(str);
-	sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
-	strcpy(share_mem->sm_eth_setting.strEthIp, str);
-	printf(str);
-	AppWriteCfgInfotoFile();
-	init_eth();
-	//tmp2 = tmp1;
-	
-	usleep(10000);
-	}
-}
-#endif

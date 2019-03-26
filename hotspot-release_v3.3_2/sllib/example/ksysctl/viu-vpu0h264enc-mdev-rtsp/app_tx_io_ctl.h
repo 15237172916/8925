@@ -48,13 +48,11 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 
 #define KEY_IO		8 		//GPIO1_8
 
-#if 0
 #define LED_SIG_LOW 	6 	//GPIO1_6
 #define LED_SIG_MOD		4	//GPIO1_4
 #define LED_SIG_HIG		5	//GPIO1_5
 #define LED_HDMI		7	//GPIO1_7
 #define LED_SYS_STA     30  //GPIO1_30
-#endif
 
 #define GPIO_OUTPUT		1	//gpio mode is output
 #define GPIO_INPUT		0	//gpio mode is input
@@ -63,28 +61,9 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define GPIO_LOW_STA	0	//gpio output mode is low
 
 
-#if 1 //
-//Multicast address switch io port
-#define MULTICAST_SWITCH_1		34 	//GPIO02_02
-#define MULTICAST_SWITCH_2		36	//GPIO02_04
-
-#define MULTICAST_SWITCH_3		4	//GPIO01_04
-#define MULTICAST_SWITCH_4		7	//GPIO01_07
-#define MULTICAST_SWITCH_5		6	//GPIO01_06
-#define MULTICAST_SWITCH_6		5	//GPIO01_05
-#define MULTICAST_SWITCH_7		30	//GPIO01_30
-#endif
-
-#define LED_HDMI				35 //GPIO2_03
-#define LED_SYS_STA     		32 //GPIO2_00
-
-
-
 void HDMI_light_off(void);
 void HDMI_light_on(void);
 
 SL_U32 get_key_value(void);
-void Init_Multicast(void);
-void System_running(void);
 
 #endif
