@@ -23,6 +23,7 @@ typedef struct
 	unsigned char uSeq:8;
 	unsigned int  iLen:24;
 	unsigned int iTimeStamp;
+    unsigned short int usChecksum :16;
 }DATAHEAD;
 
 enum PACKETTYPE
