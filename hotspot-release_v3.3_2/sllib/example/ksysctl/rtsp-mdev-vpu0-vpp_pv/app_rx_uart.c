@@ -443,8 +443,8 @@ ReSocket:
 		len = send(sock_client, rbuff, sizeof(rbuff),0);  
 		if(len <= 0)
 		{
-			//perror(send);
-			printf("Send data len <= 0 len= %d \n",len);
+			perror(send);
+			printf("uart tcp Send data len <= 0 len= %d \n",len);
 			close(sock_client);	
 			sleep(1);
 			goto ReSocket;
@@ -452,10 +452,11 @@ ReSocket:
 		len = recv(sock_client, wbuff, sizeof(wbuff), 0);
 		if (len < 0)
 		{
-			//perror(recv);
-			printf("Server Recieve Data Failed!\n");
-			//close(sock_client);
-			sleep(1);
+			perror(recv);
+			printf("uart tcp Recieve Data Failed!\n");
+			close(sock_client);
+            sleep(1);
+            goto ReSocket;
 		}
 		errCode = SLUART_Write(wbuff, sizeof(wbuff));
 		if(errCode != 0)

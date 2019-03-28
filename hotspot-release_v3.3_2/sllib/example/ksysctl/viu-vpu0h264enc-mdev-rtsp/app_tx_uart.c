@@ -313,7 +313,7 @@ Rerecv:
 			perror(recv);
 			j++;
 			if(j>10)				//Exit the thread if the client disconnects or doesn't receive data ten times
-			pthread_exit(NULL);
+				pthread_exit(NULL);
 			printf("Server Recieve ask Data Failed!\n");
 			pthread_mutex_unlock(&lock_kvm);
 			goto Rerecv;		
@@ -333,7 +333,7 @@ Rerecv:
 				len = recv(connfd, wbuff, sizeof(wbuff), 0);
 				if (len <=0)
 				{
-					//perror(recv);
+					perror(recv);
 					pthread_mutex_unlock(&lock_kvm);
 					printf("Server Recieve Data Failed!\n");						
 					goto Rerecv;
@@ -343,7 +343,7 @@ Rerecv:
 				if(errCode != 0)
 				{
 					printf("SLUART_Write error\n");
-					return -1;
+					//return -1;
 				}
 				errCode = SLUART_Read(rbuff, sizeof(rbuff));	
 				if (errCode != 0)
@@ -353,7 +353,7 @@ Rerecv:
 				len=send(connfd, rbuff, sizeof(rbuff),0);
 				if(len <= 0)
 				{
-					//perror(send);
+					perror(send);
 					printf("Send data len <= 0 len= %d \n",len);;
 				}
 				if(rebuff[0]==0x57)
