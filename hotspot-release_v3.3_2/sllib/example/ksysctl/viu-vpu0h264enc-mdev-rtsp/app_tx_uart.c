@@ -548,7 +548,7 @@ ReSocket:
 				printf("Server Accept Failed!\n");		
 				perror("accept");
 				close(sock_server);
-				close(cfd);		
+				close(cfd);  
 				goto ReSocket;
 			}
 			else
