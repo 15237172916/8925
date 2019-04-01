@@ -67,10 +67,6 @@
 #define VIDEO_SUPPORT
 
 
-
-
-
-
 //For IR
 #ifdef ENABLE_GET_IR
 static pthread_t get_ir_handler;

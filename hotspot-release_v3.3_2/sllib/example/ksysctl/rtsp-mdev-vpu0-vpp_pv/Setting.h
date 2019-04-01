@@ -34,7 +34,7 @@ typedef struct{
     unsigned char ucRTMPStatus;
     unsigned char ucWiFiStatus;
     char strHardwareVer[20];
-    char strSoftwareVer[20]
+    char strSoftwareVer[20];
 }RUN_STATUS;
 
 RUN_STATUS run_status;
