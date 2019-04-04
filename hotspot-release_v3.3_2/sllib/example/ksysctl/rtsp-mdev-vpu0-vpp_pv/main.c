@@ -59,9 +59,9 @@
 //#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
-#define IP_SWITCH
-//#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
-//#define ENABLE_IR_SEND
+//#define IP_SWITCH
+#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
+#define ENABLE_IR_SEND
 
 #define AUDIO_SUPPORT
 #define VIDEO_SUPPORT
