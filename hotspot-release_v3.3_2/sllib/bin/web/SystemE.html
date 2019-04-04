@@ -5,7 +5,7 @@
 <meta HTTP-EQUIV="expires" CONTENT="0">
 <HEAD>
 <META content="text/html; charset=utf-8" http-equiv="Content-Type">
-<TITLE>System settings-HD Encoder</TITLE>
+<TITLE>System settings-IP Video Matrix Device Configuration Platform</TITLE>
 <link type="text/css" rel="stylesheet" href="css/form.css"/>
 <LINK rel="stylesheet" type="text/css" href="css/main.css">
 <script src="Js/jquery-1.4.1.min.js" type="text/javascript"></script>
@@ -14,7 +14,7 @@
 <script type="text/javascript">   
 var hostip =window.location.host;
 function updateInfo() {
-	var menu_html = showMenu("System.html");
+	var menu_html = showMenuE("SystemE.html");
    	$("#menu_bar").html(menu_html);
 	
 	$.ajax({
@@ -66,7 +66,8 @@ function SetReboot() {
     });
 
 }
-	function SetReboot1(){
+
+function SetReboot1(){
 	document.write(" ");
 	$.ajax({ 
 		type:"GET",
@@ -83,14 +84,14 @@ function SetReboot() {
 
 function changeLan() {
 	var Language=$("#LanSle").val();
-	if(Language=='English') {
+	if(Language=='Chinese'){
 		$.ajax({ 
 			type:"GET",
 			url: "http://" + hostip + "/cgi-bin/set_sys.cgi?type=lang&lang=1",
 			dataType:"text",
 			cache:false
 		});
-		window.location.href='SystemE.html';
+		window.location.href='System.html';
 	}
 }
 	 
@@ -136,13 +137,12 @@ function gotoend(pro, value){
 			var timer1 = setTimeout(function(){gotoend(pro, value);},720)
 		}
 		else{
-				if(success_dete == 1)
-				{
-					setTimeout(function(){alert("升级成功!\r\n\r\n如果没运行，检查文件名，再试一次")},20);
-				}
-				else{setTimeout(function(){alert("升级失败!\r\n\r\n请检查网线或者电源连接，再试一次")},20);}
+			if(success_dete == 1)
+			{
+				setTimeout(function(){alert("升级成功!\r\n\r\n如果没运行，检查文件名，再试一次")},20);
 			}
-				
+			else{setTimeout(function(){alert("升级失败!\r\n\r\n请检查网线或者电源连接，再试一次")},20);}
+		}
 }
 
 var timer;
@@ -151,11 +151,12 @@ function upload_file1()
 {
 	var state;
 	var upgrade= $("#upgrade").val();
+	upgrade=upgrade.replace("C:\\fakepath\\","");
 	if(upgrade==""){
 		alert("Select firmware file!");
 		return;
 	}
-	else
+	else if(upgrade=="viu-vpu0h264enc-mdev-rtsp")
 	{
 		$.ajaxFileUpload({
 		type:"post",
@@ -184,6 +185,73 @@ function upload_file1()
 
 			},
 		});
+	}
+	else if(upgrade=="ko.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_ko.cgi",			
+		dataType:"text",			
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				//alert('升级成功，系统正在重启！');	
+				alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else if(upgrade=="web.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_web.cgi",			
+		dataType:"text",
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				//alert('升级成功，系统正在重启！');	
+				alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else
+	{
+		alert('Failed, please select the correct file!');
+		return;
 	}
 	setTimeout(updateBar(),3000);
 }
@@ -259,12 +327,12 @@ function uploadFw() {
 <FORM METHOD="POST" id="form1" name="form1" ENCTYPE="multipart/form-data" ACTION="cgi-bin/upload.cgi" >
  <div class="header">
   <div class="header_b"> <a href="/" class="logo"><img src="css/cn/logo.jpg" /></a>
-   <p class="logo_v">HD Encoder System<br/>
-     Platform</p>
+   <p class="logo_v">IP Video<br/>
+     System</p>
    <div class="language">
     <select onchange="changeLan()" id='LanSle'>
-     <option value="Chinese" selected="selected">Chinese</option>
-     <option value="English" >English</option>
+     <option value="Chinese" >Chinese</option>
+     <option value="English" selected="selected">English</option>
     </select>
    </div>
    <ul>
@@ -274,22 +342,22 @@ function uploadFw() {
 </div>
  <dd id="menu_bar"></dd>
  <DIV class="clear"></DIV>
- <DIV class="wrapper">
-  <h1 class="h1_System">System</h1>
-  <DIV class="content">
+<DIV class="wrapper">
+ <h1 class="h1_SystemE">System</h1>
+<DIV class="content">
    <DIV class="in author t_index_1">
 	   <H2>System information</H2>
    </DIV>
     <DIV class="in">
      <div class="write">
 	 <dl>
-		<dt>Firmware ver:</dt>
+		<dt>Firmware version:</dt>
 		<dd>
 		 <input name="fw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="fw_ver">
 		</dd>
 	 </dl>
 	 <dl>
-		<dt>Hardware ver：</dt>
+		<dt>Hardware version:</dt>
 		<dd>
 		 <input name="hw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="hw_ver">
 		</dd>
@@ -337,9 +405,9 @@ function uploadFw() {
      <dl>
       <dt>&nbsp;</dt>
       <dd>
-       <input type="button" value="Reboot" name ="insert" class="com_btn b_chongqi" onclick="SetReboot()"  id="subBut" />
+       <input type="button" value="Reboot" name ="insert" class="com_btn_E b_chongqiE" onclick="SetReboot()"  id="subBut" />
        &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
-       <input type="button" value="Reset" name ="insert" class="com_btn b_chongzhi" onclick="SetReset()"  id="subBut" />
+       <input type="button" value="Reset" name ="insert" class="com_btn_E b_chongzhiE" onclick="SetReset()"  id="subBut" />
       </dd>
      </dl>
     </div>

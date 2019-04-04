@@ -5,7 +5,7 @@
 <meta HTTP-EQUIV="expires" CONTENT="0">
 <HEAD>
 <META content="text/html; charset=utf-8" http-equiv="Content-Type">
-<TITLE>Network settings-HD Encoder</TITLE>
+<TITLE>Network settings-IP Video Matrix Device Configuration Platform</TITLE>
 <link type="text/css" rel="stylesheet" href="css/form.css"/>
 <LINK rel="stylesheet" type="text/css" href="css/main.css">
 <script src="Js/jquery-1.4.1.min.js" type="text/javascript"></script>
@@ -216,8 +216,8 @@ function changeLan(){
 <form onsubmit="return validator(this);" name="aspnetForm" id="aspnetForm">
  <div class="header">
   <div class="header_b"> <a href="/" class="logo"><img src="css/en/logo.jpg" /></a>
-   <p class="logo_v">HD Encoder System<br/>
-    Platform</p>
+   <p class="logo_v">IP Video<br/>
+   Matrix</p>
    <div class="language">
     <select onchange="changeLan()" id='LanSle'>
      <option value="Chinese">Chinese</option>
@@ -276,38 +276,38 @@ function changeLan(){
      <dl>
       <dt>IP：</dt>
       <dd>
-       <input  id="IpTxt" name="IpTxt" valid="required"  maxlength="18"  type="text" />
+       <input  id="IpTxt" name="IpTxt" readonly = "true" valid="required"  maxlength="18"  type="text" />
       </dd>
      </dl>
      <dl>
       <dt>Netmask：</dt>
       <dd>
-       <input id="MaskTxt" name="MaskTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="MaskTxt" name="MaskTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
       <dt>Gateway：</dt>
       <dd>
-       <input id="GatewayTxt" name="GatewayTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="GatewayTxt" name="GatewayTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
       <dt>Multicast IP：</dt>
       <dd>
-       <input id="MulticastTxt" name="MulticastTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="MulticastTxt" name="MulticastTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
        <dt>&nbsp;</dt>
         <dd>
-         <input type="button" value="Apply" name ="insert" class="com_btn_E b_shezhiE" onclick="SetIpAjax()"  id="subBut" />
+         <input type="button" value="Apply" name ="insert" class="com_btn_E b_shezhiE" onclick="SetIpAjax()"  id="subBut" hidden/>
        </dd>
      </dl>
  </div>
 </DIV>
 </DIV>
 
-  <DIV class="content">
+  <DIV class="content" hidden>
    <DIV class="in author t_index_1">
     <H2>WIFI settings</H2>
    </DIV>

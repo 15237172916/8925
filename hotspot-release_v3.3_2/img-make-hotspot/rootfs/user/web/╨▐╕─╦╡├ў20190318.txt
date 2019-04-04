@@ -1,0 +1,14 @@
+20190316
+1. 修改js/platform.js，设置底部菜单，去掉Encoder/编码器。修改底部显示为DEVICE CONFIGURATION PLATFORM
+2. 修改indexC.html，indexE.html。去掉流地址显示，流状态显示。
+3. 修改SetNet.html，SetNetE.html。去掉Wifi显示
+4. 修改SystemE.html，修改语言选项默认为English，修改ChangeLan function的bug，设置为Chinese时打开System.html
+5. 修改CSS/logo.jpg
+6. 修改6个网页的标题和头部文字显示
+
+20190318
+1. 修改底部显示为 IP VIDEO MATRIX DEVICE CONFIGURATION PLATFORM
+2. 修改systemE.html ver为version，冒号中文字符改成英文字符
+3. 修改LOGO后的文字为 IP Video Matrix/IP视频矩阵
+4. 修改标题为 IP Video Matrix Device Configuration Platform/IP视频矩阵设备配置平台
+5. 修改LOGO图片

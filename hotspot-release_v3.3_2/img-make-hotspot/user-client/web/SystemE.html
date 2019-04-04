@@ -5,7 +5,7 @@
 <meta HTTP-EQUIV="expires" CONTENT="0">
 <HEAD>
 <META content="text/html; charset=utf-8" http-equiv="Content-Type">
-<TITLE>System settings-HD Encoder</TITLE>
+<TITLE>System settings-IP Video Matrix Device Configuration Platform</TITLE>
 <link type="text/css" rel="stylesheet" href="css/form.css"/>
 <LINK rel="stylesheet" type="text/css" href="css/main.css">
 <script src="Js/jquery-1.4.1.min.js" type="text/javascript"></script>
@@ -91,7 +91,7 @@ function changeLan() {
 			dataType:"text",
 			cache:false
 		});
-		window.location.href='SystemE.html';
+		window.location.href='System.html';
 	}
 }
 	 
@@ -151,6 +151,7 @@ function upload_file1()
 {
 	var state;
 	var upgrade= $("#upgrade").val();
+	upgrade=upgrade.replace("C:\\fakepath\\","");
 	if(upgrade==""){
 		alert("Select firmware file!");
 		return;
@@ -326,12 +327,12 @@ function uploadFw() {
 <FORM METHOD="POST" id="form1" name="form1" ENCTYPE="multipart/form-data" ACTION="cgi-bin/upload.cgi" >
  <div class="header">
   <div class="header_b"> <a href="/" class="logo"><img src="css/cn/logo.jpg" /></a>
-   <p class="logo_v">HD Encoder System<br/>
-     Platform</p>
+   <p class="logo_v">IP Video<br/>
+     Matrix</p>
    <div class="language">
     <select onchange="changeLan()" id='LanSle'>
-     <option value="Chinese" selected="selected">Chinese</option>
-     <option value="English" >English</option>
+     <option value="Chinese" >Chinese</option>
+     <option value="English" selected="selected">English</option>
     </select>
    </div>
    <ul>
@@ -350,15 +351,15 @@ function uploadFw() {
     <DIV class="in">
      <div class="write">
 	 <dl>
-		<dt>Firmware ver:</dt>
+		<dt>Firmware version:</dt>
 		<dd>
-		 <input name="fw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="fw_ver">
+		 <input name="fw_ver" disabled="disalbed"  readonly = "true" type="text" maxlength="32" id="fw_ver">
 		</dd>
 	 </dl>
 	 <dl>
-		<dt>Hardware ver：</dt>
+		<dt>Hardware version:</dt>
 		<dd>
-		 <input name="hw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="hw_ver">
+		 <input name="hw_ver" disabled="disalbed"  readonly = "true" type="text" maxlength="32" id="hw_ver">
 		</dd>
 	 </dl>
     </div>

@@ -13,12 +13,9 @@
 
 #include "app_rx_io_ctl.h"
 
-
-
 #define SYSFS_GPIO_DIR  "/sys/class/gpio"
 
 extern SL_BOOL gbTestMode;
-
 
 #include "sharemem.h"
 #include <sys/socket.h>
@@ -327,8 +324,7 @@ void  *app_rx_io_ctl_main(void)
   	
   	//SL_U32 sum;
 	SL_U32 Value;
-	
-	
+		
 #if 0 //LED
 	GPIO_openFd(LED_SIG_LOW);
 	GPIO_export(LED_SIG_LOW);	   			
@@ -376,14 +372,18 @@ void  *app_rx_io_ctl_main(void)
 				flag = 1;
 				do
 				{
-					//Value = get_key_value();		  
+					//Value = get_key_value();
 					time = time+1;
 					Sleep(1);
 					
 					if(time > 1500)
 					{
 						flag = 3;
-						
+						AppInitCfgInfoDefault();
+				        printf("cfg init ok \n");
+				        AppWriteCfgInfotoFile();
+                
+                        sleep(1);
 						reboot1(); //reset
 					}
 					//printf("time = %d \n", time);
@@ -492,8 +492,14 @@ void  *app_rx_io_ctl_main(void)
 		        break;
 	       }
 		
-           case 3:  //reboot
+           case 3:  //reboot and configer init
            {
+                AppInitCfgInfoDefault();
+				printf("cfg init ok \n");
+				AppWriteCfgInfotoFile();
+
+                sleep(1);
+
                 reboot1();
                 break;
            }

@@ -53,7 +53,7 @@ int AppInitCfgInfoDefault(void)
     //ETH
     strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.6");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
-    strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.3");        
+    strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");        
     strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.44");
     
     //WLAN

@@ -299,7 +299,8 @@ void *app_tx_light_ctl_main(void)
 	GPIO_openFd(KEY_IO);	//open gpio1_8 Fd
 	GPIO_export(KEY_IO);	//export the gpio1_8 to users 
 	GPIO_setDir(KEY_IO, GPIO_INPUT); //set the gpio1_8 direction is input 
-	
+    
+#if 0	
     g_LightMode[0].uLightNo = 4;
     g_LightMode[1].uLightNo = 5;
     g_LightMode[2].uLightNo = 6;
@@ -311,10 +312,11 @@ void *app_tx_light_ctl_main(void)
         g_LightMode[i].uCnt = 3;
         g_LightMode[i].uCStatus = 1;
     }
-    
+
     printf("================Light Test=================\n");
     sleep(1);
-                
+#endif
+
     while(1)
     {
 #if 1 	/********************* for wang 20171024 ******************/ 

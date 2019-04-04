@@ -1,6 +1,6 @@
-var menu_name = new Array(	"href='index.html'>状态显示</A></LI>", 
+var menu_name = new Array(	"href='indexC.html'>状态显示</A></LI>", 
 							"href='SetNet.html'>网络设置</A></LI>", 
-							"href='SetMedia0.html'>编码设置</A></LI>", 
+							//"href='SetMedia0.html'>编码设置</A></LI>", 
 							//"href='SetMedia1.html'>副流编码设置</A></LI>", 
 							//"href='SetAudio.html'>音频编码设置</A></LI>", 
 							"href='System.html'>系统设置</A></LI>"
@@ -8,7 +8,7 @@ var menu_name = new Array(	"href='index.html'>状态显示</A></LI>",
 
 var menu_nameE = new Array(	"href='indexE.html'>Status</A></LI>", 
 							"href='SetNetE.html'>Network</A></LI>", 
-							"href='SetMedia0E.html'>Encoder</A></LI>", 
+							//"href='SetMedia0E.html'>Encoder</A></LI>", 
 							//"href='SetMedia1E.html'>Second stream</A></LI>", 
 							//"href='SetAudioE.html'>Audio</A></LI>", 
 							"href='SystemE.html'>System</A></LI>"
@@ -27,7 +27,7 @@ function showMenu(str) {
 
 		result += menu_name[i];
 	}
- 	result += "</UL><p>高清编码器配置操作平台</p></DIV>";
+ 	result += "</UL><p>IP视频矩阵设备配置平台</p></DIV>";
 
 	return result;
 }
@@ -45,7 +45,7 @@ function showMenuE(str) {
 
 		result += menu_nameE[i];
 	}
- 	result += "</UL><p>HD ENCODER CONFIGURATION PLATFORM</p></DIV>";
+ 	result += "</UL><p>IP VIDEO MATRIX DEVICE CONFIGURATION PLATFORM</p></DIV>";
 
 	return result;
 }
