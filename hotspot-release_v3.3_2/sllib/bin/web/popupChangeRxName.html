@@ -49,12 +49,13 @@ div{
 }
 
 .TxSelectButton{
-	height: 100px;
+	height: 70px;
 	width: 100%;
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
 .inputChangeRxName{
-	height: 80px;
+	height: 70px;
 	width: 45%;
 	background-color:#4d4d4d;
 	color: white;
@@ -64,8 +65,9 @@ div{
 	border: 0;
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
 .ApplyButton{
-	height: 80px;
+	height: 70px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -74,8 +76,9 @@ div{
 	font-weight:700; /*字体加粗100-900*/
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
 .CancelButton{
-	height: 80px;
+	height: 70px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -84,10 +87,22 @@ div{
 	font-weight:700; /*字体加粗100-900*/
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
 .labelMode{
 	color: white;
-	font-size:0.8rem;	
+	font-size:0.8rem;
+}
 
+.buttonBottom{
+	height:30px;
+	width:60px;
+	background-color:#4d4d4d;
+	color: white;
+	font-size: 1rem;
+	border-color:#4d4d4d; /*边框颜色*/
+	border-radius:10px;
+	
+	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 
 </style>
@@ -105,7 +120,7 @@ div{
 
 function LoopButton()
 {
-	for (var i=0; i<128; i++)
+	for (var i=0; i<9; i++)
 	{
 		var tiganStr = $("#RxRenameTag").html();
 		tiganStr = delHtmlTags(tiganStr, "{{num}}", num[i]);
@@ -146,7 +161,7 @@ function OnfocusRx(number)
 	
 	var i;
 	
-	for (i=0; i<128; i++)
+	for (i=0; i<9; i++)
 	{
 		ApplyId = "ApplyButton"+num[i];
 		CancelId = "CancelButton"+num[i];
@@ -240,7 +255,7 @@ function changRxNameInit()
 {
 	var inputRxNameId;
 
-	for (var i=0; i<128; i++)
+	for (var i=0; i<9; i++)
 	{
 		inputRxNameId = "inputRxName"+num[i];
 		//console.log(inputRxNameId);
@@ -257,6 +272,9 @@ function changRxNameInit()
 		<script>
 			LoopButton();
 		</script>
+		<div></div>
+		<input class="buttonBottom" id="buttonUp" type="button" value="UP">
+		<input class="buttonBottom" id="buttonNext" type="button" value="NEXT">
 	</div>
 </body>
 </html>
