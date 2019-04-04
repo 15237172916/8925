@@ -823,9 +823,10 @@ step:
 tryAgain:	
 		ret = SLMDEV_mallocBlockWrite(im_devman, &buf, cpSize);
 		if (SL_NO_ERROR != ret) {		
-			//printf("pv SLMDEV_mallocBlockWrite failed \n");
+			printf("pv SLMDEV_mallocBlockWrite failed \n");
 			usleep(10000);
-			goto tryAgain;
+			reboot1();
+			//goto tryAgain;
 		}
 
 		//printf("allocate block ok\n");
