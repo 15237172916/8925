@@ -835,7 +835,8 @@ tryAgain:
 		if (SL_NO_ERROR != ret) {		
 			//printf("pv SLMDEV_mallocBlockWrite failed \n");
 			usleep(10000);
-			goto tryAgain;
+			reboot1();
+			//goto tryAgain;
 		}
 
 		//printf("allocate block ok\n");
