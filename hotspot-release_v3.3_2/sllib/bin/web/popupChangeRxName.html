@@ -49,13 +49,13 @@ div{
 }
 
 .TxSelectButton{
-	height: 70px;
+	height: 68px;
 	width: 100%;
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 
 .inputChangeRxName{
-	height: 70px;
+	height: 68px;
 	width: 45%;
 	background-color:#4d4d4d;
 	color: white;
@@ -67,7 +67,7 @@ div{
 }
 
 .ApplyButton{
-	height: 70px;
+	height: 68px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -95,7 +95,7 @@ div{
 
 .buttonBottom{
 	height:30px;
-	width:60px;
+	width:80px;
 	background-color:#4d4d4d;
 	color: white;
 	font-size: 1rem;
@@ -113,14 +113,15 @@ div{
 		<input id="inputRxName{{num}}" class="inputChangeRxName" size="12" maxlength="12" onfocus="OnfocusRx('{{num}}');" onblur="OnblurRx('{{num}}');" value="">
 		<input id="ApplyButton{{num}}" class="ApplyButton" type="button" onclick="OnclickApplyButton('{{num}}');" value="OK"/>
 		<input id="CancelButton{{num}}" class="CancelButton" type="button" onclick="OnclickCancelButton('{{num}}')" value="CL">
-	<div>
+	 </div>
   </div>
 </script>
-<script >
 
+
+<script>
 function LoopButton()
 {
-	for (var i=0; i<9; i++)
+	for (var i=0; i<10; i++)
 	{
 		var tiganStr = $("#RxRenameTag").html();
 		tiganStr = delHtmlTags(tiganStr, "{{num}}", num[i]);
@@ -161,7 +162,7 @@ function OnfocusRx(number)
 	
 	var i;
 	
-	for (i=0; i<9; i++)
+	for (i=0; i<10; i++)
 	{
 		ApplyId = "ApplyButton"+num[i];
 		CancelId = "CancelButton"+num[i];
@@ -192,12 +193,17 @@ function OnfocusRx(number)
 
 function OnclickApplyButton(number)
 {
+	var num = Number(number);
+
+	number = (((currentPage-1) * 10) + num).toString;
+	console.log(number);
+
 	var ApplyId = "ApplyButton"+number;
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputRxName"+number;
 	var RxId = "rxName"+number;
 	var parent = window.parent;
-	var num = Number(number);
+	
 	var page = parent.currentLeftPageNum;
 	var ret;
 	
@@ -213,8 +219,9 @@ function OnclickApplyButton(number)
 		//inputValue = number+'-'+inputValue;
 		name = number+'-'+inputValue;
 	}
-	console.log(Math.ceil(num/15));
-	console.log(page);
+
+	//console.log(Math.ceil(num/15));
+	//console.log(page);
 	ret = changeRxName(number, inputValue);
 	
 	if (1==ret)
@@ -255,7 +262,7 @@ function changRxNameInit()
 {
 	var inputRxNameId;
 
-	for (var i=0; i<9; i++)
+	for (var i=0; i<10; i++)
 	{
 		inputRxNameId = "inputRxName"+num[i];
 		//console.log(inputRxNameId);
@@ -263,6 +270,27 @@ function changRxNameInit()
 	}
 
 }
+
+var currentPage = 1;
+
+function rxUpPage()
+{
+	switch (currentPage)
+	{
+		case 1:
+		break;
+		case 2:
+		break;
+
+	}
+	alert("UP");
+}
+
+function rxNextPage()
+{
+	alert("NEXT");
+}
+
 </script>
  
 </head>
@@ -272,9 +300,8 @@ function changRxNameInit()
 		<script>
 			LoopButton();
 		</script>
-		<div></div>
-		<input class="buttonBottom" id="buttonUp" type="button" value="UP">
-		<input class="buttonBottom" id="buttonNext" type="button" value="NEXT">
+		<input class="buttonBottom" id="buttonUp" type="button" value="UP" onclick="rxUpPage()">
+		<input class="buttonBottom" id="buttonNext" type="button" value="NEXT" onclick="rxNextPage()">
 	</div>
 </body>
 </html>
