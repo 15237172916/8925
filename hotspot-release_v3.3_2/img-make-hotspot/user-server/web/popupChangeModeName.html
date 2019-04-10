@@ -54,7 +54,7 @@ div{
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .inputChangeModeName{
-	height: 80px;
+	height: 68px;
 	width: 40%;
 	background-color:#4d4d4d;
 	color: white;
@@ -65,7 +65,7 @@ div{
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .ApplyButton{
-	height: 80px;
+	height: 68px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -74,8 +74,9 @@ div{
 	font-weight:700; /*字体加粗100-900*/
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
+
 .CancelButton{
-	height: 80px;
+	height: 68px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -94,7 +95,7 @@ div{
 <script type="text/html" id="ModeRenameTag">
   <div class="div_button">
 	 <div id="divBlock{{num}}" class="div">
-		<label class="labelMode">MODE-{{num}}:</label>	
+		<label class="labelMode" for="inputRxName{{num}}">MODE-{{num}}:</label>	
 		<input id="inputModeName{{num}}" class="inputChangeModeName" size="12" maxlength="12" onfocus="OnfocusMode('{{num}}');" onblur="OnblurMode('{{num}}');" value="">
 		<input id="ApplyButton{{num}}" class="ApplyButton" type="button" onclick="OnclickApplyButton('{{num}}');" value="OK"/>
 		<input id="CancelButton{{num}}" class="CancelButton" type="button" onclick="OnclickCancelButton('{{num}}')" value="CL">
@@ -260,7 +261,7 @@ function changModeNameInit()
  
 </head>
 <body class="" onload="changModeNameInit();">
-	<div class="ModeName">
+	<div class="ModeName">	
 		<script>
 			LoopButton();
 		</script>

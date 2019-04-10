@@ -15,12 +15,14 @@
 <style>
 
 body {
-	width: 98%; /*body部分占整个HTML的大小*/
+	width: 99%; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
 	background-color:#262626; 
 	border-style: none;
 	/*padding-right:2px;*/
- 	border-right: 5px solid  white;
+ 	border-right: 1% solid  white;
+	/*border-bottom: 1px solid  white;*/
+	/*border-bottom: 1px solid  white;*/
 	/*border-right-color: blue;*/
 	/*border-color: blue;*/
 	/*background-image:url(./css/logo.png);*/
@@ -35,9 +37,10 @@ body {
 img{
 	position: absolute;
 	left:10px;
-	top:340px;
+	/*top:415px;*/
+	bottom:65px;
 	z-index:-10;
-	opacity: 0.6;
+	opacity: 0.4;
 	width:90%;
 	height:auto;
 }
@@ -217,17 +220,16 @@ function onclickButtonSelectTx(number)
 	//stringValue = '1000';
 	//alert(selectButtonValue);
 	//console.log(tmpNumber);
+	if (0 == window.parent.tmp5)
+	{
+		alert("please close info display, then select source!");
+		return ;
+	}
+
 	if (number==tmpNumber) //check button same
 	{
 		if (tmp == 1) //check button state 
 		{
-			
-			if (0 == window.parent.tmp5)
-			{
-				alert("please close info display, then select source!");
-				return ;
-			}
-			
 			//alert(ButtonId);
 			//display selection panel of the source and change color of the button
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";

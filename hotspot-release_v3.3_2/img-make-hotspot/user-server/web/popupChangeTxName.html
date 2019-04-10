@@ -54,7 +54,7 @@ div{
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .inputChangeTxName{
-	height: 80px;
+	height: 68px;
 	width: 37%;
 	background-color:#4d4d4d;
 	color: white;
@@ -65,7 +65,7 @@ div{
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .ApplyButton{
-	height: 80px;
+	height: 68px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -75,7 +75,7 @@ div{
 	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
 }
 .CancelButton{
-	height: 80px;
+	height: 68px;
 	width: 15%;
 	visibility:hidden;
 	background-color:#4d4d4d;
@@ -89,22 +89,46 @@ div{
 	font-size:0.8rem;	
 
 }
+.buttonBottom{
+	height:30px;
+	width:80px;
+	background-color:#4d4d4d;
+	color: white;
+	font-size: 1rem;
+	border-color:#4d4d4d; /*边框颜色*/
+	border-radius:1px;
+	
+	-webkit-appearance : none ;  /*解决iphone safari上的圆角问题*/
+}
+
+input {
+  -webkit-appearance: none;
+	outline:none;
+}
+
+*{
+  -webkit-tap-highlight-color: transparent;   /*设置为透明*/
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+ }
+
 </style>
+
 <script type="text/html" id="TxRenameTag">
   <div class="div_button">
 	 <div id="divBlock{{num}}" class="div">
-		<label class="labelMode">SOURCE-{{num}}:</label>
+		<label id="label{{num}}" class="labelMode" for="inputRxName{{num}}">SOURCE-{{num}}:</label>
 		<input id="inputTxName{{num}}" class="inputChangeTxName" size="12" maxlength="12" onfocus="OnfocusTx('{{num}}');" onblur="OnblurTx('{{num}}');" value="">
 		<input id="ApplyButton{{num}}" class="ApplyButton" type="button" onclick="OnclickApplyButton('{{num}}');" value="OK"/>
 		<input id="CancelButton{{num}}" class="CancelButton" type="button" onclick="OnclickCancelButton('{{num}}')" value="CL">
 	<div>
   </div>
 </script>
-<script >
 
+<script >
+var currentPage = 1;
 function LoopButton()
 {
-	for (var i=0; i<24; i++)
+	for (var i=0; i<10; i++)
 	{
 		var tiganStr = $("#TxRenameTag").html();
 		tiganStr = delHtmlTags(tiganStr, "{{num}}", num1[i]);
@@ -145,7 +169,7 @@ function OnfocusTx(number)
 	
 	var i;
 	
-	for (i=0; i<24; i++)
+	for (i=0; i<10; i++)
 	{
 		ApplyId = "ApplyButton"+num1[i];
 		CancelId = "CancelButton"+num1[i];
@@ -177,12 +201,16 @@ function OnfocusTx(number)
 
 function OnclickApplyButton(number)
 {
+	var ordNum = Number(number);
+	ordNum = ((currentPage - 1) * 10) + ordNum;
+	var strNumber = num[ordNum-1];
+
 	var ApplyId = "ApplyButton"+number;
 	var CancelId = "CancelButton"+number;
 	var InputId = "inputTxName"+number;
-	var TxId = "TX"+number;
+	var TxId = "TX"+strNumber;
 	var TxSelectButtonId;
-	var orderNumber = Number(number);
+	
 	//var rxMulticast = 
 	var page = parent.currentLeftPageNum;
 	var name;
@@ -191,35 +219,29 @@ function OnclickApplyButton(number)
 
 	if (''==inputValue)
 	{
-		name = "SOURCE-"+number;
+		name = "SOURCE-"+strNumber;
 	}
 	else
 	{
-		name = num1[orderNumber-1]+'-'+inputValue;
+		name = num1[ordNum-1]+'-'+inputValue;
 	}
-	//orderNumber -= 1;
-	//alert(orderNumber);
-	ret = changeTxName(number, inputValue);
+	
+	ret = changeTxName(strNumber, inputValue);
 	if (1==ret)
 	{
 		document.getElementById(ApplyId).style.visibility = "hidden";
 		document.getElementById(CancelId).style.visibility = "hidden";
 
 		window.parent.document.getElementById("myIframe_selectTxButton").contentWindow.document.getElementById(TxId).value = name;
-		window.parent.txName[orderNumber-1] = inputValue;
-		console.log(orderNumber);
-		if ((Math.ceil(orderNumber/15)) == page)
+		window.parent.txName[ordNum-1] = inputValue;
+		
+		if ((Math.ceil(ordNum/15)) == page)
 		{
 			for (var i=0; i<15; i++)
 			{
 				TxSelectButtonId = "button"+num[i];
-				//console.log(page);
-				//console.log(orderNumber);
-				//console.log(Math.ceil(orderNumber/15));
-				//console.log(TxSelectButtonId);
-				//console.log(window.parent.rxMulticast[i]);
-
-				if (window.parent.rxMulticast[i] == orderNumber)
+				
+				if (window.parent.rxMulticast[i] == ordNum)
 				{
 					if (''==inputValue)
 					{
@@ -227,7 +249,6 @@ function OnclickApplyButton(number)
 					}
 					else
 					{
-						console.log(name);
 						window.parent.document.getElementById("myIframe_left").contentWindow.document.getElementById(TxSelectButtonId).value = name;
 					}
 				}
@@ -259,7 +280,7 @@ function changTxNameInit()
 {
 	var inputTxNameId;
 
-	for (var i=0; i<24; i++)
+	for (var i=0; i<10; i++)
 	{
 		inputTxNameId = "inputTxName"+num1[i];
 		//console.log(inputTxNameId);
@@ -267,6 +288,149 @@ function changTxNameInit()
 	}
 
 }
+
+function txUpPage()
+{
+	document.getElementById("buttonUp").style.backgroundColor = "green";
+	var firstNum = 0;
+	
+	if (currentPage >= 1 && currentPage <= 3)
+	{
+		//console.log(currentPage);
+		if (currentPage > 1)
+		{
+			currentPage--;
+		}
+		
+		switch (currentPage)
+		{
+		case 1:
+			firstNum = 0;
+			break;
+		case 2:
+			firstNum = 10;
+			break;
+		case 3:
+			firstNum = 20;	
+			break;
+		}
+		if (3 == currentPage)
+		{
+			document.getElementById("divBlock05").style.visibility = "hidden";
+			document.getElementById("divBlock06").style.visibility = "hidden";
+			document.getElementById("divBlock07").style.visibility = "hidden";
+			document.getElementById("divBlock08").style.visibility = "hidden";
+			document.getElementById("divBlock09").style.visibility = "hidden";
+			document.getElementById("divBlock10").style.visibility = "hidden";
+			document.getElementById("ApplyButton05").style.visibility = "hidden";
+			document.getElementById("ApplyButton06").style.visibility = "hidden";
+			document.getElementById("ApplyButton07").style.visibility = "hidden";
+			document.getElementById("ApplyButton08").style.visibility = "hidden";
+			document.getElementById("ApplyButton09").style.visibility = "hidden";
+			document.getElementById("ApplyButton10").style.visibility = "hidden";
+			document.getElementById("CancelButton05").style.visibility = "hidden";
+			document.getElementById("CancelButton06").style.visibility = "hidden";
+			document.getElementById("CancelButton07").style.visibility = "hidden";
+			document.getElementById("CancelButton08").style.visibility = "hidden";
+			document.getElementById("CancelButton09").style.visibility = "hidden";
+			document.getElementById("CancelButton10").style.visibility = "hidden";
+		}
+		else
+		{
+			document.getElementById("divBlock05").style.visibility = "visible";
+			document.getElementById("divBlock06").style.visibility = "visible";
+			document.getElementById("divBlock07").style.visibility = "visible";
+			document.getElementById("divBlock08").style.visibility = "visible";
+			document.getElementById("divBlock09").style.visibility = "visible";
+			document.getElementById("divBlock10").style.visibility = "visible";
+		}
+		for (var i=0; i<10; i++)
+		{
+			var labelId = "label"+num1[i];
+			var labelName = "SOURCE-"+num1[firstNum+i]+":";
+			var inputTxNameId = "inputTxName"+num1[i];
+			//console.log(inputRxNameId);
+			document.getElementById(labelId).innerHTML = labelName;
+			document.getElementById(inputTxNameId).value = window.parent.txName[firstNum+i];
+		}
+	}
+	
+	document.getElementById("buttonUp").style.backgroundColor = "#4d4d4d";
+	//alert("UP");
+}
+
+function txNextPage()
+{
+	document.getElementById("buttonNext").style.backgroundColor = "green";
+	var firstNum = 0;
+	if (currentPage >= 1 && currentPage <= 3)
+	{
+		//console.log(currentPage);
+		if (currentPage < 3)
+		{
+			currentPage++;
+		}
+		switch (currentPage)
+		{
+		case 1:
+			firstNum = 0;
+			break;
+		case 2:
+			firstNum = 10;
+			break;
+		case 3:
+			firstNum = 20;	
+			break;
+		}
+
+		if (3 == currentPage)
+		{
+			document.getElementById("divBlock05").style.visibility = "hidden";
+			document.getElementById("divBlock06").style.visibility = "hidden";
+			document.getElementById("divBlock07").style.visibility = "hidden";
+			document.getElementById("divBlock08").style.visibility = "hidden";
+			document.getElementById("divBlock09").style.visibility = "hidden";
+			document.getElementById("divBlock10").style.visibility = "hidden";
+			document.getElementById("ApplyButton05").style.visibility = "hidden";
+			document.getElementById("ApplyButton06").style.visibility = "hidden";
+			document.getElementById("ApplyButton07").style.visibility = "hidden";
+			document.getElementById("ApplyButton08").style.visibility = "hidden";
+			document.getElementById("ApplyButton09").style.visibility = "hidden";
+			document.getElementById("ApplyButton10").style.visibility = "hidden";
+			document.getElementById("CancelButton05").style.visibility = "hidden";
+			document.getElementById("CancelButton06").style.visibility = "hidden";
+			document.getElementById("CancelButton07").style.visibility = "hidden";
+			document.getElementById("CancelButton08").style.visibility = "hidden";
+			document.getElementById("CancelButton09").style.visibility = "hidden";
+			document.getElementById("CancelButton10").style.visibility = "hidden";
+		}
+		else
+		{
+			document.getElementById("divBlock05").style.visibility = "visible";
+			document.getElementById("divBlock06").style.visibility = "visible";
+			document.getElementById("divBlock07").style.visibility = "visible";
+			document.getElementById("divBlock08").style.visibility = "visible";
+			document.getElementById("divBlock09").style.visibility = "visible";
+			document.getElementById("divBlock10").style.visibility = "visible";
+		}
+		
+		for (var i=0; i<10; i++)
+		{
+			var labelId = "label"+num1[i];
+			if (firstNum+i < 24)
+			{
+				var labelName = "SOURCE-"+num1[firstNum+i]+":";
+			}
+			var inputTxNameId = "inputTxName"+num1[i];
+			//console.log(inputRxNameId);
+			document.getElementById(labelId).innerHTML = labelName;
+			document.getElementById(inputTxNameId).value = window.parent.txName[firstNum+i];
+		}
+	}
+	document.getElementById("buttonNext").style.backgroundColor = "#4d4d4d";
+	//alert("NEXT");
+}
+
 </script>
 </script>
  
@@ -276,6 +440,8 @@ function changTxNameInit()
 		<script>
 			LoopButton();
 		</script>
+		<input class="buttonBottom" id="buttonUp" type="button" value="PREV" onclick="txUpPage()">
+		<input class="buttonBottom" id="buttonNext" type="button" value="NEXT" onclick="txNextPage()">
 	</div>
 </body>
 </html>
