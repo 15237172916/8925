@@ -156,7 +156,7 @@ function upload_file1()
 		alert("Select firmware file!");
 		return;
 	}
-	else if(upgrade=="viu-vpu0h264enc-mdev-rtsp")
+	else if(upgrade=="rtsp-mdev-vpu0-vpp_pv")
 	{
 		$.ajaxFileUpload({
 		type:"post",
@@ -328,7 +328,7 @@ function uploadFw() {
  <div class="header">
   <div class="header_b"> <a href="/" class="logo"><img src="css/cn/logo.jpg" /></a>
    <p class="logo_v">IP Video<br/>
-     System</p>
+     Matrix</p>
    <div class="language">
     <select onchange="changeLan()" id='LanSle'>
      <option value="Chinese" >Chinese</option>
@@ -353,13 +353,13 @@ function uploadFw() {
 	 <dl>
 		<dt>Firmware version:</dt>
 		<dd>
-		 <input name="fw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="fw_ver">
+		 <input name="fw_ver" disabled="disalbed"  readonly = "true" type="text" maxlength="32" id="fw_ver">
 		</dd>
 	 </dl>
 	 <dl>
 		<dt>Hardware version:</dt>
 		<dd>
-		 <input name="hw_ver" disabled="disalbed" value ="" readonly = "true" type="text" maxlength="32" id="hw_ver">
+		 <input name="hw_ver" disabled="disalbed"  readonly = "true" type="text" maxlength="32" id="hw_ver">
 		</dd>
 	 </dl>
     </div>

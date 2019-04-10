@@ -1,4 +1,4 @@
-var menu_name = new Array(	"href='indexC.html'>状态显示</A></LI>", 
+var menu_name = new Array(	"href='index.html'>状态显示</A></LI>", 
 							"href='SetNet.html'>网络设置</A></LI>", 
 							//"href='SetMedia0.html'>编码设置</A></LI>", 
 							//"href='SetMedia1.html'>副流编码设置</A></LI>", 

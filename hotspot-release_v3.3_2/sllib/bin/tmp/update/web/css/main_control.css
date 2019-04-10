@@ -3,7 +3,6 @@
 
 html {
   background-color: #bfbfbf;; /*HTML 背景色*/
-  
 }
 
 
@@ -26,7 +25,7 @@ body > * {
 	//width: 80%; /*body部分占整个HTML的大小*/
 	width: auto; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	min-width: 600px; /*页面最小宽度*/
+	min-width: 650px; /*页面最小宽度*/
 	max-width: 1200px; /*页面最大宽度*/
 	background-color: #666666; /*主页面的背景色*/
 	padding:0 20px 20px 20px;

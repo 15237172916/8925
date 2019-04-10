@@ -217,7 +217,7 @@ function changeLan(){
  <div class="header">
   <div class="header_b"> <a href="/" class="logo"><img src="css/en/logo.jpg" /></a>
    <p class="logo_v">IP Video<br/>
-    Matrix</p>
+   Matrix</p>
    <div class="language">
     <select onchange="changeLan()" id='LanSle'>
      <option value="Chinese">Chinese</option>
@@ -276,38 +276,38 @@ function changeLan(){
      <dl>
       <dt>IP：</dt>
       <dd>
-       <input  id="IpTxt" name="IpTxt" valid="required"  maxlength="18"  type="text" />
+       <input  id="IpTxt" name="IpTxt" readonly = "true" valid="required"  maxlength="18"  type="text" />
       </dd>
      </dl>
      <dl>
       <dt>Netmask：</dt>
       <dd>
-       <input id="MaskTxt" name="MaskTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="MaskTxt" name="MaskTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
       <dt>Gateway：</dt>
       <dd>
-       <input id="GatewayTxt" name="GatewayTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="GatewayTxt" name="GatewayTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
       <dt>Multicast IP：</dt>
       <dd>
-       <input id="MulticastTxt" name="MulticastTxt"  valid="required"  maxlength="18"   type ="text"/>
+       <input id="MulticastTxt" name="MulticastTxt"   readonly = "true" valid="required"  maxlength="18"   type ="text"/>
       </dd>
      </dl>
      <dl>
        <dt>&nbsp;</dt>
         <dd>
-         <input type="button" value="Apply" name ="insert" class="com_btn_E b_shezhiE" onclick="SetIpAjax()"  id="subBut" />
+         <input type="button" value="Apply" name ="insert" class="com_btn_E b_shezhiE" onclick="SetIpAjax()"  id="subBut" hidden/>
        </dd>
      </dl>
  </div>
 </DIV>
 </DIV>
 
-  <DIV class="content"  hidden>
+  <DIV class="content" hidden>
    <DIV class="in author t_index_1">
     <H2>WIFI settings</H2>
    </DIV>

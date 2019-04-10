@@ -7,7 +7,7 @@
 
 <head>
  <!--link type="text/css" rel="stylesheet" href="css/form_control.css"-->
- <!--link type="text/css" rel="stylesheet" href="css/main_control.css"/-->
+ <link type="text/css" rel="stylesheet" href="css/main_control.css"/>
  <!--link type="text/css" rel="stylesheet" href="css/pickout.css"/-->
  
  <script type="text/javascript" src="Js/jquery-1.4.1.min.js"></script>
@@ -156,6 +156,34 @@
 		<option class="option23" value="23">TX23:</option>
 		<option class="option24" value="24">TX24:</option>
       </select>
+	   <!--span class="mr-selector">请选择选项</span>
+        <span class="arrow"></span>
+        <ul class="select">
+            <li>TX01</li>
+            <li>TX02</li>
+            <li>TX03</li>
+            <li>TX04</li>
+            <li>TX05</li>
+			<li>TX06</li>
+            <li>TX07</li>
+            <li>TX08</li>
+            <li>TX09</li>
+            <li>TX10</li>
+			<li>TX11</li>
+            <li>TX12</li>
+            <li>TX13</li>
+            <li>TX14</li>
+            <li>TX15</li>
+			<li>TX16</li>
+            <li>TX17</li>
+            <li>TX18</li>
+            <li>TX19</li>
+            <li>TX20</li>
+			<li>TX21</li>
+			<li>TX22</li>
+			<li>TX23</li>
+			<li>TX24</li>
+        </ul-->
 	 </div>
    </div>
    
@@ -253,9 +281,9 @@ window.onload=function()
 						//SetTxRename();
 						LoopButton();
 						setTimeout(function(){
+							SetTxRename();
 							SetRXMulticast();
 							SetRxRename();
-							SetTxRename();
 							}, 500);
 						
 					</script>
