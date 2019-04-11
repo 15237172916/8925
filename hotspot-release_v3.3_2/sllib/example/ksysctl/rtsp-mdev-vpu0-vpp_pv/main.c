@@ -56,7 +56,7 @@
 //#define APP_CODE
 #define WEB_ENABLE
 #define KVM_UART
-//#define APP_IO
+#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
 //#define IP_SWITCH

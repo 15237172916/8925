@@ -63,7 +63,7 @@
 //#define APP_CODE
 #define KVM_UART
 //#define DEBUG_OFF
-//#define APP_IO
+#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
 #define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
