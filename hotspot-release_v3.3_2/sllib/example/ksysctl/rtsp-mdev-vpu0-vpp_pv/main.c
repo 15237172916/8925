@@ -2494,6 +2494,12 @@ int main(int argc, char* argv[])
 				process_osd_text_solid(10, 20, str_tmp);
 			}
 			tmp = 1;
+			if (1 == key_display)
+			{
+				sleep(5);
+				key_display = 0;
+				process_osd_disable();
+			}
 		}
 		else
 		{

@@ -513,8 +513,8 @@ void  *app_rx_io_ctl_main(void)
 		        {
 	                gbTestMode = SL_TRUE;
                     g_ShowData.bShowFlag = SL_TRUE;
-		            g_ShowData.cText ="Data Test On";		    
-                 
+		            g_ShowData.cText ="Data Test On";
+					
                     if(SL_FALSE == g_RemoteCmd.bSendFlag)
                     {
                         printf("g_RemoteCmd.uCmdBuf[0]= %d before set\n", g_RemoteCmd.uCmdBuf[0]);
@@ -718,6 +718,8 @@ void *IP_switch(void)
 			printf("key_count : %d \n", key_count);
 			if (!key)
 			{
+				key_display = 1;
+				#if 0
 				if (0==state)
 				{
 					printf("\n\n OSD Multicast display \n\n");
@@ -732,6 +734,7 @@ void *IP_switch(void)
 					key_display = 0;
 					//save_264file_flag = 0;
 				}
+				#endif
 			}
 			if (key_count > 10)
 			{
