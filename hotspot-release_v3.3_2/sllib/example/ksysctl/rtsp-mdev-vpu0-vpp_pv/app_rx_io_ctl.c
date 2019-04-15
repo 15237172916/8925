@@ -719,6 +719,7 @@ void *IP_switch(void)
 			if (!key)
 			{
 				key_display = 1;
+				printf("\n\nKey OSD Multicast display \n\n");
 				#if 0
 				if (0==state)
 				{

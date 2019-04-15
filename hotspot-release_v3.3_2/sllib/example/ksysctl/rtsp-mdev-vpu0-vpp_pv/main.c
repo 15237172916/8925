@@ -2498,7 +2498,7 @@ int main(int argc, char* argv[])
 			{
 				sleep(5);
 				key_display = 0;
-				process_osd_disable();
+				//process_osd_disable();
 			}
 		}
 		else

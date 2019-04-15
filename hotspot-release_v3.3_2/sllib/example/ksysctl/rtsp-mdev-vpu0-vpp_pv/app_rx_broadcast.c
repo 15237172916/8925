@@ -109,8 +109,8 @@ try_socket:
 		printf("ip address : %d \n", ip_add);
 		
 		
-		printf("broadReport_s.ucIpAddress : %d \n", broadReport_s.ucIpAddress);
-		printf("broadReport_s.ucMultiAddress : %d \n", broadReport_s.ucMultiAddress);
+		//printf("broadReport_s.ucIpAddress : %d \n", broadReport_s.ucIpAddress);
+		//printf("broadReport_s.ucMultiAddress : %d \n", broadReport_s.ucMultiAddress);
 		//printf("buffer 1 : %d \n", buffer_flag[1]);
 		
 		len = sendto(sockfd, &broadReport_s, sizeof(broadReport_s), \
@@ -137,11 +137,11 @@ try_socket:
 				}
 				else
 				{
-					printf("ucInfoDisplayFlag : %d \n", broadRecv_s.ucInfoDisplayFlag);
-					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
-					printf("ucMultiAddress : %d \n", broadRecv_s.ucMultiAddress);
-					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
-					printf("uuid : %d \n", broadRecv_s.uuid);
+					//printf("ucInfoDisplayFlag : %d \n", broadRecv_s.ucInfoDisplayFlag);
+					//printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
+					//printf("ucMultiAddress : %d \n", broadRecv_s.ucMultiAddress);
+					//printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
+					//printf("uuid : %d \n", broadRecv_s.uuid);
 					
 					if (PROBE != broadRecv_s.uProbe)
 					{
