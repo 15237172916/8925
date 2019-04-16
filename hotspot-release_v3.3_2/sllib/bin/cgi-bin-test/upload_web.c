@@ -126,10 +126,16 @@ int main(void)
     else
     {
         ShowErrorInfo("Content length is null!");
+        return 0;
         exit(1);
     }
+    printf("contentLength: %d", contentLength);
+    return 0;
 	share_upload->uiFileLen = contentLength;
-	ShowErrorInfo("content length");
+	//ShowErrorInfo("content length");
+    //printf("Content-Type:text/html\r\n\r\n");
+	//printf("succeed");
+    
     while(contentLength > 0)
     {
         if(contentLength >= DEAL_BUF_LEN)
@@ -147,6 +153,8 @@ int main(void)
             exit(1);
         }
         
+        
+
         nowReadP = dealBuf;
         
         while(nowReadLen > 0)
@@ -322,10 +330,10 @@ int main(void)
 
     //printf("Content-Type:text/html\r\n\r\n");
 	//printf("succeed");
-	system(FILE_TAR_PATH);
+	//system(FILE_TAR_PATH);
 	//sleep(3);
 	
-	remove(FILE_PATH_NAME);
+	//remove(FILE_PATH_NAME);
 	
 	printf("Content-Type:text/html\r\n\r\n");
 	printf("succeed");
