@@ -19,6 +19,7 @@
 #include <sl_rtsp.h>
 #include <linux/soundcard.h>
 #include <sys/mman.h>
+#include <stdbool.h>
 
 #include "drv_sii9293_register.h"
 #include "drv_sii9293.h"
@@ -33,8 +34,7 @@
 #include "app_tx_data_ch.h"
 #endif
 
-unsigned char HDMI_lost;
-
+bool videoIsOkFlag = false;
 audio_dma_info_s audio_dma_in;
 audio_dma_info_s audio_dma_out;
 
@@ -1901,6 +1901,7 @@ void *sii9293_handler(void *p)
 		switch (chip->video_status)
 		{
 			case Unplug:	//unplug
+				videoIsOkFlag = false;
 				printf("Unplug \n");
 #ifdef APP_CODE
 				//gbBandwidthDetectMode = SL_TRUE;
@@ -1912,13 +1913,6 @@ void *sii9293_handler(void *p)
 				share_mem->sm_run_status.usHeight = 0;
 				share_mem->sm_run_status.ucFrameRate = 0;
 #endif
-				HDMI_lost = 1;
-				timeOutReset_5V++;
-				if (timeOutReset_5V > 1000)
-				{
-					reboot1();
-
-				}
 				if (audioOut_trigger)
 				{
 					//trigger
@@ -1935,14 +1929,9 @@ void *sii9293_handler(void *p)
 					chip->video_status = WaitSync;
 				break;
 				
-			case WaitSync:
+			case WaitSync:	//video sync signal isn't stable
+				videoIsOkFlag = false;
 				printf("WaitSync \n");
-				waitSyncCount++;
-				if (waitSyncCount > 200)
-				{
-					printf("wait sync time out !\n reboot\n");
-					reboot1();
-				}	
 				//sleep(3);
 				if(Is_Sync_stable())
 					chip->video_status = CheckSync;
@@ -1951,6 +1940,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case CheckSync:
+				videoIsOkFlag = false;
 				printf("CheckSync \n");
 				if(!Is_Sync_stable())
 					chip->video_status = WaitSync;
@@ -1961,6 +1951,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case ModeDetect:
+				videoIsOkFlag = false;
 				printf("ModeDetect \n");
 				if(!Is_Sync_stable())
 				{
@@ -2015,14 +2006,14 @@ void *sii9293_handler(void *p)
 			
 			case VideoOn:
 				//printf("VideoOn \n");
+				videoIsOkFlag = true;
 #ifdef APP_CODE	
-				waitSyncCount = 0;				
+				waitSyncCount = 0;		
 				//gbBandwidthDetectMode = SL_FALSE;
 				HDMI_light_on();
 #endif
 				share_mem->sm_run_status.ucInputStatus = 1;
-				HDMI_lost = 0;
-				timeOutReset_5V = 0;
+				
 				if( VideoOn == chip->video_prev_status)
 				{
 #if 1
@@ -2074,7 +2065,7 @@ void *sii9293_handler(void *p)
 #endif
 #endif
 				} 
-				else 
+				else
 				{
 					printf(":VideoOn\n");
 #if 0
@@ -2123,6 +2114,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case HDCP_Reset:
+				videoIsOkFlag = false;
 				printf(":HDCP_Reset\n");
 				if(Is_eccErr_occur())
 					chip->video_status = SWReset;
@@ -2131,11 +2123,13 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case SWReset:
+				videoIsOkFlag = false;
 				printf(":SWReset\n");
 				//swReset(); //FIXME yuliubing
 				chip->video_status = Unplug;
 			
 			default:
+				videoIsOkFlag = false;
 				break;
 		}
 	

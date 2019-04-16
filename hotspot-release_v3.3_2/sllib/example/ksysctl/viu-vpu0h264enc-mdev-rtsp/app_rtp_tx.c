@@ -18,7 +18,7 @@
 #include <sys/time.h>
 #include "app_rtp_tx.h"
 #include "ring_buffer.h"
-
+#include <stdbool.h> //include bool type
 #include "crc.h"
 //#define RTP_UDP
 //#define OUTPUT_H264
@@ -32,7 +32,7 @@ extern void *mutexlock;
 extern LIST_BUFFER_S *list;
 
 extern int flushMdev(void);
-extern unsigned char HDMI_lost;
+extern bool videoIsOkFlag;
 
 extern char web_flag;
 extern char multicast[20];
@@ -64,6 +64,7 @@ SL_POINTER PullFromList(SL_POINTER p)
 	unsigned char *dst;
 	unsigned char *pStream;
 	unsigned char *pCheck="0abc"; //send flag with HDMI check signal
+	unsigned int timeOut;
 	SLVENC_ExtendStream_info_s *stream;
 
 	dst = malloc(2*1024*1024); //FIXME
@@ -176,8 +177,10 @@ ReSocket:
 			goto ReSocket;
 		}
 		//check HDMi signal 
-		if (HDMI_lost)
+		
+		if (!videoIsOkFlag)
 		{
+			timeOut++;
 			len = sendto(sock_cli, pCheck, sizeof(pCheck), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 			if (len <= 0)
 			{
@@ -186,9 +189,14 @@ ReSocket:
 				goto ReSocket;
 			}
 			sleep(1);
+			if (timeOut > 300)
+			{
+				reboot1();
+			}
 		}
 		else
 		{
+		timeOut = 0;
 
 		/***************Video data****************/
 #if 1

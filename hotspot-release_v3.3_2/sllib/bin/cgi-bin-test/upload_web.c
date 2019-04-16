@@ -72,7 +72,7 @@ static void ShowErrorInfo(char * error)
 
 int main(void)
 {	
-	system(KILL_PROCESS);
+	//system(KILL_PROCESS);
 	
 	//system("/bin/tar vxf /tmp/web.tar.gz -C /tmp/");
 	//return 0;
@@ -118,18 +118,18 @@ int main(void)
     InitShareMemUpload();
 	share_upload->uiWriteLen = 0;
 
-    
+    //ShowErrorInfo("start");
     if((char *)getenv("CONTENT_LENGTH")!=NULL)
     {
         contentLength = atoi((char *)getenv("CONTENT_LENGTH"));
     }
     else
     {
-        ShowErrorInfo("没有恢复数据!");
+        ShowErrorInfo("Content length is null!");
         exit(1);
     }
 	share_upload->uiFileLen = contentLength;
-	
+	ShowErrorInfo("content length");
     while(contentLength > 0)
     {
         if(contentLength >= DEAL_BUF_LEN)
@@ -143,7 +143,7 @@ int main(void)
         contentLength -= nowReadLen;
         if(fread(dealBuf,sizeof(char),nowReadLen,stdin) != nowReadLen)
         {
-            ShowErrorInfo("读取恢复数据失败，请重试！");
+            ShowErrorInfo("Read content fail!");
             exit(1);
         }
         
@@ -164,7 +164,7 @@ int main(void)
                         nowReadLen--;
                         *nowWriteP = 0;
                         getState = STATE_GET_FILE_NAME;
-						//ShowErrorInfo(signCode);
+						ShowErrorInfo(signCode);
                     }
                     else
                     {
@@ -204,7 +204,7 @@ int main(void)
                        {	
 						   fprintf(stderr,"open file error\n");			   
 						   exit(1);
-						}
+					    }
                         
                         if((fp=fopen(fileName,"w"))==NULL)
                         {
@@ -212,7 +212,7 @@ int main(void)
                             ShowErrorInfo("open file error\n");
                             exit(1);
                         }
-						//ShowErrorInfo(fileName);
+						ShowErrorInfo(fileName);
                     }
                     break;
                 case STATE_GET_FILE_START:
@@ -221,7 +221,7 @@ int main(void)
                         nowReadP += 3;
                         nowReadLen -= 3;
                         getState = STATE_GET_FILE_CONTENT;
-						//ShowErrorInfo("get");
+						ShowErrorInfo("get");
                     }
                     
                     break;
@@ -295,7 +295,8 @@ int main(void)
                 case STATE_END:
                     nowReadLen = 1;
                     break;
-                    default:break;
+                default:
+                    break;
             }
             nowReadLen--;
             nowReadP++;
@@ -319,8 +320,10 @@ int main(void)
 	
 	share_upload->uiWriteLen = contentLength;
 
+    //printf("Content-Type:text/html\r\n\r\n");
+	//printf("succeed");
 	system(FILE_TAR_PATH);
-	sleep(3);
+	//sleep(3);
 	
 	remove(FILE_PATH_NAME);
 	
