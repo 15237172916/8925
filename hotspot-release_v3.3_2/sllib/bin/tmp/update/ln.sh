@@ -41,8 +41,8 @@ ln -s /user/web/boa ./boa
 #ln -s /user/web/cgi-bin/upload_web.cgi ./cgi-bin/upload_web.cgi
 #rm ./cgi-bin/upload_ko.cgi
 #ln -s /user/web/cgi-bin/upload_ko.cgi ./cgi-bin/upload_ko.cgi
-rm ./cgi-bin/upload.cgi
-ln -s /user/web/cgi-bin/upload.cgi ./cgi-bin/upload.cgi
+#rm ./cgi-bin/upload.cgi
+#ln -s /user/web/cgi-bin/upload.cgi ./cgi-bin/upload.cgi
 rm ./cgi-bin/sys_default.cgi
 ln -s /user/web/cgi-bin/sys_default.cgi ./cgi-bin/sys_default.cgi
 rm ./cgi-bin/sys_reboot.cgi
@@ -63,6 +63,13 @@ rm ./cgi-bin/set_codec.cgi
 ln -s /user/web/cgi-bin/set_codec.cgi ./cgi-bin/set_codec.cgi
 rm ./cgi-bin/get_codec.cgi
 ln -s /user/web/cgi-bin/get_codec.cgi ./cgi-bin/get_codec.cgi
+
+rm ./cgi-bin/upload_cli.cgi
+ln -s /user/web/cgi-bin/upload_cli.cgi ./cgi-bin/upload_cli.cgi
+rm ./cgi-bin/upload_ser.cgi
+ln -s /user/web/cgi-bin/upload_ser.cgi ./cgi-bin/upload_ser.cgi
+
+
 #rm 
 #ln -s /user/web/cgi-bin/ ./cgi-bin/
 

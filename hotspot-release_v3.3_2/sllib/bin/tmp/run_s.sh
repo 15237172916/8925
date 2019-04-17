@@ -1,6 +1,6 @@
 #! /bin/sh
 sleep 2;
-ifconfig eth0 192.168.1.201 up netmask 255.255.255.0
+ifconfig eth0 192.168.1.3 up netmask 255.255.255.0
 echo 20971520 > /proc/sys/net/core/rmem_max
 echo 20971520 > /proc/sys/net/core/wmem_max
 echo 20971520 >/proc/sys/net/core/wmem_default
