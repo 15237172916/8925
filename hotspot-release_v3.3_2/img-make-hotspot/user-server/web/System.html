@@ -147,20 +147,23 @@ function gotoend(pro, value){
 
 var timer;
 
+var timer;
+
 function upload_file1()
 {
 	var state;
 	var upgrade= $("#upgrade").val();
+	upgrade=upgrade.replace("C:\\fakepath\\","");
 	if(upgrade==""){
-		alert("请选择上传文件！");
+		alert("Select firmware file!");
 		return;
 	}
-	else
+	else if(upgrade=="viu-vpu0h264enc-mdev-rtsp")
 	{
 		$.ajaxFileUpload({
 		type:"post",
-		url:"http://"+hostip+"/cgi-bin/upload.cgi",			
-		dataType:"text",			
+		url:"http://"+hostip+"/cgi-bin/upload_ser.cgi",			
+		dataType:"text",
 		fileElementId:'upgrade',
 		cache:false,
 		success: function(data){
@@ -168,13 +171,14 @@ function upload_file1()
 			state = state.substring(0, 7);
 			if (state =="succeed") 
 			{
-				alert('升级成功，请重启系统！');
+				//alert('Successful, please reboot device');
+				alert('升级成功，系统正在重启！');	
 				SetReboot();
 			}
 			else
 			{
-				//alert('升级成功，系统正在重启！');	
-				alert('上传失败,请重新尝试！');
+				alert('上传失败！');
+				//alert('Failed, please try again!');
 				//timer=window.clearInterval(timer);	
 				//SetReboot();
 			}
@@ -184,6 +188,76 @@ function upload_file1()
 
 			},
 		});
+	}
+	else if(upgrade=="ko.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_ko.cgi",			
+		dataType:"text",			
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('升级成功，系统正在重启！');
+				//alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				alert('上传失败！');
+				//alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else if(upgrade=="web.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_web.cgi",			
+		dataType:"text",
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			state = state.substring(0, 7);
+			if (state =="succeed") 
+			{
+				alert('升级成功，系统正在重启！');
+				//alert('Successful, please reboot device');
+				setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				alert('上传失败！');
+					
+				//alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
+	else
+	{
+		alert('Failed, please select the correct file!');
+		return;
 	}
 	setTimeout(updateBar(),3000);
 }

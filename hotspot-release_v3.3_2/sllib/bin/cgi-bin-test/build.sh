@@ -20,7 +20,9 @@ csky-abiv2-linux-gcc -o sys_default.cgi sys_default.c
 #csky-abiv2-linux-gcc -o get_multicast.cgi get_multicast.c
 
 csky-abiv2-linux-gcc -o sys_reboot.cgi sys_reboot.c
-csky-abiv2-linux-gcc -o upload.cgi test.c
+#csky-abiv2-linux-gcc -o upload.cgi test.c
+csky-abiv2-linux-gcc -o upload_cli.cgi upload_cli.c
+csky-abiv2-linux-gcc -o upload_ser.cgi upload_ser.c
 csky-abiv2-linux-gcc -o get_bar.cgi get_bar.c
 csky-abiv2-linux-gcc -o get_sys.cgi get_sys.c
 #csky-abiv2-linux-gcc -o set_net.cgi set_net.c
@@ -47,5 +49,6 @@ csky-abiv2-linux-gcc -o upload_ko.cgi upload_ko.c
 #csky-abiv2-linux-gcc -o saveCurrentMode.cgi saveCurrentMode.c
 cp *.cgi ../web/cgi-bin
 cp *.cgi ../web_client/cgi-bin
+
 #cp upload_web.cgi ../tmp/web/noup/cgi-bin -rf
 #cp *.cgi /home/eric/work/sllib/bin/9001html/htmlarm/cgi-bin

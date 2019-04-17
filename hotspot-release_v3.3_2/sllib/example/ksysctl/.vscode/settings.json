@@ -3,5 +3,6 @@
     "files.associations": {
         "app_rx_signal_ch.h": "c",
         "version.h": "c"
-    }
+    },
+    "vim.useCtrlKeys": false
 }

@@ -156,11 +156,11 @@ function upload_file1()
 		alert("Select firmware file!");
 		return;
 	}
-	else if(upgrade=="rtsp-mdev-vpu0-vpp_pv")
+	else if(upgrade=="viu-vpu0h264enc-mdev-rtsp")
 	{
 		$.ajaxFileUpload({
 		type:"post",
-		url:"http://"+hostip+"/cgi-bin/upload.cgi",			
+		url:"http://"+hostip+"/cgi-bin/upload_ser.cgi",			
 		dataType:"text",			
 		fileElementId:'upgrade',
 		cache:false,
