@@ -29,7 +29,7 @@
 #define BUILDING      "20190219"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV592 V2.1.0.190219_R"
+#define PRINT_VERSION    "HSV592 V2.1.1.190219_R"
 #define WEB_VERSION      "V2.1.1.190219"
 #define OSD_VERSION      "V2.1.1"
 
