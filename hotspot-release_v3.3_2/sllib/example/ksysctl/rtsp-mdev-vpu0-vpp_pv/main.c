@@ -59,7 +59,7 @@
 //#define KVM_UART
 //#define APP_IO
 #define APP_RTP 
-#define  SWIT_MULTICAST
+//#define  SWIT_MULTICAST
 
 #define AUDIO_SUPPORT
 #define VIDEO_SUPPORT

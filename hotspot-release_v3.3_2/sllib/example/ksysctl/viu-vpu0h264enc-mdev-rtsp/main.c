@@ -83,7 +83,7 @@ typedef struct
 #define DEBUG_OFF
 #define APP_IO
 #define APP_RTP
-#define  SWIT_MULTICAST
+//#define  SWIT_MULTICAST
 
 
 #ifdef APP_CODE
