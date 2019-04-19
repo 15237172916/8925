@@ -56,3 +56,5 @@ mv rootfs-client.sfs ./tmp
 
 cp client.img /tftpboot/
 cp server.img /tftpboot/
+
+echo "make is Ok"

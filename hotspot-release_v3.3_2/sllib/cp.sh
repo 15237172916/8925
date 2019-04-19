@@ -45,5 +45,5 @@ cp ./ko/ ../img-make-hotspot/user-server/update/ -rf
 
 
 
-echo OK 
+echo "cp is OK" 
 

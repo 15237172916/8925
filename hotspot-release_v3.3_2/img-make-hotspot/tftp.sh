@@ -5,4 +5,4 @@ cp client.img /mnt/nfs/tmp
 cp server.img /mnt/nfs/tmp
 
 
-echo "OK"
+echo "tftp is OK"
