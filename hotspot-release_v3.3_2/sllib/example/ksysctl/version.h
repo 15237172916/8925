@@ -26,11 +26,11 @@
 #define VER_ID1      "0"          //major version id 
 #define VER_ID2      "1"          //minor version id 
 #define VER_ID3      "1"             //sbuversion id 
-#define BUILDING      "20190213"        //date
+#define BUILDING      "20190419"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV893 V0.1.1.190213_R"
-#define WEB_VERSION      "V0.1.1.190213"
+#define PRINT_VERSION    "HSV893 V0.1.1.190419_R"
+#define WEB_VERSION      "V0.1.1.190419"
 #define OSD_VERSION      "V0.1.1"
 
 
