@@ -4,7 +4,7 @@
 <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache, must-revalidate">
 <meta HTTP-EQUIV="expires" CONTENT="0">
 <HEAD>
-<TITLE>Status display-HD Encoder</TITLE>
+<TITLE>Status display-IP Video Matrix</TITLE>
 <link type="text/css" rel="stylesheet" href="css/form.css"/>
 <LINK rel="stylesheet" type="text/css" href="css/main.css">
 <script src="Js/jquery-1.4.1.min.js" type="text/javascript"></script>
@@ -81,8 +81,8 @@ function changeLan() {
 <BODY onload="ajax()">
 <div class="header">
  <div class="header_b"> <a href="/" class="logo"><img src="css/en/logo.jpg" /></a>
-  <p class="logo_v">HD Encoder System<br/>
-   Platform</p>
+  <p class="logo_v">IP Video<br/>
+   Matrix</p>
   <div class="language">
    <select onchange="changeLan()" id='LanSle'>
     <option value="Chinese">Chinese</option>
@@ -117,7 +117,7 @@ function changeLan() {
    </H3>
   </DIV>
  </DIV>
- <DIV class="content">
+ <DIV class="content" hidden>
   <DIV class="in author t_index_1">
    <H2>Stream Status</H2>
   </DIV>
@@ -134,7 +134,7 @@ function changeLan() {
   </DIV>
  </DIV>
 
- <DIV class="content">
+ <DIV class="content" hidden>
   <DIV class="in author t_index_1">
    <H2>Stream Address</H2>
   </DIV>
