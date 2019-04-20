@@ -1646,6 +1646,8 @@ int main(int argc, char* argv[])
 	printf("\n********************system starting***************************\n");
 	printf(PRINT_VERSION);
 	printf("\n---------------------------------------------------------------\n");
+	KVM_REST();
+	printf("======KVM REST======\n");
 	//AppWriteCfgInfotoFile();
 #if 0
 	ret = InitCfgInfo(&fd_config);

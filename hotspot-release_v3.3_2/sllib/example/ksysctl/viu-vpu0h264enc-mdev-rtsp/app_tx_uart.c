@@ -24,7 +24,7 @@
 
 #define UART_PORT	8810
 //#define UDP_UART   
-#define TCP_UART          //Jason add
+#define TCP_UART          
 
 static SL_U32 fd;
 extern char serverip[128];

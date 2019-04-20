@@ -604,6 +604,15 @@ void test_light(char value)
     GPIO_setValue(4, value);
 }
 
+void KVM_REST(void)
+{
+	GPIO_export(KVMRST_IO);
+	GPIO_setDir(KVMRST_IO, GPIO_OUTPUT);
+	GPIO_setValue(KVMRST_IO, GPIO_HIG_STA);
+	usleep(100);
+	GPIO_setValue(KVMRST_IO, GPIO_LOW_STA);
+}
+
 SL_U32 get_key_value(void)
 {
 	SL_U32 value;
