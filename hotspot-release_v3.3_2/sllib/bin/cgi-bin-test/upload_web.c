@@ -1,4 +1,3 @@
-#if 1
 #include "dirent.h"
 #include <wchar.h>
 #include <assert.h>
@@ -11,8 +10,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "sl_watchdog.h"
-#if 1
 #include "sharemem.h"
+
+
+
 
 int InitShareMemUpload(void)
 {
@@ -47,6 +48,7 @@ int InitShareMemUpload(void)
 #define FILE_TAR_PATH "/bin/tar vxf /tmp/update/web.tar.gz -C /tmp/update/"
 #define KILL_PROCESS "/bin/killall viu-vpu0h264enc-mdev-rtsp"
 
+
 enum
 {
     STATE_START,
@@ -72,9 +74,10 @@ static void ShowErrorInfo(char * error)
 
 int main(void)
 {	
-	//system(KILL_PROCESS);
-	
-	//system("/bin/tar vxf /tmp/web.tar.gz -C /tmp/");
+    //remove("/tmp/viu-vpu0h264enc-mdev-rtsp");
+	system("/bin/killall viu-vpu0h264enc-mdev-rtsp");
+	//printf("Content-Type:text/xml \r\n\r\n");
+	//printf("%s","Content-type:text/html \r\n\r\n");
 	//return 0;
 #if 0
 	int fd;
@@ -117,25 +120,21 @@ int main(void)
     
     InitShareMemUpload();
 	share_upload->uiWriteLen = 0;
+    
+	printf("Content-Type:text/html\n\n");
 
-    //ShowErrorInfo("start");
+    //printf("%s", getenv("CONTENT_LENGTH"));
     if((char *)getenv("CONTENT_LENGTH")!=NULL)
     {
         contentLength = atoi((char *)getenv("CONTENT_LENGTH"));
     }
     else
     {
-        ShowErrorInfo("Content length is null!");
-        return 0;
+        ShowErrorInfo("没有恢复数据!");
         exit(1);
-    }
-    printf("contentLength: %d", contentLength);
-    return 0;
+    }    
 	share_upload->uiFileLen = contentLength;
-	//ShowErrorInfo("content length");
-    //printf("Content-Type:text/html\r\n\r\n");
-	//printf("succeed");
-    
+	
     while(contentLength > 0)
     {
         if(contentLength >= DEAL_BUF_LEN)
@@ -149,12 +148,10 @@ int main(void)
         contentLength -= nowReadLen;
         if(fread(dealBuf,sizeof(char),nowReadLen,stdin) != nowReadLen)
         {
-            ShowErrorInfo("Read content fail!");
+            ShowErrorInfo("读取恢复数据失败，请重试！");
             exit(1);
         }
         
-        
-
         nowReadP = dealBuf;
         
         while(nowReadLen > 0)
@@ -172,7 +169,7 @@ int main(void)
                         nowReadLen--;
                         *nowWriteP = 0;
                         getState = STATE_GET_FILE_NAME;
-						ShowErrorInfo(signCode);
+						//ShowErrorInfo(signCode);
                     }
                     else
                     {
@@ -206,13 +203,14 @@ int main(void)
                         getState = STATE_GET_FILE_START;
                         memcpy(fileName,FILE_SAVE_DIR,strlen(FILE_SAVE_DIR));
 
+
                        fileName_prt = fileName;
 
-                       if(0>=strstr(fileName_prt,FILE_NAME))
+                       if(0>=strstr(fileName_prt,"web.tar.gz"))
                        {	
 						   fprintf(stderr,"open file error\n");			   
 						   exit(1);
-					    }
+						}
                         
                         if((fp=fopen(fileName,"w"))==NULL)
                         {
@@ -220,7 +218,7 @@ int main(void)
                             ShowErrorInfo("open file error\n");
                             exit(1);
                         }
-						ShowErrorInfo(fileName);
+						//ShowErrorInfo(fileName);
                     }
                     break;
                 case STATE_GET_FILE_START:
@@ -229,7 +227,7 @@ int main(void)
                         nowReadP += 3;
                         nowReadLen -= 3;
                         getState = STATE_GET_FILE_CONTENT;
-						ShowErrorInfo("get");
+						//ShowErrorInfo("get");
                     }
                     
                     break;
@@ -278,6 +276,7 @@ int main(void)
                                 {
                                     getState = STATE_END;
                                     nowReadLen = 1;
+                               
                                 }
                                 else
                                 {
@@ -303,8 +302,7 @@ int main(void)
                 case STATE_END:
                     nowReadLen = 1;
                     break;
-                default:
-                    break;
+                    default:break;
             }
             nowReadLen--;
             nowReadP++;
@@ -315,33 +313,25 @@ int main(void)
     if(fp != NULL)
     {
         fclose(fp);
-    }
+    }  
 #endif
 
-#if 0
-	if(chmod(FILE_NAME, S_IRUSR|S_IXUSR|S_IWUSR|S_IXOTH|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP|S_IXGRP)!=0)
+#if 1
+	if(chmod("/tmp/update/web.tar.gz", S_IRUSR|S_IXUSR|S_IWUSR|S_IXOTH|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP|S_IXGRP)!=0)
 	{
 		 printf("\ncm fail");
 		 return 0;
 	}
-#endif
-	
-	share_upload->uiWriteLen = contentLength;
 
-    //printf("Content-Type:text/html\r\n\r\n");
-	//printf("succeed");
-	//system(FILE_TAR_PATH);
-	//sleep(3);
-	
-	//remove(FILE_PATH_NAME);
-	
-	printf("Content-Type:text/html\r\n\r\n");
+	share_upload->uiWriteLen = contentLength;
+	system(FILE_TAR_PATH);
+    remove(FILE_PATH_NAME);
 	printf("succeed");
 
     return 0;
 }
 #endif 
-#endif
+
 
 #if 0
 rtsp-mdev-vpu0-vpp_pv

@@ -46,6 +46,7 @@ csky-abiv2-linux-gcc -o onloading.cgi onloading.c
 #csky-abiv2-linux-gcc -o modeStateNow.cgi modeStateNow.c
 #csky-abiv2-linux-gcc -o saveCurrentMode.cgi saveCurrentMode.c
 cp upload_web.cgi ../web/cgi-bin
+cp upload.cgi ../web/cgi-bin
 #cp *.cgi ../web_1.1/cgi-bin
 #cp upload_web.cgi ../tmp/web/noup/cgi-bin -rf
 #cp *.cgi /home/eric/work/sllib/bin/9001html/htmlarm/cgi-bin

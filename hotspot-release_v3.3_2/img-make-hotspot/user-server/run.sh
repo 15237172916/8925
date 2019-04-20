@@ -167,8 +167,8 @@ cd /tmp/
 ./viu-vpu0h264enc-mdev-rtsp &
 ./UpGradeClient &
 
-#mount -o nolock 192.168.1.2:/home/y/Work/8925Docs/8925_test/hotspot-release_v3.3/sllib/bin /mnt
+#mount -o nolock 192.168.1.253:/home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/bin /mnt
 #mount -o nolock 192.168.1.2:/home/y/work/8925Docs/8925_test/Baseline_8925/900/test/hotspot-release_v1.7_3/sllib/bin/ /mnt
 #cd /mnt/&&./viu-vpu0h264enc-mdev-rtsp &
-#cd /mnt/tmp/web/update&&./boa
+#cd /mnt/web&&./boa
 

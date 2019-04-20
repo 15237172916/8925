@@ -126,7 +126,8 @@ int main(void)
 	share_upload->uiWriteLen = 0;
     
 	printf("Content-Type:text/html\n\n");
-    
+
+    //printf("%s", getenv("CONTENT_LENGTH"));
     if((char *)getenv("CONTENT_LENGTH")!=NULL)
     {
         contentLength = atoi((char *)getenv("CONTENT_LENGTH"));

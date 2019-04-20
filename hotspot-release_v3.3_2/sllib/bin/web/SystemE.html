@@ -52,7 +52,7 @@ function SetReset() {
 }
 
 function SetReboot() {
-    document.write('Please wait about 10 seconds for system reboot...');
+    document.write('Please wait about 15 seconds for system reboot...');
 	$.ajax({ 
 		type:"GET",
         url:"http://"+hostip+"/cgi-bin/sys_reboot.cgi",
@@ -107,6 +107,7 @@ function updateBar() {
 			cache:false,
 			success:function(data){
 				var BarStep = parseInt(data);
+				//console.log(BarStep);
 				if (BarStep > 0 && BarStep <= 100) {
 					$("#bar").width(BarStep + "%");
 					$("#bar").html(BarStep + "%");
@@ -156,6 +157,38 @@ function upload_file1()
 		alert("Select firmware file!");
 		return;
 	}
+	else if(upgrade=="web.tar.gz")
+	{
+		$.ajaxFileUpload({
+		type:"post",
+		url:"http://"+hostip+"/cgi-bin/upload_web.cgi",			
+		dataType:"text",
+		fileElementId:'upgrade',
+		cache:false,
+		success: function(data){
+			state = data;
+			console.log(state);
+			state = state.substring(0, 7);
+			console.log(state);
+			if (state =="succeed") 
+			{
+				alert('Successful, please reboot device');
+				//setTimeout(SetReboot(),30000);
+				SetReboot();
+			}
+			else
+			{
+				alert('Failed, please try again!');
+				//timer=window.clearInterval(timer);	
+				//SetReboot();
+			}
+
+			$("#topLoader").hide();
+			$("#upgrade").attr("disabled",false);		
+
+			},
+		});
+	}
 	else if(upgrade=="viu-vpu0h264enc-mdev-rtsp")
 	{
 		$.ajaxFileUpload({
@@ -167,14 +200,14 @@ function upload_file1()
 		success: function(data){
 			state = data;
 			state = state.substring(0, 7);
+			console.log(state);
 			if (state =="succeed") 
 			{
 				alert('Successful, please reboot device');
 				SetReboot();
 			}
 			else
-			{
-				//alert('升级成功，系统正在重启！');	
+			{	
 				alert('Failed, please try again!');
 				//timer=window.clearInterval(timer);	
 				//SetReboot();
@@ -205,7 +238,6 @@ function upload_file1()
 			}
 			else
 			{
-				//alert('升级成功，系统正在重启！');	
 				alert('Failed, please try again!');
 				//timer=window.clearInterval(timer);	
 				//SetReboot();
@@ -217,37 +249,7 @@ function upload_file1()
 			},
 		});
 	}
-	else if(upgrade=="web.tar.gz")
-	{
-		$.ajaxFileUpload({
-		type:"post",
-		url:"http://"+hostip+"/cgi-bin/upload_web.cgi",			
-		dataType:"text",
-		fileElementId:'upgrade',
-		cache:false,
-		success: function(data){
-			state = data;
-			state = state.substring(0, 7);
-			if (state =="succeed") 
-			{
-				alert('Successful, please reboot device');
-				setTimeout(SetReboot(),30000);
-				SetReboot();
-			}
-			else
-			{
-				//alert('升级成功，系统正在重启！');	
-				alert('Failed, please try again!');
-				//timer=window.clearInterval(timer);	
-				//SetReboot();
-			}
-
-			$("#topLoader").hide();
-			$("#upgrade").attr("disabled",false);		
-
-			},
-		});
-	}
+	
 	else
 	{
 		alert('Failed, please select the correct file!');
