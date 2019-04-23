@@ -89,11 +89,11 @@ int main(void)
 			printf("error");
 			break;
 	}
-	while(1==share_mem->ucSceneApplyFlag)
+	while(1==share_mem->ucModeApplyFlag)
     {
         usleep(1000);
     }
-	share_mem->ucSceneApplyFlag = 1;
+	share_mem->ucModeApplyFlag = 1;
 	usleep(1000);
     
     printf("succeed");

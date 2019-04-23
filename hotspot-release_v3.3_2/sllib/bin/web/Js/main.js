@@ -291,11 +291,12 @@ function onloading()
 		cache: false,
 		async:false,
 		success: function(data) {
+			console.log(data);
 			for (i=0; i<128; i++)
 			{
 				rxElement= "RX"+num2[i];//i.toString;
 				rxName[i] = $(data).find(rxElement).text();
-				//console.log(rxName[i]);
+				console.log(rxName[i]);
 				//$("#input_type").append(input_type);
 				//alert(rxName);
 			}
@@ -309,8 +310,9 @@ function onloading()
 			for (i=0; i<24; i++)
 			{
 				txElement = "TX"+num2[i];//i.toString;
-				//console.log(txElement);
+				console.log(txElement);
 				txName[i] = $(data).find(txElement).text();
+				console.log(txName[i]);
 			}
 			for (i=0; i<10; i++)
 			{

@@ -54,7 +54,7 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_run_status.strSoftwareVer, SW_VERSION);
     
     //ETH
-    strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.200");
+    strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.201");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
     strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");
     strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.1"); 
@@ -331,7 +331,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	close(fp);
 #endif
 	
-#if 0   
+#if 1
 	printf("Info -----------------------------------\n");  
 	printf("IP: %s\n", cfginfo.ip); 
 	printf("SERVERIP: %s\n", cfginfo.serverip); 

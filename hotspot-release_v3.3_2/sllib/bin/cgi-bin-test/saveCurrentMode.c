@@ -100,7 +100,7 @@ void main(void)
 	}
 	
 	usleep(1000);
-	
+	share_mem->ucModeApplyFlag = 1;	
 	printf("succeed");
 }
 

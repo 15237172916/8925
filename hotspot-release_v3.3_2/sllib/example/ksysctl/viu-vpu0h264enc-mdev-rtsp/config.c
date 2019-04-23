@@ -17,7 +17,7 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	int cnt = 0;  
 	int seek = 0;  
 	//int timeout = 0;
-	usleep(500); //cup 
+	//usleep(10); //cup 
 
 	iRetCode = lseek(fpConfig, 0, SEEK_SET);
 	if (iRetCode < 0) {
@@ -78,7 +78,7 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	}  
 
 	return SECTIONNAME_NOTEXIST;  
-}     
+}  
  
 /*区分大小写*/  
 int CompareString(char *pInStr1,char *pInStr2)  

@@ -282,14 +282,16 @@ function popupApply()
 
 		
 		lastModeId = nowModeId;
-		
-		setTimeout(function(){window.parent.onloading();}, "1000");
+
+		//setTimeout(function(){window.parent.onloading();}, "1500");
+		setTimeout(function(){window.parent.onloading();}, "8000");
 		setTimeout(
 			function(){
 					window.parent.document.getElementById("myIframe_left").contentWindow.location.reload();
 				}
-		, "1500");
-
+		, "8100");
+		
+		
 		document.getElementById("modlue").style.display = "none";
 	}
 	else
