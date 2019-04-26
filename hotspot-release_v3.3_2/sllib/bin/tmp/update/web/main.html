@@ -23,6 +23,8 @@
 		background-color:#262626;
 		/*min-width: 800px; /*页面最小宽度*/
 		/*max-width: 1200px; /*页面最大宽度*/
+		min-width: 720px; /*页面最小宽度*/
+		max-width: 1200px; /*页面最大宽度*/
 	}
 	
 	body{
@@ -45,6 +47,7 @@
 		background-color:#4d4d4d;
 		margin:0 auto; 
 		color:white;
+		line-height: 50px;
 		
 	}
 	
@@ -256,7 +259,7 @@
 	
 	.button_ChangeName{
 		width: 100%;
-		height:90px; 
+		height: 90px;
 		background-color:#4d4d4d;
 		color: white;
 		font-size: 1.1rem;
@@ -275,6 +278,17 @@
 	-webkit-backface-visibility:  hidden;
      -webkit-tap-highlight-color:  transparent;
   }
+
+  img{
+	position: absolute;
+	left:8px;
+	top:5px;
+	/*bottom:65px;*/
+	z-index:10;
+	opacity: 1;
+	width:160px;
+	height:40px;
+}
 </style>
 
 
@@ -457,8 +471,10 @@ function displayInfoOnclick()
 
 <body id="body" onload="">
 	<header id="header" onload="">
-		<h1><img src="./css/Wyrestorm_Logo.png" width="auto" height="45" align ="left"/>IP MATRIX &emsp;&emsp;&emsp; </h1>
+		<!--h1><img src="./css/Wyrestorm_Logo.png" width="auto" height="45" align ="left"/>IP MATRIX &emsp;&emsp;&emsp; </h1-->
+		<h1><width="auto" height="45" />IP MATRIX</h1>
 		<script>onloading();</script>
+		<img src="./css/Wyrestorm_Logo.png">
 	</header>
 	<!--div id="block"></div-->
 	<main id="main">
@@ -535,6 +551,7 @@ function displayInfoOnclick()
 				<input type="button" id="INFO" value="INFO" onclick="displayInfoOnclick();"/>
 			</div>
 		</div>
+		
 	</main>
 </body>
 
