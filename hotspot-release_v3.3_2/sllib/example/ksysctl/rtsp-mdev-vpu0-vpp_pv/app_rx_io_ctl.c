@@ -361,7 +361,8 @@ void  *app_rx_io_ctl_main(void)
 	GPIO_openFd(KEY_IO);	//open gpio1_8 Fd
 	GPIO_export(KEY_IO);	//export the gpio1_8 to users 
 	GPIO_setDir(KEY_IO, GPIO_INPUT); //set the gpio1_8 direction is input 
-	
+
+#if 0	
     while (1) //sleep(1);
     {
 	    int flag=0;
@@ -540,6 +541,22 @@ void  *app_rx_io_ctl_main(void)
         #endif
 		Sleep(100);
     }  
+#endif
+
+	while(1)
+	{
+		if(0 == get_key_value())
+		{
+			usleep(1000);
+			if(0 == get_key_value())
+			{
+				process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthMulticast);
+				sleep(3);
+				process_osd_disable();
+			}
+		}
+		usleep(1000);
+	}
 
 }
 
@@ -602,6 +619,14 @@ void test_light(char value)
 	GPIO_export(4);	   			
 	GPIO_setDir(4, 1);
     GPIO_setValue(4, value);
+}
+void KVM_REST(void)
+{
+	GPIO_export(KVMRST_IO);
+	GPIO_setDir(KVMRST_IO, GPIO_OUTPUT);
+	GPIO_setValue(KVMRST_IO, GPIO_HIG_STA);
+	usleep(100);
+	GPIO_setValue(KVMRST_IO, GPIO_LOW_STA);
 }
 
 SL_U32 get_key_value(void)

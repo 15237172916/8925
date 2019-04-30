@@ -57,7 +57,7 @@
 //#define APP_CODE
 #define WEB_ENABLE
 #define KVM_UART
-//#define APP_IO
+#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
 
@@ -227,12 +227,15 @@ const char * hdmi_pullout = "Check TX's input signal";
 
 char serverip[20] = "192.168.1.3";
 char multicast[20] = "239.255.42.01";
+extern char kvm_switch_flag;
+extern char osd_display_flag;
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
 
 static int process_osd_text_overlay(int x, int y, const char *text);
 int process_osd_text_solid(int x, int y, const char *text);
 int process_osd_disable(void);
+
 #define DEV_IO_NAME		"/dev/silan_testio"
 
 static unsigned char *dsp_ir_start_addr_va;
@@ -1400,8 +1403,8 @@ tryAgain:
 
 	set_osd_buf(buf);
 
-	color_fg = COLOR_WHITE_SOLID;
-	color_bk = COLOR_BLACK_SOLID;
+	color_fg = COLOR_BLACK_SOLID;
+	color_bk = COLOR_WHITE_SOLID;
 
 
 	text_show(x, y, text, color_fg, color_bk, strlen(text)*16);
@@ -1419,6 +1422,85 @@ tryAgain:
 	return 0;
 
 }
+
+/*
+ * func:Display characters are not overwritten
+ * */
+int process_osd_text(int x, int y, const char *text)
+{
+	SL_S32 ret;
+	void *buf;
+	SL_S32 i;
+	char *dst;
+	int color_fg, color_bk;
+
+	if(g_osd_need_reconfig)
+	{
+		printf("g_osd_need_reconfig\n");
+		setOsdCfg(&osd_cfg);
+		ret = SLVPP_OSD_config(osd_dev, &osd_cfg);
+		if (SL_NO_ERROR != ret)
+		{
+			log_err("SLVPP_OSD_config");
+			reboot1();
+			return -1;
+		}
+		g_osd_need_reconfig = 0;
+	}
+
+#if 0
+tryAgain:	
+	ret = SLMDEV_mallocBlockWrite(im_devman_osd, &buf, OSD_WIDTH*OSD_HEIGHT*4);
+	if (SL_NO_ERROR != ret) {		
+		log_note("osd SLMDEV_mallocBlockWrite failed");
+		usleep(100000); //FIXME
+		goto tryAgain;
+	}
+	//printf("osd mdev malloc\n");
+
+	// let vpp use the ddr 
+	dst = buf;
+	for(i=0; i<OSD_HEIGHT/2; i++)
+	{
+		//memset(dst, 0xff, OSD_WIDTH*8); //white
+		memset(dst, 0x00, OSD_WIDTH*8); //black
+		dst += OSD_WIDTH*8;
+		usleep(1000);
+	}
+
+	set_osd_buf(buf);
+#endif
+	color_fg = COLOR_BLACK_SOLID;
+	color_bk = COLOR_WHITE_SOLID;
+
+
+	text_show(x, y, text, color_fg, color_bk, strlen(text)*16);
+	//SLMDEV_freeBlockWrite(im_devman_osd, buf);
+	g_osd_overlay = 0;
+
+	if(pv_dev) 
+	{
+		printf("stop pv\n");
+		SLSYSCTL_stopProcess(pv_dev);
+
+	}
+	//printf("osd mdev free\n");
+
+	return 0;
+
+}
+#if 0
+int process_osd_bmp(int x, int y, int width, int height)
+{
+	int color;
+	color=COLOR_BLUE_SOLID;
+	
+	bmp_show(x, y, width, height,color);
+	return 0;
+
+}
+#endif
+
 #if 0
 static int process_osd_image(int icon_id)
 {
@@ -2012,7 +2094,7 @@ int main(int argc, char* argv[])
 
 	char configs[128];
 	printf(PRINT_VERSION);
-	
+	KVM_REST();
 
 	//AppWriteCfgInfotoFile();
 #if 0
@@ -2073,6 +2155,7 @@ int main(int argc, char* argv[])
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, OSD_VERSION);
+	//process_osd_text_overlay(10,10,OSD_VERSION);
 	sleep(2);
 	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
@@ -2119,7 +2202,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 0
+#if 1
 	ret = pthread_create(&app_rx_io_ctl_handler, NULL, app_rx_io_ctl_main, NULL);
 	if (ret) {
 		log_err("Failed to Create rtspOpen Thread\n");
@@ -2210,7 +2293,6 @@ int main(int argc, char* argv[])
 #endif
 	
 	//while (1) sleep(1);
-	
 	ret = pthread_create(&iHandle, NULL, MDEV_Input_ThreadFunc, (void *)im_devman);
 	if (ret) {
 		log_err("Failed to MDEV_Input_ThreadFunc Thread\n");
@@ -2289,12 +2371,12 @@ int main(int argc, char* argv[])
 	signal(SIGTERM, signalHandle);
 	signal(SIGIO, signalioHandle);
 #endif
-	
+
 	while (1)
 	{
 		static unsigned int timeOutReset = 0;
 		//printf("timeOutReset : %d \n", timeOutReset);
-		sleep(1);
+		//usleep(10);
 		/*
 		timeOutReset++;
 		if (timeOutReset > 43200)
@@ -2304,6 +2386,18 @@ int main(int argc, char* argv[])
 			printf("time out reset \n");
 		}
 		*/
+		//printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
+		//printf("kvm_switch_flag=%d\n",kvm_switch_flag);
+		strcpy(share_mem->sm_eth_setting.strEthMulticast, multicast);
+		if(osd_display_flag==1)
+		{
+			process_osd_text_solid(10, 20,share_mem->sm_eth_setting.strEthMulticast);
+			//printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
+			sleep(3);
+			process_osd_disable();
+			osd_display_flag = 0;
+		}
+		usleep(1000);
 	}
 	
 #if 0

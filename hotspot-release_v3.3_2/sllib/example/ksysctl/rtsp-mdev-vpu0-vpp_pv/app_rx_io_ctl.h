@@ -57,6 +57,7 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 
 //#define KEY_IO		8 		//GPIO1_8
 #define KEY_IO			32		//GPIO2_00  //v2.5 use
+#define KVMRST_IO		2  //GPIO1_02
 //#define LED_SIG_LOW 	6 	//GPIO1_6
 //#define LED_SIG_MOD		4	//GPIO1_4
 //#define LED_SIG_HIG		5	//GPIO1_5
@@ -81,4 +82,5 @@ void test_light(char value);
 void HDMI_light_off(void);
 void HDMI_light_on(void);
 SL_U32 get_key_value(void);
+void KVM_REST(void);
 #endif

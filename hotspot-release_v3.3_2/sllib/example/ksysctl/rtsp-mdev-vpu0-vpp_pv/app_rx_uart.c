@@ -42,7 +42,7 @@ extern char web_flag;
 extern char rtp_switch_flag;
 
 char kvm_switch_flag;
-
+char osd_display_flag;
 char MK_multicast[][20] = {"239.255.42.01","239.255.42.02",\
 "239.255.42.03","239.255.42.04","239.255.42.05","239.255.42.06",\
 "239.255.42.07","239.255.42.08","239.255.42.09","239.255.42.10"};
@@ -332,60 +332,70 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 			{
 				strcpy(multicast, MK_multicast[0]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5a || buff[0]==0x1f)		//2
 			{
 				strcpy(multicast, MK_multicast[1]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5b || buff[0]==0x20)		//3
 			{
 				strcpy(multicast, MK_multicast[2]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5c || buff[0]==0x21)		//4
 			{
 				strcpy(multicast, MK_multicast[3]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5d || buff[0]==0x22)		//5
 			{
 				strcpy(multicast, MK_multicast[4]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5e || buff[0]==0x23)		//6
 			{
 				strcpy(multicast, MK_multicast[5]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x5f || buff[0]==0x24)		//7
 			{
 				strcpy(multicast, MK_multicast[6]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x60 || buff[0]==0x25)		//8
 			{
 				strcpy(multicast, MK_multicast[7]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x61 || buff[0]==0x26)		//9
 			{
 				strcpy(multicast, MK_multicast[8]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x62 || buff[0]==0x27)		//0
 			{
 				strcpy(multicast, MK_multicast[9]);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x56 || buff[0]==0x2d)		//-
@@ -397,6 +407,7 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 				strcat(com_multicast,dest);
 				strcpy(multicast,com_multicast);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else if(buff[0]==0x57 || buff[0]==0x2e)		//+
@@ -408,6 +419,7 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 				strcat(com_multicast,dest);
 				strcpy(multicast,com_multicast);
 				kvm_switch_flag=1;
+				osd_display_flag=1;
 				cur_state=STATE6;
 			}
 			else
@@ -585,11 +597,11 @@ ReRecv:
 		if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
 			0, (struct sockaddr *)&server_addr, &clielen_addr_length) <= 0)
 		{
-			perror("recvfrom");
-			printf("uart revfrom failed \n");
+			//perror("recvfrom");
+			//printf("uart revfrom failed \n");
 			goto ReRecv;
 		}
-
+		
 		errCode = SLUART_Write(wbuff, sizeof(wbuff));
 		if (errCode != 0)
 		{

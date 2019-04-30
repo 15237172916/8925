@@ -25,13 +25,13 @@
 #define PRODUCT_NAME   "HSV592"     //product name
 #define VER_ID1      "2"          //major version id 
 #define VER_ID2      "1"          //minor version id 
-#define VER_ID3      "1"             //sbuversion id 
-#define BUILDING      "20190219"        //date
+#define VER_ID3      "2"             //sbuversion id 
+#define BUILDING      "20190429"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV592 V2.1.1.190219_R"
-#define WEB_VERSION      "V2.1.1.190219"
-#define OSD_VERSION      "V2.1.1"
+#define PRINT_VERSION    "HSV592 V2.1.2.190429_R"
+#define WEB_VERSION      "V2.1.2.190429"
+#define OSD_VERSION      "V2.1.2"
 
 
 

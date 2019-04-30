@@ -463,6 +463,15 @@ void HDMI_light_on(void)
 #endif
 }
 
+void KVM_REST(void)
+{
+	GPIO_export(KVMRST_IO);
+	GPIO_setDir(KVMRST_IO, GPIO_OUTPUT);
+	GPIO_setValue(KVMRST_IO, GPIO_HIG_STA);
+	usleep(100);
+	GPIO_setValue(KVMRST_IO, GPIO_LOW_STA);
+}
+
 
 void System_running(void)
 {

@@ -77,11 +77,12 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 
 #define LED_HDMI				35 //GPIO2_03
 #define LED_SYS_STA     		32 //GPIO2_00
-
+#define KVMRST_IO				2  //GPIO1_02
 
 
 void HDMI_light_off(void);
 void HDMI_light_on(void);
+void KVM_REST(void);
 
 SL_U32 get_key_value(void);
 void Init_Multicast(void);

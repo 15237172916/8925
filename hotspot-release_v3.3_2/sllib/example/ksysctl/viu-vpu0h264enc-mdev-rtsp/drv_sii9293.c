@@ -1865,6 +1865,7 @@ void *sii9293_handler(void *p)
 #if 1 //audio config
 	Audio_init();
 #endif
+	KVM_REST();
 	video_info = &(chip->video_info);
 	audio_info = &(chip->audio_info);
 	//check_video_timing(video_info); //FIXME
