@@ -216,7 +216,7 @@ const char * hdmi_pullout = "Check TX's input signal";
 #endif
 
 char serverip[20] = "192.168.1.200";
-char multicast[20] = "239.255.42.44";
+char multicast[20] = "239.255.42.01";
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
 

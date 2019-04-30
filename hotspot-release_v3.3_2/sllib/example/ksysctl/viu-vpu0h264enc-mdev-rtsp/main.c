@@ -66,8 +66,8 @@
 //#define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
-#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
-#define ENABLE_IR_SEND 		//get ir data from m0 and transfer to TX 
+//#define ENABLE_GET_IR		//get ir data from rx and to generate ir wave
+//#define ENABLE_IR_SEND 		//get ir data from m0 and transfer to TX 
 
 #ifdef APP_CODE
 #include "app_tx_signal_ch.h"
@@ -104,7 +104,7 @@ static pthread_t send_ir_handle;
 #endif
 
 char 	web_flag;
-char multicast[20] = "239.255.42.44";
+char multicast[20] = "239.255.42.01";
 #ifdef WEB_ENABLE
 #include "sharemem.h"
 

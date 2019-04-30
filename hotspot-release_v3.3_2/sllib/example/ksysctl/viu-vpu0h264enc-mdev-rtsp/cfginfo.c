@@ -50,7 +50,7 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.200");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
     strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");  
-    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.44");      
+    strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.01");      
     
     //WLAN
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
