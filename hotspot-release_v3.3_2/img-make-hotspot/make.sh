@@ -9,15 +9,15 @@ rm client.img
 
 rm rootfs/user -rf
 cp user-server rootfs/user -rf
-#cp m0-send-ir.bin rootfs/lib/firmware/cm0.bin
-cp cm0.bin rootfs/lib/firmware/cm0.bin
+cp m0-send-ir.bin rootfs/lib/firmware/cm0.bin
+#cp cm0.bin rootfs/lib/firmware/cm0.bin
 
 mksquashfs rootfs rootfs-server.sfs
 
 rm rootfs/user -rf
 cp user-client rootfs/user -rf
-#cp m0-get-ir.bin rootfs/lib/firmware/cm0.bin
-cp cm0.bin rootfs/lib/firmware/cm0.bin
+cp m0-get-ir.bin rootfs/lib/firmware/cm0.bin
+#cp cm0.bin rootfs/lib/firmware/cm0.bin
 
 mksquashfs  rootfs rootfs-client.sfs 
 
