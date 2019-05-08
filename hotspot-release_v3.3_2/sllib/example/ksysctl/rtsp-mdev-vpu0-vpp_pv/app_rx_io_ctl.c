@@ -599,7 +599,7 @@ void HDMI_light_on(void)
 void test_light(char value)
 {
 	GPIO_openFd(4);
-	GPIO_export(4);	   			
+	GPIO_export(4);
 	GPIO_setDir(4, 1);
     GPIO_setValue(4, value);
 }

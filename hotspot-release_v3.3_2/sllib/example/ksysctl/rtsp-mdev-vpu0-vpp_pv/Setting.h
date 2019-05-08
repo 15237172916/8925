@@ -23,6 +23,9 @@
 #define DISABLE 0
 #define ENABLE 1
 
+#define OFF 0
+#define ON 1
+
 typedef struct{
     unsigned char ucInputStatus; //0:none 1:HDMI 2:SDI
     unsigned short usWidth;
@@ -44,6 +47,7 @@ typedef struct{
     char strEthMask[20];
     char strEthGateway[20];
     char strEthMulticast[20];
+    unsigned char ucUartState; //add for HSV895/6 
 }ETH_SETTING;
 ETH_SETTING eth_setting;
 

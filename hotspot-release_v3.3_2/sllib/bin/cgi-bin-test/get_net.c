@@ -102,6 +102,11 @@ void main(void)
     strcat(str,strTemp);    
     strcat(str,"</wifi_enable>");
 
+    strcat(str,"<uart_state>");
+    sprintf(strTemp, "%d",share_mem->sm_eth_setting.ucUartState);
+    strcat(str,strTemp);    
+    strcat(str,"</uart_state>"); 
+
     strcat(str,"</set>");
     
 	printf("content-Type:text/xml\n\n");

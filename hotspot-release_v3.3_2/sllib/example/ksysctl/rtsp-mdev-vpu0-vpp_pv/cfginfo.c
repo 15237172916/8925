@@ -55,7 +55,8 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
     strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.3");        
     strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.44");
-    
+    share_mem->sm_eth_setting.ucUartState = 0;
+
     //WLAN
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
     strcpy(share_mem->sm_wlan_setting.strWlanIp,"-");
@@ -133,7 +134,8 @@ int AppInitCfgInfoFromFile(int *fp)
 	*/
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_GATEWAY",share_mem->sm_eth_setting.strEthGateway);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MULTICAST",share_mem->sm_eth_setting.strEthMulticast);  
-
+    iRetCode = GetConfigStringValue(*fp,"ETH","UART_STATE",strTemp); 
+    share_mem->sm_eth_setting.ucUartState = atoi(strTemp);
 
 
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_IP",share_mem->sm_wlan_setting.strWlanIp);  
@@ -240,6 +242,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"ETH_MASK=%s\n",share_mem->sm_eth_setting.strEthMask);
     fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
     fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
+    fprintf(fp,"UART_STATE=%d\n",share_mem->sm_eth_setting.ucUartState); 
     
     //Section WLAN
     //fprintf(fp,"[WLAN]\n");
@@ -274,7 +277,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"RTSP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTSPPort);
     fprintf(fp,"RTP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTPPort);
     fprintf(fp,"RTP_BROADCAST_IP=%s\n",share_mem->sm_rtsp_setting.strRTPBroadcastIp);
-     fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
+    fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
     fprintf(fp,"RTSP_URL=%s\n",share_mem->sm_rtsp_setting.strRTSPUrl);
     
     fprintf(fp,"[END]");

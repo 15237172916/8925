@@ -25,7 +25,12 @@
 #define UART_PORT	8810
 //#define UDP_UART   
 #define TCP_UART          //Jason add
-
+int tcp_flg = 0;
+int tcp_flg1 = 0;
+ int cfd;	//保存客户端套接字
+     int sock_server;
+     	int len;
+	int j=0;
 static SL_U32 fd;
 extern char serverip[128];
 SL_U8 rebuff[1] = {0};    
@@ -209,14 +214,17 @@ SL_ErrorCode_t SLUART_Close()
 SL_ErrorCode_t SLUART_Read(SL_U8 *ReadBuffer, SL_U32 ReadLength)
 {
 
+    int i;
     if (ReadBuffer == NULL || ReadLength < 0)
     {
         return SL_ERROR_BAD_PARAMETER;
     }
-    if ((read(fd, ReadBuffer, ReadLength)) < 0)
+    i=read(fd, ReadBuffer, ReadLength);
+    if (i <=0)
 	{
         return SL_ERROR_GENERIC_IO;
     }
+   // printf("read;%d",i);
 	return SL_NO_ERROR;
 }
 
@@ -296,84 +304,97 @@ int IsLinkDownOrUp(void)
  */
 void handlermsg(int *sfd)
 {
-	
-	printf("handlermsg\n");
-	int connfd=*sfd;
-	int len;
-	int j=0;
-	SL_U8 rbuff[1] = {0};
-	SL_U8 wbuff[1] = {0};	
+	struct timeval timeout;
+	int val;
+	timeout.tv_sec = 2;                 //设置超时
+	timeout.tv_usec = 0;
+
+	val = setsockopt(*sfd,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+	val = setsockopt(*sfd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+
 	SL_ErrorCode_t errCode;
+	SL_U8 rbuff[1] = {0};
+	SL_U8 wbuff[1] = {0};
+	printf("handlermsg\n");
+	
 	while(1)
 	{	
-Rerecv:		
-		len=recv(connfd, rebuff, sizeof(rebuff), 0);
-		if (len<=0)
+Rerecv:
+		memset(rbuff, 0, sizeof(rbuff));
+		memset(wbuff, 0, sizeof(wbuff));
+
+		len = recv(*sfd, wbuff, sizeof(wbuff), 0);
+		if (len <= 0)
 		{
 			perror(recv);
-			j++;
-			if(j>10)				//Exit the thread if the client disconnects or doesn't receive data ten times
-				pthread_exit(NULL);
-			printf("Server Recieve ask Data Failed!\n");
-			pthread_mutex_unlock(&lock_kvm);
-			goto Rerecv;		
+			//pthread_mutex_unlock(&lock_kvm);
+			//printf("Server Recieve Data Failed!\n");
+			goto Rerecv;
 		}
-		else
-			j=0;
-		if(rebuff[0]==0x57)
+		if (0 != wbuff[0])
 		{
-			pthread_mutex_lock(&lock_kvm);
-			memset(rebuff, 0, sizeof(rebuff));
-			printf("%d lock\n",connfd);
-			send(connfd,"0",1,0);
-			while(1)
-			{	
-				memset(rbuff, 0, sizeof(rbuff));
-				memset(wbuff, 0, sizeof(wbuff));
-				len = recv(connfd, wbuff, sizeof(wbuff), 0);
-				if (len <=0)
-				{
-					perror(recv);
-					pthread_mutex_unlock(&lock_kvm);
-					printf("Server Recieve Data Failed!\n");						
-					goto Rerecv;
-				}
-
-				errCode = SLUART_Write(wbuff, sizeof(wbuff));
-				if(errCode != 0)
-				{
-					printf("SLUART_Write error\n");
-					//return -1;
-				}
-				errCode = SLUART_Read(rbuff, sizeof(rbuff));	
-				if (errCode != 0)
-				{
-					printf("SLUART_Read error\n");
-				}
-				len=send(connfd, rbuff, sizeof(rbuff),0);
-				if(len <= 0)
-				{
-					perror(send);
-					printf("Send data len <= 0 len= %d \n",len);;
-				}
-				if(rebuff[0]==0x57)
-				{
-					pthread_mutex_unlock(&lock_kvm);
-					printf("%d exit\n",connfd);
-					sleep(1);
-					break;
-				}
+			if (wbuff[0] == 0xab)
+			{
+				wbuff[0] = 0;
+			} 
+			printf(" %x", wbuff[0]);
+			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+			if(errCode != 0)
+			{
+				printf("SLUART_Write error\n");
+				//return -1;
 			}
 		}
-		send(connfd,"0",1,0);
+#if 1
+		errCode = SLUART_Read(rbuff, sizeof(rbuff));	
+		if (errCode == SL_NO_ERROR)
+		{
+			if(rbuff[0]==0)
+			rbuff[0]=0xab;			//goto Rerecv;
+		}
+		
+		if (0 != rbuff[0])
+		{
+			printf("%x  ", rbuff[0]);
+		}
+		
+		len=send(*sfd, rbuff, sizeof(rbuff),0);
+		if(len <= 0)
+		{
+			perror(send);
+			printf("Send data len <= 0 len= %d \n",len);
+		}
+#endif
+		if (tcp_flg1!=1)
+		{
+			if (tcp_flg==1)
+			{
+				tcp_flg1=2;
+				tcp_flg = 0;
+				rbuff[0]=0xaa;
+				len=send(*sfd, rbuff, sizeof(rbuff),0);
+				if (len <= 0)
+				{
+					perror(send);
+					printf("Send data len <= 0 len= %d \n",len);
+				}
+				printf("exit\n");
+				close(*sfd);
+				break;
+			}
+		}
 	}					
 }
-
-
 /*
+*****************************************************************************
+*/
+
+
+/***************************************************************************
  * func: control mouse and key by tcp or udp 
  * author: Jason chen, 2018/8/29
  */
+
 void *app_tx_uart_main(void)
 {
     SLUART_OpenParams_t *nOpenParam;
@@ -387,10 +408,10 @@ void *app_tx_uart_main(void)
     nOpenParam->stop = 1;
     
     //socker set
-    int sock_server;
+
     struct sockaddr_in servaddr;
     struct sockaddr_in client;  //jason add
-    int cfd;	//保存客户端套接字
+   
     pthread_t tid=0;	//保存线程标识符
     //int ret = 0;
     socklen_t clielen_addr_length;
@@ -509,6 +530,7 @@ ReSocket:
 
 #ifdef TCP_UART
 
+	
 ReSocket:
 	if (IsLinkDownOrUp())
 	printf("start creat socket \n");
@@ -519,7 +541,7 @@ ReSocket:
 		goto ReSocket;
 	}
 	printf("creat socket ok \n");
-	//bind
+
 	if (bind(sock_server, (struct sockaddr*)&servaddr, sizeof(servaddr)))
 	{
         perror("bind");
@@ -528,20 +550,34 @@ ReSocket:
         goto ReSocket;
 	}
 	printf("kvm bind ok\n");
+	
+	struct timeval timeout;
+	int val = 0;
+	timeout.tv_sec = 2;                 //设置3s超时
+	timeout.tv_usec = 100000;
+	
+	val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
+	val = setsockopt(sock_server,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
 	if (listen(sock_server, 20))
 	{
 		perror("listen");
 		close(sock_server);
 		goto ReSocket;
 	}
+	
 	printf("kvm listen ok\n");
-	while(1)
-	{	
-		FD_ZERO(&select_set);
+	while(1)	
+	{
+		FD_ZERO(&select_set);//清空fdset与所有文件句柄的联系
 		FD_SET(sock_server,&select_set);
+		
 		select(sock_server+1,&select_set,NULL,NULL,NULL);
+		
 		if(FD_ISSET(sock_server,&select_set))
 		{
+			tcp_flg1++;
+			tcp_flg =1;
+			sleep(2);
 			cfd = accept(sock_server, (struct sockaddr*)&client, &clielen_addr_length);
 			if (cfd < 0)
 			{
@@ -554,12 +590,16 @@ ReSocket:
 			else
 			{
 				printf("accept success!cfd=%d\n",cfd);
+				//pthread_exit ((void *)&tid);
+				sleep(2);
 				pthread_create(&tid,NULL,(void *)handlermsg,(void *)&cfd);	
-				pthread_detach(tid);
-				continue;			
+				printf("NEW*************\n");		
 			}
+			printf("accept is ok \n");
 		}					
-	}
+
+					
+}
 #endif  
 	pthread_mutex_destroy(&lock_kvm);
 	close(sock_server);

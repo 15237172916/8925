@@ -43,6 +43,8 @@ typedef struct{
     char strEthMask[20];
     char strEthGateway[20];
 	char strEthMulticast[20];
+	unsigned char ucUartState;
+
 }ETH_SETTING;
 ETH_SETTING eth_setting;
 

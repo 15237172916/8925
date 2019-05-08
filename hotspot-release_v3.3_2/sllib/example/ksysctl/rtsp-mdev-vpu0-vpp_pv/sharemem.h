@@ -15,6 +15,7 @@ WLAN_SETTING sm_wlan_setting;
 ENCODER_SETTING sm_encoder_setting;
 RTMP_SETTING sm_rtmp_setting;
 RTSP_SETTING sm_rtsp_setting;
+
 }SHARE_MEM;
 
 SHARE_MEM *share_mem;
