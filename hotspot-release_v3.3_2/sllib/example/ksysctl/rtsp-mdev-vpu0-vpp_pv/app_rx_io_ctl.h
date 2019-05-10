@@ -80,5 +80,6 @@ void signal_light_flash(void);
 void test_light(char value);
 void HDMI_light_off(void);
 void HDMI_light_on(void);
+void Key_Init(void);
 SL_U32 get_key_value(void);
 #endif

@@ -422,9 +422,10 @@ ReSocket:
     {
 		printf("time out setting failed\n");
 	}
+    Key_Init();
 	while (1)
     {
-        if (1 == share_mem->sm_eth_setting.ucUartState || 1 == get_key_value())
+        if (1 == share_mem->sm_eth_setting.ucUartState || 0 == get_key_value())
         {
             if (connect(sock_client, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
             {
@@ -448,6 +449,7 @@ ReSocket:
 	while (1)
 	{
 Rerecv:
+        usleep(10000);
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));	
@@ -473,7 +475,7 @@ Rerecv:
 		}
 #if 1
 		len = recv(sock_client, wbuff, sizeof(wbuff), 0);
-		if (len <=0)
+		if (len <= 0)
 		{
 			perror(recv);
 			//printf("Server Recieve Data Failed!\n");		
@@ -485,7 +487,14 @@ Rerecv:
             {
                 wbuff[0] = 0;
             }
-            //printf(" %x", wbuff[0]);
+            if (wbuff[0] == 0xaa)
+            {
+                printf("server exit connect \n");
+                sleep(1);
+                close(sock_client);
+                goto ReSocket;
+            }
+            printf(" %x", wbuff[0]);
 			errCode = SLUART_Write(wbuff, sizeof(wbuff));
 			if(errCode != 0)
 			{

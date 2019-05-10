@@ -40,9 +40,9 @@ rm ../img-make-hotspot/user-client/update/ko -r
 cp ./ko/ ../img-make-hotspot/user-client/update/ -rf
 cp ./ko/ ../img-make-hotspot/user-server/update/ -rf
 
-#cp ./rtsp-mdev-vpu0-vpp_pv ../../img-make-hotspot_old/execute-client/
-#cp ./viu-vpu0h264enc-mdev-rtsp ../../img-make-hotspot_old/execute-server/
-
+cd ./bin/
+cp ./rtsp-mdev-vpu0-vpp_pv /mnt/nfs
+cp ./viu-vpu0h264enc-mdev-rtsp /mnt/nfs
 
 
 echo OK 

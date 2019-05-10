@@ -304,6 +304,7 @@ int IsLinkDownOrUp(void)
  */
 void handlermsg(int *sfd)
 {
+#if 1
 	struct timeval timeout;
 	int val;
 	timeout.tv_sec = 2;                 //设置超时
@@ -311,7 +312,7 @@ void handlermsg(int *sfd)
 
 	val = setsockopt(*sfd,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
 	val = setsockopt(*sfd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
-
+#endif
 	SL_ErrorCode_t errCode;
 	SL_U8 rbuff[1] = {0};
 	SL_U8 wbuff[1] = {0};
@@ -320,16 +321,26 @@ void handlermsg(int *sfd)
 	while(1)
 	{	
 Rerecv:
+		usleep(10000);
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
-
+		//printf("*");
+		fflush(stdout);
 		len = recv(*sfd, wbuff, sizeof(wbuff), 0);
-		if (len <= 0)
+		if (len < 0)
 		{
+			printf("************************************");
+			printf("recv data len <= 0 len= %d \n",len);
 			perror(recv);
+			
+			tcp_flg1=2;
+			tcp_flg = 0;
+			sleep(1);
+			close(*sfd);
+			exit(-1);
 			//pthread_mutex_unlock(&lock_kvm);
 			//printf("Server Recieve Data Failed!\n");
-			goto Rerecv;
+			//goto Rerecv;
 		}
 		if (0 != wbuff[0])
 		{
@@ -346,6 +357,7 @@ Rerecv:
 			}
 		}
 #if 1
+#if 1
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));	
 		if (errCode == SL_NO_ERROR)
 		{
@@ -357,14 +369,21 @@ Rerecv:
 		{
 			printf("%x  ", rbuff[0]);
 		}
+#endif
 		
 		len=send(*sfd, rbuff, sizeof(rbuff),0);
-		if(len <= 0)
+		if(len < 0)
 		{
+			tcp_flg1 = 2;
+			tcp_flg = 0;
 			perror(send);
 			printf("Send data len <= 0 len= %d \n",len);
+			sleep(1);
+			close(*sfd);
+			exit(-1);
 		}
 #endif
+#if 1
 		if (tcp_flg1!=1)
 		{
 			if (tcp_flg==1)
@@ -379,10 +398,12 @@ Rerecv:
 					printf("Send data len <= 0 len= %d \n",len);
 				}
 				printf("exit\n");
+				sleep(1);
 				close(*sfd);
 				break;
 			}
 		}
+#endif
 	}					
 }
 /*
@@ -566,14 +587,14 @@ ReSocket:
 	}
 	
 	printf("kvm listen ok\n");
-	while(1)	
+	while (1)
 	{
 		FD_ZERO(&select_set);//清空fdset与所有文件句柄的联系
 		FD_SET(sock_server,&select_set);
 		
 		select(sock_server+1,&select_set,NULL,NULL,NULL);
 		
-		if(FD_ISSET(sock_server,&select_set))
+		if (FD_ISSET(sock_server,&select_set))
 		{
 			tcp_flg1++;
 			tcp_flg =1;

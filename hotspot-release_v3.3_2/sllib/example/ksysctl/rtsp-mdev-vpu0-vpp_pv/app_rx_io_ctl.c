@@ -604,6 +604,14 @@ void test_light(char value)
     GPIO_setValue(4, value);
 }
 
+void Key_Init(void)
+{
+    //Key
+	GPIO_openFd(KEY_IO);	//open gpio1_8 Fd
+	GPIO_export(KEY_IO);	//export the gpio1_8 to users 
+	GPIO_setDir(KEY_IO, GPIO_INPUT); //set the gpio1_8 direction is input 
+}
+
 SL_U32 get_key_value(void)
 {
 	SL_U32 value;
