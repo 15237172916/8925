@@ -19,7 +19,7 @@
 		margin:0;
 		padding:0;
 		/*background-color:#999999;*/
-		background-color:#262626;
+		background-color:#000000;
 		/*min-width: 800px; /*页面最小宽度*/
 		/*max-width: 1200px; /*页面最大宽度*/
 	}
@@ -29,7 +29,7 @@
 		margin:0 auto; 
 		min-width: 720px; /*页面最小宽度*/
 		max-width: 1200px; /*页面最大宽度*/
-		background-color:#262626;
+		background-color:#000000;
 		/*background-image:url(./logo_max.png);*/
 	}
 
@@ -37,7 +37,7 @@
 		position: relative;
 		min-width: 720px; /*页面最小宽度*/
 		max-width: 1200px; /*页面最大宽度*/
-		background-color:#262626;
+		background-color:#000000;
 	}
 	
 	header{
@@ -58,7 +58,7 @@
 		text-align:center;
 		background-color:#4d4d4d;
 		margin:0 auto; 
-		height: 50px;
+		height: 80px;
 		/*background-image:url(./logo_max.png);*/
 	}
 	
@@ -139,7 +139,7 @@
 		width:50%;
 		height:150px;
 		line-height:100px;
-		background-color:#262626;
+		background-color:#000000;
 		/*display:inline-block;*/
 	}
 	
@@ -148,7 +148,7 @@
 		width:50%;
 		height:150px;
 		line-height:100px;
-		background-color:#262626;
+		background-color:#000000;
 		/*display:inline-block;*/
 	}
 	
@@ -245,7 +245,7 @@
 	#block{
 		width: 100%;
 		height:20px;
-		background-color:#262626;
+		background-color:#000000;
 	}
 </style>
 
@@ -265,7 +265,7 @@ function RenameOnclick()
 	if (tmp1==1)
 	{
 		document.getElementById("div_popupRename").style.visibility="visible";
-		document.getElementById("RENAME").style.backgroundColor="green";
+		document.getElementById("RENAME").style.backgroundColor="#990000";
 		document.getElementById("div_popupTxSelectButton").style.visibility="hidden";
 
 		//console.log(document.getElementById("myIframe_left").contentWindow.tmp);
@@ -308,7 +308,7 @@ function TxRenameOnclick()
 	if (tmp2==1)
 	{
 		document.getElementById("div_popupChangeTxName").style.visibility="visible";
-		document.getElementById("TxChangeName").style.backgroundColor="green";
+		document.getElementById("TxChangeName").style.backgroundColor="#990000";
 		
 		document.getElementById("div_popupChangeModeName").style.visibility="hidden";
 		document.getElementById("ModeChangeName").style.backgroundColor="#4d4d4d";
@@ -340,7 +340,7 @@ function RxRenameOnclick()
 	if (tmp3==1)
 	{
 		document.getElementById("div_popupChangeRxName").style.visibility="visible";
-		document.getElementById("RxChangeName").style.backgroundColor="green";
+		document.getElementById("RxChangeName").style.backgroundColor="#990000";
 		
 		document.getElementById("div_popupChangeTxName").style.visibility="hidden";
 		document.getElementById("TxChangeName").style.backgroundColor="#4d4d4d";
@@ -374,7 +374,7 @@ function ModeRenameOnclick()
 	if (tmp4==1)
 	{
 		document.getElementById("div_popupChangeModeName").style.visibility="visible";
-		document.getElementById("ModeChangeName").style.backgroundColor="green";
+		document.getElementById("ModeChangeName").style.backgroundColor="#990000";
 		
 		document.getElementById("div_popupChangeTxName").style.visibility="hidden";
 		document.getElementById("TxChangeName").style.backgroundColor="#4d4d4d";
@@ -428,7 +428,7 @@ function displayInfoOnclick()
 
 <body id="body" onload="">
 	<header id="header" onload="">
-		<h1><!--img src="./css/logo_max2.png" width="auto" height="50"  align ="left"-->IP MATRIX <!--&emsp;&emsp;--> </h1>
+		<h1><img src="./css/UI_03.png" width=100% height="80"></h1>
 		<script>onloading();</script>
 	</header>
 	<div id="block"></div>
@@ -451,7 +451,7 @@ function displayInfoOnclick()
 			</div>
 		</div>
 		
-		<div type="background-color:#262626;">
+		<div type="background-color:#000000;">
 		<div class="div_rename">	
 			<input type="button" id="RENAME" value="RENAME" onclick="RenameOnclick();"/>
 		</div>

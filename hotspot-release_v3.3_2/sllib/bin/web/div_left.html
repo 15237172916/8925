@@ -17,7 +17,7 @@
 body{	
 	width: auto; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	background-color:#262626;
+	background-color:#000000;
 	padding:0;
 	/*background-image:url(./css/logo.png);*/
 	background-repeat:no-repeat;
@@ -99,8 +99,8 @@ div{
 	width:110px;
 	text-align: center;
 	color:white;
-	background-color: transparent; /*#262626;*/
-	border-color:#262626;
+	background-color: transparent; /*#000000;*/
+	border-color:#000000;
 	outline: none;
 	border: 0;
 	
@@ -108,7 +108,7 @@ div{
 }
 
 #button129{
-       background-color: transparent; /*#262626;*/
+       background-color: transparent; /*#000000;*/
        outline: none;
        border: 0;
 }
@@ -188,7 +188,7 @@ function onclickButtonSelectTx(number)
 			//alert(ButtonId);
 			//display selection panel of the source and change color of the button
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";
-			//document.getElementById(ButtonId).style.backgroundColor="green";
+			//document.getElementById(ButtonId).style.backgroundColor="#990000";
 			
 			
 			window.parent.document.getElementById("div_popupRename").style.visibility="hidden";
@@ -213,7 +213,7 @@ function onclickButtonSelectTx(number)
 
 				if (num[i] == number)
 				{
-					document.getElementById(ButtonId).style.backgroundColor="green";
+					document.getElementById(ButtonId).style.backgroundColor="#990000";
 				}
 				else
 				{
@@ -297,7 +297,7 @@ function onclickButtonSelectTx(number)
 			
 			if (num[i] == number)
 			{
-				document.getElementById(ButtonId).style.backgroundColor="green";
+				document.getElementById(ButtonId).style.backgroundColor="#990000";
 			}
 			else
 			{
@@ -306,7 +306,7 @@ function onclickButtonSelectTx(number)
 		}
 		//display selection panel of the source and change color of the button
 		window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";
-		//document.getElementById(ButtonId).style.backgroundColor="green";
+		//document.getElementById(ButtonId).style.backgroundColor="#990000";
 		
 	}
 	

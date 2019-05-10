@@ -17,7 +17,7 @@
 body{
 	width: auto; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	background-color:#262626;
+	background-color:#000000;
 	padding:0;
 }
 
@@ -100,7 +100,7 @@ function popupSet(id)
 		{
 			if (id == ModeID[i])
 			{
-				document.getElementById(id).style.backgroundColor="green";
+				document.getElementById(id).style.backgroundColor="#990000";
 				document.getElementById(ModeID[i]).removeAttribute("disabled");
 			}
 			else
@@ -180,7 +180,7 @@ function popupApply()
 	else
 	{
 		//document.getElementById(lastModeId).style.backgroundColor="#006000";
-		//document.getElementById("applyId").style.backgroundColor="red";
+		//document.getElementById("applyId").style.backgroundColor="#990000";
 	}
 }
 </script>
