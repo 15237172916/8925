@@ -25,14 +25,23 @@
 #define PRODUCT_NAME   "HSV893"     //product name
 #define VER_ID1      "0"          //major version id 
 #define VER_ID2      "1"          //minor version id 
-#define VER_ID3      "1"             //sbuversion id 
-#define BUILDING      "20190419"        //date
+#define VER_ID3      "2"             //sbuversion id 
+#define BUILDING      "20190510"        //date
 #define CURRTNE_STATE "release" 
 
 #define PRINT_VERSION    "HSV893 V0.1.1.190419_R"
-#define WEB_VERSION      "V0.1.1.190419"
-#define OSD_VERSION      "V0.1.1"
+#define WEB_VERSION      "V0.1.2.190419"
+#define OSD_VERSION      "V0.1.2"
 
+/* history version explained
+ * V0.1.1 : base version
+ * V0.1.2 : add checksum of audio
+ * 	    add RX's display if no input of TX
+ *
+ *
+ *
+ *
+ * */
 
 
 #endif

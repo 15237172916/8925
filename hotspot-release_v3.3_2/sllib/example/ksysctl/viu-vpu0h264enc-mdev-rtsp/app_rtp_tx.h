@@ -8,6 +8,7 @@
 #define UDP_MTU	1024*10
 
 #define FETCH_COUNT 1024*10
+#define CHECK_SUM_COUNT 1024*50
 
 #define MCAST_ADDR		"239.255.42.44"
 
@@ -21,6 +22,7 @@ typedef struct
 	unsigned char uSeq:8;
 	unsigned int  iLen:24;
 	unsigned int iTimeStamp;
+	unsigned short int usChecksum :16;
 }DATAHEAD;
 
 
