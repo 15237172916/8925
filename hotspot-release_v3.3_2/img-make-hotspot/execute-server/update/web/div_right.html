@@ -17,7 +17,7 @@
 body{
 	width: auto; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	background-color:#262626;
+	background-color:#000000;
 	padding:0;
 }
 
@@ -78,6 +78,17 @@ div{
 	overflow: hidden;
 }
 
+img{
+	position: fixed;
+	left: 0px;
+	/*right:0px;*/
+	/*top:415px;*/
+	bottom:250px;
+	z-index:10;
+	opacity: 1;
+	width: 10.9%;
+	height:auto;
+}
 
 </style>
 
@@ -100,7 +111,7 @@ function popupSet(id)
 		{
 			if (id == ModeID[i])
 			{
-				document.getElementById(id).style.backgroundColor="green";
+				document.getElementById(id).style.backgroundColor="#990000";
 				document.getElementById(ModeID[i]).removeAttribute("disabled");
 			}
 			else
@@ -158,7 +169,7 @@ function popupApply()
 		{
 			if (ModeID[i]==nowModeId)
 			{
-				document.getElementById(nowModeId).style.backgroundColor="#006000";
+				document.getElementById(nowModeId).style.backgroundColor="#990000";
 				document.getElementById("modlue").style.visibility = "hidden";
 			}
 			else
@@ -180,7 +191,7 @@ function popupApply()
 	else
 	{
 		//document.getElementById(lastModeId).style.backgroundColor="#006000";
-		//document.getElementById("applyId").style.backgroundColor="red";
+		//document.getElementById("applyId").style.backgroundColor="#990000";
 	}
 }
 </script>
@@ -266,6 +277,6 @@ function popupApply()
 	<div class="div_mode-text">
 		<span>MODE-10</span>
 	</div>
-	
+	<img src="./css/UI_09.png">
 </body>
 </html>

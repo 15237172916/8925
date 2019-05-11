@@ -395,7 +395,7 @@ function ModeInit()
 	
 	currentModeNum=Number(window.parent.currentMode)-1;
 	modeButtonId = "Mode"+num1[currentModeNum];
-	document.getElementById(modeButtonId).style.backgroundColor = "#006000";
+	document.getElementById(modeButtonId).style.backgroundColor = "#990000";
 }
 
 

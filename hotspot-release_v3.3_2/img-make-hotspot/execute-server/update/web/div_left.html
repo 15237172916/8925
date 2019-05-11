@@ -17,12 +17,13 @@
 body{	
 	width: auto; /*body部分占整个HTML的大小*/
 	margin:0 auto; 
-	background-color:#262626;
+	background-color:#000000;
 	padding:0;
-	/*background-image:url(./css/logo.png);*/
+	/*background-image:url(./css/UI_07.png);*/
 	background-repeat:no-repeat;
 	background-attachment:fixed; /*背景图像固定*/
-	background-position:0px 420px;
+	background-position:100% 50%;
+	
 }
 
 div{
@@ -99,8 +100,8 @@ div{
 	width:110px;
 	text-align: center;
 	color:white;
-	background-color: transparent; /*#262626;*/
-	border-color:#262626;
+	background-color: transparent; /*#000000;*/
+	border-color:#000000;
 	outline: none;
 	border: 0;
 	
@@ -108,9 +109,20 @@ div{
 }
 
 #button129{
-       background-color: transparent; /*#262626;*/
+       background-color: transparent; /*#000000;*/
        outline: none;
        border: 0;
+}
+
+img{
+	position: fixed;
+	right:0px;
+	/*top:415px;*/
+	bottom:250px;
+	z-index:10;
+	opacity: 1;
+	width: 7.1%;
+	height:auto;
 }
 
 </style>
@@ -188,7 +200,7 @@ function onclickButtonSelectTx(number)
 			//alert(ButtonId);
 			//display selection panel of the source and change color of the button
 			window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";
-			//document.getElementById(ButtonId).style.backgroundColor="green";
+			//document.getElementById(ButtonId).style.backgroundColor="#990000";
 			
 			
 			window.parent.document.getElementById("div_popupRename").style.visibility="hidden";
@@ -213,7 +225,7 @@ function onclickButtonSelectTx(number)
 
 				if (num[i] == number)
 				{
-					document.getElementById(ButtonId).style.backgroundColor="green";
+					document.getElementById(ButtonId).style.backgroundColor="#990000";
 				}
 				else
 				{
@@ -297,7 +309,7 @@ function onclickButtonSelectTx(number)
 			
 			if (num[i] == number)
 			{
-				document.getElementById(ButtonId).style.backgroundColor="green";
+				document.getElementById(ButtonId).style.backgroundColor="#990000";
 			}
 			else
 			{
@@ -306,7 +318,7 @@ function onclickButtonSelectTx(number)
 		}
 		//display selection panel of the source and change color of the button
 		window.parent.document.getElementById("div_popupTxSelectButton").style.visibility="visible";
-		//document.getElementById(ButtonId).style.backgroundColor="green";
+		//document.getElementById(ButtonId).style.backgroundColor="#990000";
 		
 	}
 	
@@ -359,7 +371,7 @@ function onclickButtonSelectTx(number)
 		</div>
    </div>
 </div>
-
+<img src="./css/UI_07.png">
 
 </body>
 </html>
