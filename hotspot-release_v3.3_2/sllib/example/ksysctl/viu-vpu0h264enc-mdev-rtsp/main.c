@@ -62,7 +62,7 @@
 #define WEB_ENABLE
 //#define APP_CODE
 #define KVM_UART
-//#define DEBUG_OFF
+#define DEBUG_OFF
 #define APP_IO
 #define APP_RTP
 //#define  SWIT_MULTICAST
