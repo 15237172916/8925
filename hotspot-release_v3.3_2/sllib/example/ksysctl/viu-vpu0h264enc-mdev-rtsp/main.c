@@ -72,6 +72,7 @@
 #define APP_RTP
 //#define SWIT_MULTICAST
 
+#define RINGBUFF
 
 #ifdef ENABLE_GET_IR
 #define IR_SERVER_PORT    7998
@@ -1937,7 +1938,7 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 	unsigned char *src1;
 	unsigned char *src2;
 	unsigned char *dst;
-	
+
 	int valid_size;
 	int valid_size_1;
 	int valid_size_2;
@@ -1945,7 +1946,7 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 	int write_size_2;
 	
 	int len, i;
-	
+	unsigned int audioPushFailCount = 0;
 	audio_info = &(chip->audio_info);
 #ifdef DUMP_AUDIO_DATA
 #define DUMP_COUNT_TOTAL 10000 
@@ -2107,8 +2108,14 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 				//gettimeofday(&start, NULL);
 				if (0 > RingPCMPush(src1, valid_size))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("push buff failed\n");
 				}
+				else
+				{
+					audioPushFailCount = 0;
+				}
+				
 #endif
 
 #if 0
@@ -2228,12 +2235,14 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 #if 1
 				if (0 > RingPCMPush(src1, valid_size_1))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("audio push buff failed\n");
 				}
 
 				if (0 > RingPCMPush(src2, valid_size_2))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("audio push buff failed\n");
 				}
 #endif
 
@@ -2248,7 +2257,10 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 			if(audio_dma_in.rdPtr >= (audio_dma_in.size + audio_dma_in.start_addr))
 				audio_dma_in.rdPtr = audio_dma_in.rdPtr - audio_dma_in.size;
 		}
-		
+		if (audioPushFailCount > 20)
+		{
+			reboot1();
+		}
 		usleep(10000); //must sleep here or cpu will 100%
 	}
 	
