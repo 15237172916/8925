@@ -2238,7 +2238,7 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 			if(audio_dma_in.rdPtr >= (audio_dma_in.size + audio_dma_in.start_addr))
 				audio_dma_in.rdPtr = audio_dma_in.rdPtr - audio_dma_in.size;
 		}
-		
+		//printf("audio is running \n");
 		usleep(10000); //must sleep here or cpu will 100%
 	}
 	
@@ -2797,6 +2797,7 @@ int main(int argc, char* argv[])
 	sleep(3);
 
 #ifdef RINGBUFF
+	printf("audio fransfer process is running \n");
 	ret = pthread_create(&audio_handler, NULL, audio_transfer, NULL);
 	if (ret) {
 		log_err("Failed to Create audio_transfer Thread, %d\n", ret);
@@ -2807,6 +2808,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef VIU_OUTPUT
+	printf("viu output file \n");
 	ret = pthread_create(&viu_output_handle, NULL, viu_output, NULL);
 	if (ret) {
 		log_err("Failed to Create viu_output_handle, %d\n", ret);
