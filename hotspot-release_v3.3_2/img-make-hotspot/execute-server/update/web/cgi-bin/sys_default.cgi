@@ -1,1 +1,0 @@
-/user/web/cgi-bin/sys_default.cgi

@@ -171,7 +171,7 @@ SL_POINTER get_ir(SL_POINTER Args)
         printf("Create Socket Failed!\n");
         exit(1);
     }
-
+#if 0
     if (interface == INTERFACE_WLAN0)
     {
         strncpy(if0.ifr_name, "ra0", IFNAMSIZ);
@@ -181,6 +181,7 @@ SL_POINTER get_ir(SL_POINTER Args)
             exit(1);
         }
     }
+#endif
     int on=1;
 	int set_ret=setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on));  //set port reuse skip TIME_WAIT
 	if(set_ret)
@@ -289,8 +290,8 @@ try_again:
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(MYPORT);
-    if(interface == INTERFACE_WLAN0)
-        servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
+    servaddr.sin_addr.s_addr = inet_addr("255.255.255.255");
+
 #if 0
     else if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
@@ -299,11 +300,9 @@ try_again:
         sleep(2);
         goto try_again;
     }
-#endif
     printf("\n*** connect ok**\n");
-  
-        servaddr.sin_addr.s_addr = inet_addr("255.255.255.255");
-
+#endif
+    
     tx_info = ir_send_info;
     rx_info = ir_recv_info;
     pbuf = rx_info->buf_ck;

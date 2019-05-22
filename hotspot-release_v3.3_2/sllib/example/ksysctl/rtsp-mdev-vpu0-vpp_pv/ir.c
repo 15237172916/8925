@@ -170,7 +170,7 @@ SL_POINTER get_ir(SL_POINTER Args)
         printf("Create Socket Failed!\n");
         exit(1);
     }
-
+#if 0
     if (interface == INTERFACE_WLAN0)
     {
         strncpy(if0.ifr_name, "ra0", IFNAMSIZ);
@@ -180,6 +180,7 @@ SL_POINTER get_ir(SL_POINTER Args)
             exit(1);
         }
     }
+#endif
     int on=1;
 	int ser_ret=setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on));
 	if(ser_ret<0)
@@ -272,7 +273,7 @@ SL_POINTER send_ir(SL_POINTER Args)
 
 try_again:
     sock_cli = socket(PF_INET,SOCK_DGRAM, 0); // create Udp socket
-
+#if 0
     if (interface == INTERFACE_WLAN0)
     {
         strncpy(if0.ifr_name,"ra0",IFNAMSIZ);
@@ -282,14 +283,16 @@ try_again:
             return NULL;
         }
     }
-
+#endif
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(MYPORT);
+#if 0
     if(interface == INTERFACE_WLAN0)
         servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
     else
-        servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
+#endif
+    servaddr.sin_addr.s_addr = inet_addr("192.168.1.200");
 
     if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
     {
