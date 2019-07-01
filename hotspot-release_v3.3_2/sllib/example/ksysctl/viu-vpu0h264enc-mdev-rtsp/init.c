@@ -4,6 +4,7 @@
 
 //static FILE *fpcmd = NULL;
 #define MUL_ADDRESS		"route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0" 
+#define DEFAULT	"route add -net default netmask 0.0.0.0 gw 192.168.1.1 dev eth0"
 
 int init_eth(void)
 {
@@ -17,6 +18,7 @@ int init_eth(void)
     printf("ifconfig eth0=%s\n",syscmd);
     //multicast address configure
     system(MUL_ADDRESS);
+    system(DEFAULT);
     return 0;
 }
 /*int init_eth(void)

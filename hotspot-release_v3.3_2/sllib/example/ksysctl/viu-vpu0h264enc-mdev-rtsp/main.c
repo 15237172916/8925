@@ -110,6 +110,7 @@ char connect_state_b = 0;
 
 #include "app_tx_uart.h"
 static pthread_t app_tx_uart_handler;
+static pthread_t send_tx_multicast_handler;
 
 #endif
 char 	web_flag;
@@ -2685,7 +2686,7 @@ int main(int argc, char* argv[])
 	}
 	close(fd_config);
 #endif
-	printf("********************system starting***************************\n");
+	printf("******************** TX system starting***************************\n");
 	printf(PRINT_VERSION);
 	System_running();
 
@@ -2745,6 +2746,15 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
+#if 1	
+	ret = pthread_create(&send_tx_multicast_handler, NULL, send_tx_multicast_main, NULL);
+	if (ret) {
+		log_err("Failed to Create send_tx_multicast_handler Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
 #endif
 
 /******** jason add 20180830 *****************/
@@ -2757,6 +2767,7 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
+
 #endif
 	//while (1) sleep(1);
 #ifdef ENABLE_GET_IR

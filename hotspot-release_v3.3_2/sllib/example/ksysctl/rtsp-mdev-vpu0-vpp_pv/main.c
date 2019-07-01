@@ -103,7 +103,7 @@ static pthread_t app_igmp_report_handler;
 #include "app_rx_uart.h"
 
 static pthread_t app_rx_uart_handler;
-
+static pthread_t serch_tx_multicast_handler;
 #endif
 
 static pthread_t audio_handle;
@@ -234,6 +234,7 @@ const char * show_text ="welcome to silan";
 
 static int process_osd_text_overlay(int x, int y, const char *text);
 int process_osd_text_solid(int x, int y, const char *text);
+int process_osd_text(int x, int y, const char *text);
 int process_osd_disable(void);
 
 #define DEV_IO_NAME		"/dev/silan_testio"
@@ -1404,10 +1405,10 @@ tryAgain:
 	set_osd_buf(buf);
 
 	color_fg = COLOR_BLACK_SOLID;
-	color_bk = COLOR_WHITE_SOLID;
+	color_bk = GRAY;
 
 
-	text_show(x, y, text, color_fg, color_bk, strlen(text)*16);
+	text_show(x, y, text, color_fg, color_bk, strlen(text)*8);
 	SLMDEV_freeBlockWrite(im_devman_osd, buf);
 	g_osd_overlay = 0;
 
@@ -1471,19 +1472,19 @@ tryAgain:
 	set_osd_buf(buf);
 #endif
 	color_fg = COLOR_BLACK_SOLID;
-	color_bk = COLOR_WHITE_SOLID;
+	color_bk = GRAY;
 
 
-	text_show(x, y, text, color_fg, color_bk, strlen(text)*16);
+	text_show(x, y, text, color_fg, color_bk, strlen(text)*8);
 	//SLMDEV_freeBlockWrite(im_devman_osd, buf);
 	g_osd_overlay = 0;
 
-	if(pv_dev) 
-	{
-		printf("stop pv\n");
-		SLSYSCTL_stopProcess(pv_dev);
-
-	}
+	//~ if(pv_dev) 
+	//~ {
+		//~ printf("stop pv\n");
+		//~ SLSYSCTL_stopProcess(pv_dev);
+//~ 
+	//~ }
 	//printf("osd mdev free\n");
 
 	return 0;
@@ -2088,6 +2089,7 @@ static int rx_witch_multicast_main(void)
 /* For usysctl testing */
 int main(int argc, char* argv[])
 {
+	printf("********************RX system starting***************************\n");
 	SL_S32 ret = -1, i;
 	
 	RTSP_STATE_e state;
@@ -2155,9 +2157,7 @@ int main(int argc, char* argv[])
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, OSD_VERSION);
-	//process_osd_text_overlay(10,10,OSD_VERSION);
 	sleep(2);
-	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
 	//sleep(1);
@@ -2172,11 +2172,20 @@ int main(int argc, char* argv[])
 #endif
 	
 #ifdef KVM_UART
+#if 1
 	ret = pthread_create(&app_rx_uart_handler, NULL, app_rx_uart_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_rx_uart_main Thread\n");
 		return ret;
 	}
+#endif
+#if 1	
+	ret = pthread_create(&serch_tx_multicast_handler, NULL, serch_tx_multicast_main, NULL);
+	if (ret) {
+		log_err("Failed to Create serch_tx_multicast_main Thread\n");
+		return ret;
+	}
+#endif	
 #endif
 
 
@@ -2395,9 +2404,9 @@ int main(int argc, char* argv[])
 			//printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
 			sleep(3);
 			process_osd_disable();
-			osd_display_flag = 0;
+			osd_display_flag=0;
 		}
-		usleep(1000);
+		usleep(10);
 	}
 	
 #if 0

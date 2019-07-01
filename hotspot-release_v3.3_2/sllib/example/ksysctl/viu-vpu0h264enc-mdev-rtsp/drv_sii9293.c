@@ -1852,7 +1852,7 @@ void *sii9293_handler(void *p)
 {
 	video_info_s *video_info;
 	audio_info_s *audio_info;
-	int ret = -1, timeOutReset_5V = 0;
+	int ret = -1, timeOutReset_5V = 0,timeoutWaitSync=0;
 	unsigned int tmp = 0;
 	extern volatile int viu_started;
 	extern volatile int viu_configed;
@@ -1927,6 +1927,14 @@ void *sii9293_handler(void *p)
 			case WaitSync:
 				printf("WaitSync \n");
 				//sleep(3);
+				timeoutWaitSync++;
+				if(timeoutWaitSync>15)
+				{
+					/*Win10 first boot, unable to plot, re-plug*/
+					HDMI_HotPlug();
+					timeoutWaitSync=0;
+					printf("waitsync timeout \n");
+				}
 				if(Is_Sync_stable())
 					chip->video_status = CheckSync;
 				else if(!Is_HDMI_5V_detected())
@@ -1992,6 +2000,7 @@ void *sii9293_handler(void *p)
 #endif
 				HDMI_lost = 0;
 				timeOutReset_5V = 0;
+				timeoutWaitSync=0;
 				if( VideoOn == chip->video_prev_status)
 				{
 #if 1

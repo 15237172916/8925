@@ -457,7 +457,7 @@ void HDMI_light_on(void)
 	SetLightMode(HDMI_LED, LED_ON, 0);
 	//GPIO_setDir(HDMI_LED, GPIO_OUTPUT);
 #else
-	GPIO_export(LED_HDMI);	   			
+	GPIO_export(LED_HDMI);
 	GPIO_setDir(LED_HDMI, GPIO_OUTPUT); //output
 	GPIO_setValue(LED_HDMI, GPIO_LOW_STA); //
 #endif
@@ -470,6 +470,16 @@ void KVM_REST(void)
 	GPIO_setValue(KVMRST_IO, GPIO_HIG_STA);
 	usleep(100);
 	GPIO_setValue(KVMRST_IO, GPIO_LOW_STA);
+}
+
+/*Win10 first boot, unable to plot, re-plug*/
+void HDMI_HotPlug(void)
+{
+	GPIO_export(HDMI_Plug);
+	GPIO_setDir(HDMI_Plug, GPIO_OUTPUT);
+	GPIO_setValue(HDMI_Plug, GPIO_LOW_STA);
+	sleep(2);
+	GPIO_setValue(HDMI_Plug, GPIO_HIG_STA);
 }
 
 

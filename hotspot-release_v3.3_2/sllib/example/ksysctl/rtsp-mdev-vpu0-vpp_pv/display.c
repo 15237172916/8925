@@ -8,10 +8,12 @@
 #define MODE_PG  1
 #define MODE_OSD 0
 
-#if 0
+#if 1
 static ICON_INFO icon_info[] =
 {
-    { ICON_SERVER_MISSING, OSD_WIDTH,  OSD_HEIGHT,  IMAGE_SERVER_MISSING },
+    { ICON_MENU, 448,  224,  IMAGE_MENU },
+    { ICON_CONNECT, 42,  28,  IMAGE_CONNECT },
+    { ICON_CONTRL, 42,  28,  IMAGE_CONTRL },
 };
 
 static int icon_tbl[ICON_MAX];
@@ -135,11 +137,28 @@ void text_show(int x, int y, const char *text, int color_fg, int color_bk, int m
     text_show_gb2312(x, y, (char *)buf, color_fg, color_bk, max_len);
 }
 
+void osd_choose_show(int x,int y,int icon_id)
+{
+	SL_U8 *imageData;
+	rectParam_t rect;
+	
+	imageData = osd_display_icon_data(icon_id);
+	rect.color 	=0;
+	rect.buf 	=imageData;
+	rect.startX	=x;
+	rect.startY	=y;
+	rect.width	=icon_info[icon_id].width;
+	rect.height	=icon_info[icon_id].height;
+	if (rect.startX + rect.width > OSD_WIDTH || rect.startY + rect.height > OSD_HEIGHT)
+        return;
+     osd_draw(&rect);
+}
+
 
 int osd_display_init()
 {
-#if 0
-	int i, j;
+#if 1
+	int i, j,k;
 	ICON_INFO *info;
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -195,13 +214,13 @@ int osd_display_init()
 #if 1
 			//argb8888
 			src = (unsigned char *)buffer[0];
-			for(i=0; i<cinfo.output_width; i++) {
+			for(k=0; k<cinfo.output_width; k++) {
 				*dst_buffer = *(src + 2);
 				*(dst_buffer + 1) = *(src + 1);
 				*(dst_buffer + 2) = *src;
 				src += 3;
 				dst_buffer +=3;
-				*dst_buffer++ = 0x00;
+				*dst_buffer++ = 0xE0;
 			}
 #else
 			//rgb565
@@ -212,11 +231,10 @@ int osd_display_init()
 
 #endif
 		}
-
+		(void) jpeg_finish_decompress(&cinfo);
+		fclose(input_file); 
 		/*end jpeg decode */
 	}
-
-	(void) jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 #endif
 
@@ -231,7 +249,7 @@ int osd_display_init()
 	return 0;
 }
 
-#if 0
+#if 1
 SL_U8 *osd_display_icon_data(int id)
 {
     if (id >= ICON_START && id < ICON_MAX)

@@ -23,6 +23,7 @@
 //#define UART_DEVICE_NAME    "/dev/ttyAMA2"
 
 #define UART_PORT	8810
+#define BROD_PORT	8888
 #define UDP_UART   
 //#define TCP_UART          //Jason add
 
@@ -30,6 +31,8 @@ static SL_U32 fd;
 extern char serverip[128];
 extern char multicast[20];
 extern char web_flag;
+SL_U8 package[2]; 
+
 #ifdef TCP_UART
 SL_U8 rebuff[1] = {0};    
 pthread_mutex_t lock_kvm; 
@@ -225,23 +228,105 @@ SL_ErrorCode_t SLUART_Read(SL_U8 *ReadBuffer, SL_U32 ReadLength)
 
 SL_ErrorCode_t SLUART_Write(SL_U8 *WriteBuffer, SL_U32 WriteLength)
 {
-
+	int x;
     if (WriteBuffer == NULL || WriteLength < 0)
     {
         return SL_ERROR_BAD_PARAMETER;
     }
-    if ((write(fd, WriteBuffer, WriteLength)) < 0)
+    x=write(fd, WriteBuffer, WriteLength);
+    if (x < 0)
     {
 		return SL_ERROR_GENERIC_IO;
     }
+    if(*WriteBuffer > 0)
+    {
+      //printf("pcBuffer=0x%x\n",*WriteBuffer);
+    }
     return SL_NO_ERROR;
+}
+/*
+ *func:send ctrl value to TX,solve key value incomplete problem
+ * 		
+ *author:llc
+ *time:2019.5.7
+ */
+void SLUART_Write_Kvmend(void)
+{
+	SL_U8  kvmend_bit[1]={0};
+	SL_ErrorCode_t errCode;
+	int a=0,b=0;
+	//sleep(5);
+	kvmend_bit[0]=0x57;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		return -1;
+	}
+	kvmend_bit[0]=0xab;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		//return -1;
+	}
+	kvmend_bit[0]=0x01;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		//return -1;
+	}
+	while(a!=10)
+	{
+		kvmend_bit[0]=0x00;
+		errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+		if(errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+			//return -1;
+		}
+		a++;
+	}
+
+	kvmend_bit[0]=0x57;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		//return -1;
+	}
+	kvmend_bit[0]=0xab;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		//return -1;
+	}
+	kvmend_bit[0]=0x02;
+	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+	if(errCode != 0)
+	{
+		printf("SLUART_Write error\n");
+		//return -1;
+	}
+	while(b!=10)
+	{
+		kvmend_bit[0]=0x00;
+		errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+		if(errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+			//return -1;
+		}
+		b++;
+	}
 }
 
 void uart_init(void)
 {
 	
 }
-
 
 int IsLinkDownOrUp(void)
 {
@@ -252,7 +337,7 @@ int IsLinkDownOrUp(void)
 	
 	if(!pFile)
 	{
-		if ((pFile = fopen(pathName, "r")) == NULL) 
+		if ((pFile = fopen(pathName, "r")) == NULL)
 		{
 			printf("can't open %s",pathName);
 			return -1;
@@ -320,7 +405,7 @@ Rerecv:
 			pthread_exit(NULL);
 			printf("Server Recieve ask Data Failed!\n");
 			pthread_mutex_unlock(&lock_kvm);
-			goto Rerecv;		
+			goto Rerecv;
 		}
 		else
 			j=0;
@@ -332,14 +417,14 @@ Rerecv:
 			send(connfd,"0",1,0);
 			while(1)
 			{	
-				memset(rbuff, 0, sizeof(rbuff));
-				memset(wbuff, 0, sizeof(wbuff));
+				memset(rbuff,0, sizeof(rbuff));
+				memset(wbuff,0, sizeof(wbuff));
 				len = recv(connfd, wbuff, sizeof(wbuff), 0);
 				if (len <=0)
 				{
 					//perror(recv);
 					pthread_mutex_unlock(&lock_kvm);
-					printf("Server Recieve Data Failed!\n");						
+					printf("Server Recieve Data Failed!\n");					
 					goto Rerecv;
 				}
 
@@ -392,6 +477,8 @@ void *app_tx_uart_main(void)
      
     SL_U8 rbuff[1];
 	SL_U8 wbuff[1];
+	char SLUART_Write_Kvmend_end;
+	char SLUART_Write_Kvmend_start;
     //open uart 
     errCode = SLUART_Open(nOpenParam);
 	if(errCode != 0)
@@ -406,9 +493,11 @@ void *app_tx_uart_main(void)
     struct sockaddr_in servaddr;
     socklen_t servlen_addr_length;
     servlen_addr_length = sizeof(servaddr);
-    
-ReSocket: 
-	web_flag = 0;   
+
+ReSocket:
+	web_flag = 0; 
+	SLUART_Write_Kvmend_end=0;
+	SLUART_Write_Kvmend_start=0;
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
@@ -435,8 +524,6 @@ ReSocket:
 	}
     printf("bind socket ok \n");
 
-//	int reuse = 1;
-//	setsockopt(sock_server, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
 #if 1
 	//set Multicast loop
 	int loop = 0;    //1:on  0:off
@@ -446,7 +533,7 @@ ReSocket:
 		printf("kvm set multicast loop error \n");
 		perror("setsockopt");
 	}
-	
+
 	//set multicast address
 	struct ip_mreq mreq;
 	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
@@ -471,8 +558,8 @@ ReSocket:
 
     struct timeval timeout;
 	int val;
-    timeout.tv_sec = 1;                 //设置3s超时
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;                 //设置3s超时
+    timeout.tv_usec = 400000;
     
     val = setsockopt(sock_server,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));  //set connet timeout
     if(val < 0)
@@ -484,27 +571,69 @@ ReSocket:
     {
 		printf("time out setting failed\n");
 	}
-
+	
+	int flag_712=0;
+	int apple=0;
 	while (1)
     {
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
-
-		if (recvfrom(sock_server, wbuff, sizeof(wbuff), \
+		memset(package, 0, sizeof(package));
+		if (recvfrom(sock_server, package, sizeof(package), \
 			0, (struct sockaddr_in *) &servaddr, &servlen_addr_length) <= 0)
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
+			//SLUART_Write_Kvmend_start=0;
+			SLUART_Write_Kvmend_end++;
+			if(SLUART_Write_Kvmend_end==1)
+			{
+				int send_frequency_end=7;
+				while(send_frequency_end)
+				{
+					SLUART_Write_Kvmend();
+					send_frequency_end--;
+				}
+			}
+			SLUART_Write_Kvmend_end=2;
 			//close(sock_server);
 			//goto ReSocket;
 		}
-		
-		errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		if(errCode != 0)
+		else
 		{
-			printf("SLUART_Write error\n");
-			//return -1;
+			SLUART_Write_Kvmend_end=0;
+	    }
+		
+		//printf("====0x%x, 0x%x===\n",package[0],package[1]);
+		if(flag_712==0 )
+		{
+			//printf("*****1\n");
+			SLUART_Write_Kvmend();
+			flag_712=package[0];
 		}
+		
+		if(flag_712==package[0])
+		{
+			//printf("====0x%x, 0x%x===\n",package[0],package[1]);
+			wbuff[0]=package[1];
+			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+			if(errCode != 0)
+			{
+				printf("SLUART_Write error\n");
+				//return -1;
+			}
+		}
+		
+		if(package[1]==0)
+			apple++;
+		else
+			apple=0;
+		if(apple>700)
+		{
+			flag_712=0;
+			apple=0;
+		}
+		
 
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));
 		if (errCode != 0)
@@ -521,7 +650,6 @@ ReSocket:
 			//sleep(1);
 			//goto ReSocket;
 		}
-				
     }
     close(sock_server);
 #endif   
@@ -574,7 +702,7 @@ ReSocket:
 	}
 	printf("kvm listen ok\n");
 	while(1)
-	{	
+	{
 		FD_ZERO(&select_set);
 		FD_SET(sock_server,&select_set);
 		select(sock_server+1,&select_set,NULL,NULL,NULL);
@@ -592,17 +720,17 @@ ReSocket:
 			else
 			{
 				printf("accept success!cfd=%d\n",cfd);
-				pthread_create(&tid,NULL,(void *)handlermsg,(void *)&cfd);	
+				pthread_create(&tid,NULL,(void *)handlermsg,(void *)&cfd);
 				pthread_detach(tid);
-				continue;			
+				continue;
 			}
-		}					
+		}
 	}
 	pthread_mutex_destroy(&lock_kvm);
 	close(sock_server);
 	close(cfd); 
 #endif  
-	close(sock_server);  
+	close(sock_server);
     errCode = SLUART_Close();
 	if(errCode != 0)
 	{
@@ -610,5 +738,45 @@ ReSocket:
 		//return -1;
 	}
 
+}
+
+
+/*
+ * func: broadcast send tx's multicast 
+ * author: wgg, 2019/4/26
+ */
+void *send_tx_multicast_main(void)
+{
+	sleep(5);
+	printf("==========send_tx_multicast_main==========\n");
+	int brd_sock;
+	int ret;
+	if((brd_sock = socket(AF_INET,SOCK_DGRAM,0))==-1)
+	{
+		printf("send tx broadcast fail!\n");
+		return -1;
+	}
+	
+	int optval = 1;//这个值一定要设置，否则可能导致sendto()失败
+	setsockopt(brd_sock, SOL_SOCKET, SO_BROADCAST , &optval, sizeof(optval));
+	struct sockaddr_in brdAddr;
+	memset(&brdAddr, 0, sizeof(struct sockaddr_in));	
+	brdAddr.sin_family = AF_INET;
+	brdAddr.sin_addr.s_addr =htonl(INADDR_BROADCAST);
+	brdAddr.sin_port = htons(BROD_PORT);
+	
+	while(1)
+	{
+		//printf("==multicast=%s===\n",multicast);
+		if(sendto(brd_sock, multicast, sizeof(multicast), \
+			0, (struct sockaddr *)&brdAddr, sizeof(brdAddr)) <= 0)
+		{
+			perror("sendto");
+			printf("multicast send failed \n");
+		}
+		sleep(2);
+	}
+	close(brd_sock);
+	return 0;
 }
 

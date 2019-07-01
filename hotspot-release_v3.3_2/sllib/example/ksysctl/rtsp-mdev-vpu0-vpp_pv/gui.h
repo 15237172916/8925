@@ -21,8 +21,9 @@ typedef struct
 
 #define MAX_STRING_LEN 256
 
-#define EN_WIDTH    16
-#define EN_HEIGHT   32
+#define EN_WIDTH    8
+#define EN_HEIGHT   16
+
 #define CH_WIDTH    32
 #define CH_HEIGHT   32
 #define ICON_WIDTH  24*2
@@ -41,14 +42,16 @@ typedef struct
 #define COLOR_WHITE_TRANSPARENT    0x00FFFFFF
 #define COLOR_WHITE_SOLID    0xFFFFFFFF
 
+#define GRAY			0xE0EAEAEA
+
 #define NULL_E "Null"
 #define NULL_C "空"
 
 #if 0
-#define EN_FNT_NAME "./en.fnt"
+#define EN_FNT_NAME "./en8_16.fnt"
 #define CH_FNT_NAME "./ch.fnt"
 #else
-#define EN_FNT_NAME "/user/en.fnt"
+#define EN_FNT_NAME "/user/en8_16.fnt"
 #define CH_FNT_NAME "/user/ch.fnt"
 #endif
 

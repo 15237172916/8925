@@ -12,6 +12,7 @@
 #include <sl_types.h>
 
 #include "app_rx_io_ctl.h"
+#include "display.h" 
 
 
 
@@ -27,7 +28,6 @@ extern SL_BOOL gbTestMode;
 
 extern char multicast[20];
 extern char web_flag;
-
 //extern SHOWDATA g_ShowData;
 
 /**
@@ -324,7 +324,6 @@ void *app_rx_light_ctl_main(void)
 void  *app_rx_io_ctl_main(void)
 {
   	int i;
-  	
   	//SL_U32 sum;
 	SL_U32 Value;
 	
