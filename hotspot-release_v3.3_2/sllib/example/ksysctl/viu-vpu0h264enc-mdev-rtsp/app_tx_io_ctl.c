@@ -314,7 +314,7 @@ void *app_tx_light_ctl_main(void)
     
     printf("================Light Test=================\n");
     sleep(1);
-                
+
     while(1)
     {
 #if 1 	/********************* for wang 20171024 ******************/ 
@@ -471,6 +471,7 @@ void System_running(void)
 	GPIO_setValue(LED_SYS_STA, GPIO_LOW_STA); //
 	
 	//SWITCH 
+	#if 0
 	GPIO_openFd(MULTICAST_SWITCH_1);
 	GPIO_export(MULTICAST_SWITCH_1);	   			
 	GPIO_setDir(MULTICAST_SWITCH_1, GPIO_INPUT);
@@ -478,7 +479,7 @@ void System_running(void)
 	GPIO_openFd(MULTICAST_SWITCH_2);
 	GPIO_export(MULTICAST_SWITCH_2);	   			
 	GPIO_setDir(MULTICAST_SWITCH_2, GPIO_INPUT);
-	
+	#endif
 	GPIO_openFd(MULTICAST_SWITCH_3);
 	GPIO_export(MULTICAST_SWITCH_3);	   			
 	GPIO_setDir(MULTICAST_SWITCH_3, GPIO_INPUT);
@@ -490,7 +491,7 @@ void System_running(void)
 	GPIO_openFd(MULTICAST_SWITCH_5);
 	GPIO_export(MULTICAST_SWITCH_5);	   			
 	GPIO_setDir(MULTICAST_SWITCH_5, GPIO_INPUT);
-#if 0
+#if 1
 	GPIO_openFd(MULTICAST_SWITCH_6);
 	GPIO_export(MULTICAST_SWITCH_6);	   			
 	GPIO_setDir(MULTICAST_SWITCH_6, GPIO_INPUT);
@@ -521,7 +522,7 @@ void Init_Multicast_and_IP(void)
 	//while(1)
 	{
 	tmp1 = 0x00;
-	
+	#if 0
 	GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
 	tmp1 |= value; //0x01
 	//printf("value: %d \n", value);
@@ -530,6 +531,7 @@ void Init_Multicast_and_IP(void)
 	tmp1 = tmp1 | value; //0x03
 	//printf("value: %d \n", value);
 	tmp1 = tmp1 << 1;
+	#endif
 	GPIO_getValue(MULTICAST_SWITCH_3, &value);
 	tmp1 |= value;
 	tmp1 = tmp1 << 1;
@@ -539,7 +541,7 @@ void Init_Multicast_and_IP(void)
 	GPIO_getValue(MULTICAST_SWITCH_5, &value);
 	tmp1 |= value;
 	
-	#if 0
+	#if 1
 	tmp1 = tmp1 << 1;
 	GPIO_getValue(MULTICAST_SWITCH_6, &value);
 	tmp1 |= value;
