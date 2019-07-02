@@ -168,8 +168,13 @@ int RingPullFromByteStreamMemoryBuffer(unsigned char * buff, unsigned int size)
 
 int RingPCMPush(unsigned char * buff, unsigned int size)
 {
+	char ret = 0;
 	InitRingBuffer();
-	PushToRingBuffer(buff, size);
+	ret = PushToRingBuffer(buff, size);
+	if (ret < 0)
+	{
+		return -1;
+	}
 	return 0;
 }
 

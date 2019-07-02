@@ -637,14 +637,26 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 			}
 		}
 #endif
+		static char push_fail_count = 0;
 		ret = list_push_data(list, buf);
 		if(ret > 0)
 		{
+			push_fail_count++;
 			printf("fail to push data,list is full\n");
 			need_feed_dog = 0;
 			list_flush_data(list);
 			need_feed_dog = 1;
+			if (push_fail_count > 20)
+			{
+				printf("push_fail_count > 20 , reboot\n");
+				reboot1();
+			}
 		}
+		else
+		{
+			push_fail_count = 0;
+		}
+		
 		ret = SLMDEV_returnBlockRead(om_devman, (void *)buf);
 		if (SL_NO_ERROR != ret) {
 			log_err("SLMDEV_returnBlockRead failed\n");
