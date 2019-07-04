@@ -665,8 +665,6 @@ ReSocket:
 		printf("time out setting failed\n");
 	}
 	
-	int flag_712=0;
-	int apple=0;
 	STATE cur_state=STATE0;
 	while (1)
     {
@@ -697,36 +695,15 @@ ReSocket:
 		{
 			SLUART_Write_Kvmend_end=0;
 	    }
-		
+
 		//printf("====0x%x, 0x%x===\n",package[0],package[1]);
-		if(flag_712==0 )
+		wbuff[0]=package[1];
+		cur_state = Judge_MK_Value(&wbuff[0],cur_state);
+		errCode = SLUART_Write(wbuff, sizeof(wbuff));
+		if(errCode != 0)
 		{
-			//printf("*****1\n");
-			SLUART_Write_Kvmend();
-			flag_712=package[0];
-		}
-		
-		if(flag_712==package[0])
-		{
-			//printf("====0x%x, 0x%x===\n",package[0],package[1]);
-			wbuff[0]=package[1];
-			cur_state = Judge_MK_Value(&wbuff[0],cur_state);
-			errCode = SLUART_Write(wbuff, sizeof(wbuff));
-			if(errCode != 0)
-			{
-				printf("SLUART_Write error\n");
-				//return -1;
-			}
-		}
-		
-		if(package[1]==0)
-			apple++;
-		else
-			apple=0;
-		if(apple>700)
-		{
-			flag_712=0;
-			apple=0;
+			printf("SLUART_Write error\n");
+			//return -1;
 		}
 		
 
