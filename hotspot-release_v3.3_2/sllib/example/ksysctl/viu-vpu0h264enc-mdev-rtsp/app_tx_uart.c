@@ -33,6 +33,17 @@ extern char multicast[20];
 extern char web_flag;
 SL_U8 package[2]; 
 
+typedef enum
+{
+	STATE0,
+	STATE1,
+	STATE2,
+	STATE3,
+	STATE4,
+	STATE5,
+	STATE6,
+}STATE;
+
 #ifdef TCP_UART
 SL_U8 rebuff[1] = {0};    
 pthread_mutex_t lock_kvm; 
@@ -256,6 +267,18 @@ void SLUART_Write_Kvmend(void)
 	SL_ErrorCode_t errCode;
 	int a=0,b=0;
 	//sleep(5);
+	while(a!=10)
+	{
+		kvmend_bit[0]=0x00;
+		errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+		if(errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+			//return -1;
+		}
+		a++;
+	}
+	a=0;
 	kvmend_bit[0]=0x57;
 	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
 	if(errCode != 0)
@@ -289,6 +312,19 @@ void SLUART_Write_Kvmend(void)
 		a++;
 	}
 
+
+	while(b!=10)
+	{
+		kvmend_bit[0]=0x00;
+		errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
+		if(errCode != 0)
+		{
+			printf("SLUART_Write error\n");
+			//return -1;
+		}
+		b++;
+	}
+	b=0;
 	kvmend_bit[0]=0x57;
 	errCode = SLUART_Write(kvmend_bit, sizeof(kvmend_bit));
 	if(errCode != 0)
@@ -322,7 +358,6 @@ void SLUART_Write_Kvmend(void)
 		b++;
 	}
 }
-
 void uart_init(void)
 {
 	
@@ -460,6 +495,64 @@ Rerecv:
 
 #endif
 
+
+
+#if 1
+/*
+ * func:Determine the release of the mouse and keyboard
+ * author:wgg
+ */
+ int i=0;
+int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
+{
+	switch(cur_state)
+	{
+		case STATE0: 
+			if(buff[0]==0x57)
+				cur_state=STATE1;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE1:
+			if(buff[0]==0xab)
+				cur_state=STATE2;
+			else
+				cur_state=STATE0;
+			break;
+		case STATE2:
+			if(buff[0]==0x01)
+				cur_state=STATE3;
+			else
+				cur_state=STATE0;
+			break;
+			case STATE3:
+				if(buff[0]==0)
+				{
+					//printf("*********\n");
+					i++;
+					cur_state=STATE3;
+					if(i>10)
+					{
+						i=0;
+						SLUART_Write_Kvmend();
+						cur_state=STATE0;
+						//printf("=======\n");
+					}
+				}
+				else
+					cur_state=STATE0;
+				break;
+		default:
+			cur_state=STATE0;
+		}
+		return cur_state;
+}
+#endif
+
+
+
+
+
 /*
  * func: control mouse and key by tcp or udp 
  * author: Jason chen, 2018/8/29
@@ -574,6 +667,7 @@ ReSocket:
 	
 	int flag_712=0;
 	int apple=0;
+	STATE cur_state=STATE0;
 	while (1)
     {
 		memset(rbuff, 0, sizeof(rbuff));
@@ -616,6 +710,7 @@ ReSocket:
 		{
 			//printf("====0x%x, 0x%x===\n",package[0],package[1]);
 			wbuff[0]=package[1];
+			cur_state = Judge_MK_Value(&wbuff[0],cur_state);
 			errCode = SLUART_Write(wbuff, sizeof(wbuff));
 			if(errCode != 0)
 			{
