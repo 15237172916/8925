@@ -67,7 +67,7 @@ static int  FreeRingBuffer(void)
 	free(Rb);
 	Rb = NULL;
 
-	return 0;
+	//return 0;
 }
 
 static int CountRingBufferUsed()
@@ -118,7 +118,8 @@ static int PushToRingBuffer(unsigned char *buffer, int dlen)
 	if(CountRingBufferFree() < dlen)
     {
         printf("ringbuffer is full\n");
-        FreeRingBuffer();
+		FreeRingBuffer();
+        
 		return -1;
     }
         
@@ -173,6 +174,7 @@ int RingPCMPush(unsigned char * buff, unsigned int size)
 	ret = PushToRingBuffer(buff, size);
 	if (ret < 0)
 	{
+		printf("\n PushToRingBuffer fail \n");
 		return -1;
 	}
 	return 0;
