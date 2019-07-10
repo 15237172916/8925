@@ -633,7 +633,8 @@ static int get_audio_fs(void)
 
 		case Fs_32_kHz:
 			printf("32k\n");
-			value1 = 32000;
+			value1 = 44100;//32000;
+			//value1 = 32000;
 			config_extend = 1;
 			break;
 		
@@ -680,7 +681,9 @@ static int get_audio_fs(void)
 			break;
 
 		default:
-			printf("unsupport audio fs\n");
+			printf("\n\n *****unsupport audio fs*****\n\n");
+			value1 = 44100;
+			config_extend = 1;	
 			break;
 	}
 	

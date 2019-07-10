@@ -118,12 +118,14 @@ int audio_config(SL_U32 fs, SL_U32 audio_bits, SL_U32 chns)
 	}
 
 	tmp = audio_bits;//16; //wxp
+	printf("audio bits : %d \n", tmp);
 	if (ioctl(audio_fd, AUDIO_IOCTL_SET_OUT_BITS, &tmp) == -1) {
 		printf("AUDIO_IOCTL_SET_OUT_BITS error \n");
 		audio_close();
 		return -1;
 	}
 	tmp = fs;//48000; //wxp
+	printf("audio fs : %d \n", tmp);
 	if (ioctl(audio_fd, AUDIO_IOCTL_SET_OUT_FS, &tmp) == -1) {
 		printf("AUDIO_IOCTL_SET_OUT_FS error \n");
 		audio_close();
@@ -139,7 +141,7 @@ int audio_config(SL_U32 fs, SL_U32 audio_bits, SL_U32 chns)
 	}
 	printf("*** 1 audioOut_trigger_on\n");
 #endif
-	printf("fs : %d , bits : %d , chns : %d \n", fs, audio_bits, chns);
+	printf("\nfs : %d , bits : %d , chns : %d \n", fs, audio_bits, chns);
 
 	if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
 		audio_close();
