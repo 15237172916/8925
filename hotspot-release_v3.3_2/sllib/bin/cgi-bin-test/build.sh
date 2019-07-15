@@ -49,6 +49,6 @@ csky-abiv2-linux-gcc -o upload_ko.cgi upload_ko.c
 #csky-abiv2-linux-gcc -o saveCurrentMode.cgi saveCurrentMode.c
 #cp *.cgi ../web/cgi-bin
 cp *.cgi ../web_client/cgi-bin
-
+cp *.cgi ../web/cgi-bin
 #cp upload_web.cgi ../tmp/web/noup/cgi-bin -rf
 #cp *.cgi /home/eric/work/sllib/bin/9001html/htmlarm/cgi-bin

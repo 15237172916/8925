@@ -41,6 +41,7 @@ function GetIpAjax()
 			  var wifi_enable=$(data).find("set").children("wifi_enable").text();
 	      var rtmp_type=$(data).find("set").children("rtmp_type").text();
         var UartState=$(data).find("set").children("uart_state").text();
+         var speed=$(data).find("set").children("speed").text();
 	      //console.log(UartState);
 	   		$("#IpTxt").attr("value",IpTxt);
 	   		$("#MaskTxt").attr("value",MaskTxt);
@@ -51,7 +52,7 @@ function GetIpAjax()
 	   		$("#wifi_enable").attr("value",wifi_enable);
 	   		$("#rtmp_type").attr("value",rtmp_type);
         $("#UARTState").attr("value", UartState);
-
+        $("#speed").attr("value", speed);
 			if(wifi_status==0)
 			{
 				$("#wifi_status").attr("value", "Not conneted");
@@ -108,10 +109,11 @@ function SetIpAjax(){
     var wifi_essid=$("#wifi_essid").val();
     var wifi_psk=$("#wifi_psk").val();
     var UARTState = $("#UARTState").val();
+     var speed = $("#speed").val();
     var urlstr="";
 
 		//urlstr="http://"+hostip+"/cgi-bin/set_net.cgi?rtmp_type="+RTMPType+"&rtsp_type="+RTSPType+"&ip="+IpTxt+"&mask="+MaskTxt+"&gateway="+GatewayTxt+"&wifi_dhcp="+wifi_dhcp+"&wifi_ip="+wifi_ip+"&wifi_mask="+wifi_netmask+"&wifi_gateway="+wifi_gateway+"&wifi_type="+wifi_type+"&wifi_essid="+wifi_essid+"&wifi_psk="+wifi_psk+"&wifi_enable="+wifi_enable;
-	  urlstr="http://"+hostip+"/cgi-bin/set_net.cgi?uart_state="+UARTState+"&rtsp_type="+RTSPType+"&ip="+IpTxt+"&mask="+MaskTxt+"&gateway="+GatewayTxt+"&multicast="+MulticastTxt+"&wifi_dhcp="+wifi_dhcp+"&wifi_ip="+wifi_ip+"&wifi_mask="+wifi_netmask+"&wifi_gateway="+wifi_gateway+"&wifi_type="+wifi_type+"&wifi_essid="+wifi_essid+"&wifi_psk="+wifi_psk+"&wifi_enable="+wifi_enable;
+	  urlstr="http://"+hostip+"/cgi-bin/set_net.cgi?speed="+speed+"&uart_state="+UARTState+"&rtsp_type="+RTSPType+"&ip="+IpTxt+"&mask="+MaskTxt+"&gateway="+GatewayTxt+"&multicast="+MulticastTxt+"&wifi_dhcp="+wifi_dhcp+"&wifi_ip="+wifi_ip+"&wifi_mask="+wifi_netmask+"&wifi_gateway="+wifi_gateway+"&wifi_type="+wifi_type+"&wifi_essid="+wifi_essid+"&wifi_psk="+wifi_psk+"&wifi_enable="+wifi_enable;
 
 		$.ajax({ 
 			type:"GET",
@@ -122,6 +124,7 @@ function SetIpAjax(){
 				if(data=="succeed"){
 					//alert('Set successfully, please reboot your device！');
 					alert('Set successfully ！');
+					SetReboot();
 				}else{
 					alert('Failed to set！');
 				}
@@ -129,7 +132,21 @@ function SetIpAjax(){
 		});
 	}
 }
+function SetReboot() {
+    document.write('Please wait about 10 seconds for system reboot...');
+	$.ajax({ 
+		type:"GET",
+        url:"http://"+hostip+"/cgi-bin/sys_reboot.cgi",
+        dataType:"text",
+        cache:false,
+        success:function(data){
+			if(data=="succeed") {
+				alert('Reboot succeed!');	
+			}
+        }
+    });
 
+}
 function IsValidate(wifi_exist) {
 	var validated=true;
 	var IpTxt=$("#IpTxt").val();
@@ -303,9 +320,32 @@ function changeLan(){
      <dl>
       <dt>UART Define State：</dt>
       <dd>
-        <select id="UARTState" name="wifi_type"  style="width:100px;">
-         <option  value="0" >OFF</option>
+      <select id="UARTState" name="wifi_type"  style="width:100px;">
+<option  value="0" >OFF</option>
          <option  value="1" >ON</option>
+        </select>
+      </dd>
+     </dl> 
+       <dl>
+      <dt>SPEED：</dt>
+      <dd>
+        <select id="speed" name="wifi_type"  style="width:100px;">
+                
+           <option  value="1" >2400</option>
+              <option  value="2" >4800</option>
+                   <option  value="3" >9600</option>
+                        <option  value="4" >115200</option>
+                             <option  value="5" >230400</option>
+                                     <option  value="6" >460800</option>
+                                             <option  value="7" >921600</option>
+                                                     <option  value="8" >1000000</option>
+                                                             <option  value="9" >1152000</option>
+                                                                     <option  value="10" >1500000</option>
+                                                                             <option  value="11" >2000000</option>
+                                                                             <option  value="12" >2500000</option>
+                                                                             <option  value="13" >3000000</option>
+                                                                             <option  value="14" >3500000</option>
+                                                                             <option  value="15" >4000000</option>
         </select>
       </dd>
      </dl> 

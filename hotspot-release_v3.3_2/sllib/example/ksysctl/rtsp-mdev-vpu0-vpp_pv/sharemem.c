@@ -22,7 +22,6 @@ int InitShareMem(void)
 		exit(0);  
 	}
 	printf("Memory attached at %X\n", (int)share_mem);  
-
     share_mem->sm_eth_setting = eth_setting;
     share_mem->sm_wlan_setting = wlan_setting;
     

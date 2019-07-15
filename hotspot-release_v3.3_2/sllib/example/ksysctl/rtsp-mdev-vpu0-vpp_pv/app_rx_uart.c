@@ -256,17 +256,72 @@ void *app_rx_uart_main(void)
 {
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
-
+	SL_U32 speed_flg;
 	SL_U8 rbuff[1] = {0};
     SL_U8 wbuff[1] = {0};
     int fd_uart = -1;
     int len = 0;
    // SL_ErrorCode_t fd_uart;   //jason
 
+speed_flg=share_mem->sm_eth_setting.ucspeed;
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
     memset(wbuff, 0, sizeof(wbuff));
     memset(rbuff, 0, sizeof(rbuff));
-    nOpenParam->speed = 115200;
+    printf("++++++++++++++++++++++++++%d+++++++++++++++++++++++++++++++\n",share_mem->sm_eth_setting.ucspeed);
+    SPEED:
+  switch(share_mem->sm_eth_setting.ucspeed)
+    {
+        case 1:
+        nOpenParam->speed = 2400;
+            break;
+        case 2:
+           nOpenParam->speed = 4800;
+            break;
+        case 3:
+    nOpenParam->speed = 9600;
+            break;
+        case 4:
+           nOpenParam->speed = 115200;
+            break;
+        case 5:
+            nOpenParam->speed = 230400;
+            break;
+        case 6:
+            nOpenParam->speed = 460800;
+            break;
+        case 7:
+            nOpenParam->speed = 921600;
+            break;
+        case 8:
+              nOpenParam->speed = 1000000;
+            break;
+        case 9:
+          nOpenParam->speed = 1152000;
+            break;
+        case 10:
+              nOpenParam->speed = 1500000;
+            break;
+        case 11:
+             nOpenParam->speed = 2000000;
+            break;
+        case 12:
+              nOpenParam->speed = 2500000;
+            break;
+        case 13:
+              nOpenParam->speed = 3000000;
+            break;
+        case 14:
+               nOpenParam->speed = 3500000;
+            break;
+                 case 15:
+              nOpenParam->speed = 4000000;
+              break;
+        default:
+      		  nOpenParam->speed = 115200;
+              share_mem->sm_eth_setting.ucspeed=4;
+           break;
+    }
+
     nOpenParam->bits = 8;
     nOpenParam->event = 'N';
     nOpenParam->stop = 1;

@@ -136,8 +136,8 @@ int AppInitCfgInfoFromFile(int *fp)
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MULTICAST",share_mem->sm_eth_setting.strEthMulticast);  
     iRetCode = GetConfigStringValue(*fp,"ETH","UART_STATE",strTemp); 
     share_mem->sm_eth_setting.ucUartState = atoi(strTemp);
-
-
+ iRetCode = GetConfigStringValue(*fp,"ETH","speed",strTemp); 
+share_mem->sm_eth_setting.ucspeed = atoi(strTemp);
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_IP",share_mem->sm_wlan_setting.strWlanIp);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_MASK",share_mem->sm_wlan_setting.strWlanMask);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_GATEWAY",share_mem->sm_wlan_setting.strWlanGateway);
@@ -243,7 +243,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
     fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
     fprintf(fp,"UART_STATE=%d\n",share_mem->sm_eth_setting.ucUartState); 
-    
+    fprintf(fp,"speed=%d\n",share_mem->sm_eth_setting.ucspeed); 
     //Section WLAN
     //fprintf(fp,"[WLAN]\n");
     fprintf(fp,"WLAN_DHCP_SWITCH=%d\n",share_mem->sm_wlan_setting.ucWlanDHCPSwitch);

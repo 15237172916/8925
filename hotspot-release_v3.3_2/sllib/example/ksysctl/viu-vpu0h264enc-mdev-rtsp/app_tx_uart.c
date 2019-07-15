@@ -17,7 +17,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <time.h>
-
+#include "sharemem.h"
 //#define UART_DEVICE_NAME    "/dev/ttyAMA0"
 #define UART_DEVICE_NAME    "/dev/ttyAMA1"
 //#define UART_DEVICE_NAME    "/dev/ttyAMA2"
@@ -420,10 +420,62 @@ void *app_tx_uart_main(void)
 {
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
+    	SL_U32 speed_flg;
     pthread_mutex_init(&lock_kvm,NULL);
 	//uart set
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
-    nOpenParam->speed = 115200;
+   switch(share_mem->sm_eth_setting.ucspeed)
+    {
+        case 1:
+        nOpenParam->speed = 2400;
+            break;
+        case 2:
+           nOpenParam->speed = 4800;
+            break;
+        case 3:
+    nOpenParam->speed = 9600;
+            break;
+        case 4:
+           nOpenParam->speed = 115200;
+            break;
+        case 5:
+            nOpenParam->speed = 230400;
+            break;
+        case 6:
+            nOpenParam->speed = 460800;
+            break;
+        case 7:
+            nOpenParam->speed = 921600;
+            break;
+        case 8:
+              nOpenParam->speed = 1000000;
+            break;
+        case 9:
+          nOpenParam->speed = 1152000;
+            break;
+        case 10:
+              nOpenParam->speed = 1500000;
+            break;
+        case 11:
+             nOpenParam->speed = 2000000;
+            break;
+        case 12:
+              nOpenParam->speed = 2500000;
+            break;
+        case 13:
+              nOpenParam->speed = 3000000;
+            break;
+        case 14:
+               nOpenParam->speed = 3500000;
+            break;
+        case 15:
+            nOpenParam->speed = 4000000;
+            break;
+        default:
+               nOpenParam->speed = 115200;
+               share_mem->sm_eth_setting.ucspeed=4;
+            break;
+    }    
     nOpenParam->bits = 8;
     nOpenParam->event = 'N';
     nOpenParam->stop = 1;
@@ -617,9 +669,7 @@ ReSocket:
 				printf("NEW*************\n");		
 			}
 			printf("accept is ok \n");
-		}					
-
-					
+	}	
 }
 #endif  
 	pthread_mutex_destroy(&lock_kvm);

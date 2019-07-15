@@ -26,15 +26,20 @@
 #define PRODUCT_NAME   "HSV895/6"     //product name
 #define VER_ID1      "2"          //major version id 
 #define VER_ID2      "2"          //minor version id 
-#define VER_ID3      "1"             //sbuversion id 
-#define BUILDING      "20190404"        //date
+#define VER_ID3      "2"             //sbuversion id 
+#define BUILDING      "20190715"        //date
 #define CURRTNE_STATE "debug" 
 
-#define PRINT_VERSION    "HSV895/6 V2.2.1.190404_ALPHA"
-#define WEB_VERSION      "V2.2.1.190404"
-#define OSD_VERSION      "V2.2.1"
+#define PRINT_VERSION    "HSV895/6 V2.2.2.190715_R"
+#define WEB_VERSION      "V2.2.2.190715"
+#define OSD_VERSION      "V2.2.2"
 
 
 #endif
+/*
+update log:
+	HSV895/6_V2.2.1 baseline version double UART function  
+	HSV895/6_V2.2.2 add change bitrate in HTML
 
+*/
 

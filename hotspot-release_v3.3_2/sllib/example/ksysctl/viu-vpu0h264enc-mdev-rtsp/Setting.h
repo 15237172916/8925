@@ -44,6 +44,8 @@ typedef struct{
     char strEthMask[20];
     char strEthGateway[20];
 	char strEthMulticast[20];
+	    unsigned char ucUartState; //add for HSV895/6 
+       unsigned char ucspeed; //add for HSV895/6 
 }ETH_SETTING;
 ETH_SETTING eth_setting;
 

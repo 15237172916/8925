@@ -32,7 +32,25 @@ int InitShareMem(void)
     printf("%s \n",share_mem->sm_eth_setting.strEthIp);
     printf("%s \n",share_mem->sm_wlan_setting.strWlanIp);        
 }
+int InitShareMem1(void)
+{
+	int shmid;
 
+	shmid = shmget((key_t)1234, sizeof(SHARE_MEM), 0666|IPC_CREAT);	
+	if(shmid == -1)  
+	{  
+		printf("shmget failed\n");  
+		exit(0);  
+	} 
+
+	share_mem = (struct shared_use_st*)shmat(shmid, (void*)0, 0);  
+	if(share_mem == NULL)  
+	{  
+		printf("shmat failed\n");
+		exit(0);
+	}
+	return ;      
+}
 int UpdateShareMemStatus(void)
 {
 }

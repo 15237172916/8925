@@ -20,6 +20,7 @@ RTSP_SETTING sm_rtsp_setting;
 SHARE_MEM *share_mem;
 
 int InitShareMem(void);
+int InitShareMem1(void);
 SL_POINTER  sharemem_handle(SL_POINTER Args);
 
 #endif
