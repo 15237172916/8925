@@ -8,6 +8,7 @@
 *   HSV592  | KVM control + more one    | 2.1.x
 *   HSV701  | WEB control + distribute  | 1.0.x
 *   HSV761  | WEB control + centralize  | 1.1.x
+*	HSV761_new | Control BOX + TX + RX + API | 3.0.x
 *   HSV900/922  
 *************************************************************
 *   current state |  abridge
