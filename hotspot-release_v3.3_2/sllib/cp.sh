@@ -37,13 +37,13 @@ cp ./tmp/run_c.sh ../../img-make-hotspot/user-client/run.sh #client: user/run.sh
 cd ../
 rm ../img-make-hotspot/user-server/update/ko -r
 rm ../img-make-hotspot/user-client/update/ko -r
+rm ../img-make-hotspot/user-client/update/ko -r
+
 cp ./ko/ ../img-make-hotspot/user-client/update/ -rf
 cp ./ko/ ../img-make-hotspot/user-server/update/ -rf
 
 #cp ./rtsp-mdev-vpu0-vpp_pv ../../img-make-hotspot_old/execute-client/
 #cp ./viu-vpu0h264enc-mdev-rtsp ../../img-make-hotspot_old/execute-server/
-
-
 
 echo OK 
 

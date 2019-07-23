@@ -163,7 +163,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	{  
 		log_err("get Eth IP failed, %d !\n", iRetCode); 
 		return -2;
-	}
+	}	
     printf("get eth ip ok\n");	
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MASK",share_mem->sm_eth_setting.strEthMask);  
 	/*

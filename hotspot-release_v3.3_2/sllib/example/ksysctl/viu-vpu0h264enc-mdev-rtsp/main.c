@@ -2787,7 +2787,7 @@ int main(int argc, char* argv[])
 	//printf("ip addr : %d \n", ip_add);
 	ip_add &= 0xFF;
 	printf("ip address : %d \n", ip_add);
-	
+#if 0	
 	if (201 == ip_add)
 	{
 		ret = pthread_create(&controlHandle, NULL, control_slave, NULL);
@@ -2799,6 +2799,7 @@ int main(int argc, char* argv[])
 			return ret;
 		}
 	}
+#endif
 #endif
 
 	SLOS_CreateMutex(&mutexlock);

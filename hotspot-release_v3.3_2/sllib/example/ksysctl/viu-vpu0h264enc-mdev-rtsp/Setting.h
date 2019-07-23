@@ -112,9 +112,46 @@ MODE_RENAME_S mode_rename;
 
 
 
+/*
+**
+*/
+typedef struct
+{
+    char input;
+    char resolution;
+    char framrate;
+    char audio_type;
+    char audio_sample;
+    char audio_ch;
+    char fw_version[20];
+    char fw_status;
+} TX_INFORMATION_S;
+
+typedef struct
+{
+    char baud_rate;
+    char data_bit;
+    char parity_bit;
+    char data_type;
+    char on_data[128];
+    char off_data[128];
+} CONTROL_DATA_S;
+typedef struct
+{
+    char video_source;
+    char online_count;
+    char fw_version[20];
+    char fw_status;
+    char data_type;
+    CONTROL_DATA_S control_data;
+} RX_INFORMATION_S;
+
+
+
 
 
 #endif
+
 
 
 
