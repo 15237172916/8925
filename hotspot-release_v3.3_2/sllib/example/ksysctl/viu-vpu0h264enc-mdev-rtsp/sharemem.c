@@ -11,7 +11,7 @@ int InitShareMem(void)
 	int shmid;
 	int i; 
 	
-	shmid = shmget((key_t)1234, sizeof(SHARE_MEM), 0666|IPC_CREAT);	
+	shmid = shmget((key_t)1234, sizeof(SHARE_MEM_S), 0666|IPC_CREAT);	
 	if(shmid == -1)  
 	{  
 		printf("shmget failed\n");  
@@ -27,7 +27,7 @@ int InitShareMem(void)
 	printf("Memory attached at %X\n", (int)share_mem);  
 
     share_mem->sm_eth_setting = eth_setting;
-    share_mem->sm_wlan_setting = wlan_setting;
+    //share_mem->sm_wlan_setting = wlan_setting;
     
     
 #if 0
@@ -47,10 +47,10 @@ int InitShareMem(void)
 #endif
 
     printf("%s \n",eth_setting.strEthIp);
-    printf("%s \n",wlan_setting.strWlanIp);
+    //printf("%s \n",wlan_setting.strWlanIp);
 
     printf("%s \n",share_mem->sm_eth_setting.strEthIp);
-    printf("%s \n",share_mem->sm_wlan_setting.strWlanIp);        
+    //printf("%s \n",share_mem->sm_wlan_setting.strWlanIp);        
 }
 
 int UpdateShareMemStatus(void)
@@ -65,6 +65,7 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 	
 	while(1)
 	{
+		#if 0
 		//printf("ucUpdateFlag=%d\n",share_mem->ucUpdateFlag);
 		if(1==share_mem->ucUpdateFlag)
 		{
@@ -73,11 +74,13 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 #if 1
 			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
 #endif
-			SLVENC_setBitrate(share_mem->sm_encoder_setting.usEncRate);
+			//SLVENC_setBitrate(share_mem->sm_encoder_setting.usEncRate);
 			web_flag = 1;
 			share_mem->ucUpdateFlag = 0;
 			//printf("\n\n--------------web end \n");
 		}
+		#endif
+		#if 0
 		if (1==share_mem->ucModeApplyFlag)
 		{
 			printf("\n\n--------mode apply -------\n");
@@ -89,8 +92,9 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 					close(fd_config);
 				printf("share memary cfg Info from file error \n");
 			}
-			share_mem->ucModeApplyFlag = 0;
+			//share_mem->ucModeApplyFlag = 0;
 		}
+		#endif
 		sleep(1);
 	}
 	return NULL;

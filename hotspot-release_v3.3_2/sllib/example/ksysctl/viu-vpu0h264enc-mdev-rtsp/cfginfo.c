@@ -39,7 +39,7 @@ int AppInitCfgInfoDefault(void)
 {
 	int i;
 	char s[40];
-	
+	#if 0	
     //RUN_STATUS.ucHDMIStatus = HDMI_OUT;
     share_mem->sm_run_status.ucInputStatus = NONE;
     share_mem->sm_run_status.usWidth = 0;
@@ -52,13 +52,13 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_run_status.ucWiFiStatus = 0;    
     strcpy(share_mem->sm_run_status.strHardwareVer, HD_VERSION);
     strcpy(share_mem->sm_run_status.strSoftwareVer, SW_VERSION);
-    
+    #endif
     //ETH
     strcpy(share_mem->sm_eth_setting.strEthIp,"192.168.1.201");
     strcpy(share_mem->sm_eth_setting.strEthMask,"255.255.255.0");
     strcpy(share_mem->sm_eth_setting.strEthGateway,"192.168.1.1");
     strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.1"); 
-    
+    #if 0
     //WLAN
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
     strcpy(share_mem->sm_wlan_setting.strWlanIp,"-");
@@ -131,7 +131,8 @@ int AppInitCfgInfoDefault(void)
 	//strcpy(share_mem->sm_group_pack.ucIpAddress,"000");
     //strcpy(share_mem->sm_group_pack.ucMultiAddress,"000");
     //strcpy(share_mem->sm_group_pack.uuid,"000");
-	
+	#endif
+
     return 1;
 }
 
@@ -177,7 +178,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MULTICAST",share_mem->sm_eth_setting.strEthMulticast);  
 	//iRetCode = GetConfigStringValue(*fp,"ETH","FRAME_RATE", share_mem->sm_encoder_setting.ucFrameRate); 
 
-
+	#if 0
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_IP",share_mem->sm_wlan_setting.strWlanIp);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_MASK",share_mem->sm_wlan_setting.strWlanMask);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_GATEWAY",share_mem->sm_wlan_setting.strWlanGateway);
@@ -300,9 +301,10 @@ int AppInitCfgInfoFromFile(int *fp)
 		sleep(1);
 		reboot1();
 	}
+	#endif
 	close(fp);
 	
-#if 1
+#if 0
 	//mode rename
 	printf("open config file \n");
 	*fp = open(CONFIG_FILE1, O_RDONLY);
@@ -358,7 +360,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"ETH_MASK=%s\n",share_mem->sm_eth_setting.strEthMask);
     fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
 	fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
-	
+	#if 0
     //Section WLAN
     //fprintf(fp,"[WLAN]\n");
     fprintf(fp,"WLAN_DHCP_SWITCH=%d\n",share_mem->sm_wlan_setting.ucWlanDHCPSwitch);
@@ -455,12 +457,12 @@ int AppWriteCfgInfotoFile(void)
 	//current mode
 	fprintf(fp, "CurrentMode=");
 	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
-	
+	#endif
 	//printf("end");
     fprintf(fp,"[END]");
 	fclose(fp);
 }
-
+#if 0
 int AppWrinteModeInfotoFile(void)
 {
 	int iRetCode = 0 , i; 
@@ -484,7 +486,7 @@ int AppWrinteModeInfotoFile(void)
     fprintf(fp,"[END]");
 	fclose(fp);
 }
-
+#endif
 #if 0
 int AppInitCfgInfoFromFile(int *fp)
 {

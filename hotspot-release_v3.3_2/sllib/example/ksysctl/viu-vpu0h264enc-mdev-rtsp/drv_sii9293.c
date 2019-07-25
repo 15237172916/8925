@@ -1908,10 +1908,17 @@ void *sii9293_handler(void *p)
 				HDMI_light_off();
 #endif
 #if 1 //
-				share_mem->sm_run_status.ucInputStatus = 0;
-				share_mem->sm_run_status.usWidth = 0;
-				share_mem->sm_run_status.usHeight = 0;
-				share_mem->sm_run_status.ucFrameRate = 0;
+				share_mem->sm_tx_info.is_hdmi_input = 0;
+				share_mem->sm_tx_info.video_height = 0;
+				share_mem->sm_tx_info.video_width = 0;
+				share_mem->sm_tx_info.video_framrate = 0;
+				share_mem->sm_tx_info.audio_ch = 0;
+				share_mem->sm_tx_info.audio_sample = 0;
+				share_mem->sm_tx_info.audio_type = 0;	
+				//share_mem->sm_run_status.ucInputStatus = 0;
+				//share_mem->sm_run_status.usWidth = 0;
+				//share_mem->sm_run_status.usHeight = 0;
+				//share_mem->sm_run_status.ucFrameRate = 0;
 #endif
 				if (audioOut_trigger)
 				{
@@ -1984,7 +1991,6 @@ void *sii9293_handler(void *p)
 						
 						chip->audio_status = AudioOn;
 						//chip->audio_prev_status = AudioOn;
-
 						
 						audio_config();
 						h264_append_info.audio_bits = audio_info->audio_bits;
@@ -1993,10 +1999,17 @@ void *sii9293_handler(void *p)
 						rtsp_audio_config(audio_info->fs, audio_info->audio_bits, audio_info->chns); //defined from live555
 #endif
 #if 1
-						share_mem->sm_run_status.ucInputStatus = 1;
-						share_mem->sm_run_status.usWidth = video_info->width;
-						share_mem->sm_run_status.usHeight = video_info->height;
-						share_mem->sm_run_status.ucFrameRate = video_info->frameRate*(video_info->interlaceMode+1);
+						share_mem->sm_tx_info.is_hdmi_input = 1;
+						share_mem->sm_tx_info.video_height = video_info->height;
+						share_mem->sm_tx_info.video_width = video_info->width;
+						share_mem->sm_tx_info.video_framrate = video_info->frameRate*(video_info->interlaceMode+1);
+						share_mem->sm_tx_info.audio_ch = audio_info->chns;
+						share_mem->sm_tx_info.audio_sample = audio_info->fs;
+
+						//share_mem->sm_run_status.ucInputStatus = 1;
+						//share_mem->sm_run_status.usWidth = video_info->width;
+						//share_mem->sm_run_status.usHeight = video_info->height;
+						//share_mem->sm_run_status.ucFrameRate = video_info->frameRate*(video_info->interlaceMode+1);
 #endif
 					}
 					else
@@ -2012,7 +2025,8 @@ void *sii9293_handler(void *p)
 				//gbBandwidthDetectMode = SL_FALSE;
 				HDMI_light_on();
 #endif
-				share_mem->sm_run_status.ucInputStatus = 1;
+				share_mem->sm_tx_info.is_hdmi_input = 1;
+				//share_mem->sm_run_status.ucInputStatus = 1;
 				
 				if( VideoOn == chip->video_prev_status)
 				{

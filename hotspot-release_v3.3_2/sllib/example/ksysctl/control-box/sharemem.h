@@ -29,8 +29,6 @@ typedef struct{
 	CONFIG_INFO_S config_info;
 	
 }SHARE_MEM;
-
-
 SHARE_MEM *share_mem;
 
 int InitShareMem(void);

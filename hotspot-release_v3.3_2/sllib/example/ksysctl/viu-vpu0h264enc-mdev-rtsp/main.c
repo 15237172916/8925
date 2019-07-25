@@ -46,7 +46,7 @@
 #endif
 #include "app_rtp_tx.h"
 #include "app_tx_broadcast.h"
-
+#include "sharemem.h"
 #include "uart_watchdog.h"
 #include "../version.h"
 
@@ -64,15 +64,15 @@
 //#define VIU_OUTPUT
 #define VIU_OUT_FRAMES 1
 //#define H264_OUTPUT
-#define WEB_ENABLE
+//#define WEB_ENABLE
 //#define APP_CODE
 //#define KVM_UART
-#define DEBUG_OFF
+//#define DEBUG_OFF
 //#define APP_IO
-#define APP_RTP
+//#define APP_RTP
 //#define SWIT_MULTICAST
 
-#define RINGBUFF
+//#define RINGBUFF //audio buffer
 
 #ifdef ENABLE_GET_IR
 #define IR_SERVER_PORT    7998
@@ -118,7 +118,7 @@ static pthread_t app_tx_uart_handler;
 char 	web_flag;
 char multicast[20] = "239.255.42.1";
 #ifdef WEB_ENABLE
-#include "sharemem.h"
+
 
 static pthread_t ConfigHandle;
 
@@ -2695,21 +2695,7 @@ int main(int argc, char* argv[])
 {
 	SL_S32 ret = -1;
 	
-#if 0
-	char configs[256];
-	ret = InitCfgInfo(&fd_config);
-	if(!ret) {
-
-		sprintf(configs, "%s%s", "ifconfig eth0 ",cfginfo.ip);
-		system(configs);
-		//update ip
-		//sprintf(cfginfo.ip,  "%s", "192.168.1.10");
-		//update_cfg_info(fd_config, &cfginfo);
-
-	}
-	close(fd_config);
-#endif
-	printf("********************system starting***************************\n");
+	printf("********************RX system starting***************************\n");
 	printf(PRINT_VERSION);
 	System_running();
 	
@@ -2724,7 +2710,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 1
+#if 0
 	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
@@ -2774,7 +2760,7 @@ int main(int argc, char* argv[])
 		//sleep(1);
 #endif
 
-#if 1 
+#if 0
 	Init_Multicast_and_IP(); //ip and multicast set
 	init_eth();
 	
@@ -2787,6 +2773,17 @@ int main(int argc, char* argv[])
 	//printf("ip addr : %d \n", ip_add);
 	ip_add &= 0xFF;
 	printf("ip address : %d \n", ip_add);
+#endif
+	InitShareMem();	
+	ret = pthread_create(&controlHandle, NULL, IP_broadcast_report, NULL);
+	if (ret) 
+	{
+		log_err("Failed to Create controlHandle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+	while (1) sleep(1);
 #if 0	
 	if (201 == ip_add)
 	{
@@ -2800,7 +2797,7 @@ int main(int argc, char* argv[])
 		}
 	}
 #endif
-#endif
+
 
 	SLOS_CreateMutex(&mutexlock);
 
@@ -2844,7 +2841,7 @@ int main(int argc, char* argv[])
 	
 #endif
 
-#if 1
+#if 0
 
 #if 1
 	ret = pthread_create(&chip_handler, NULL, sii9293_handler, NULL);
@@ -2897,7 +2894,7 @@ int main(int argc, char* argv[])
 
 #endif
 
-	//while (1) sleep(1);
+	
 
 #if 0//def RTSP_ENABLE
 

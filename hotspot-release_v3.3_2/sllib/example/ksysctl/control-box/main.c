@@ -26,10 +26,12 @@
 #include "uart_watchdog.h"
 #include "../version.h"
 #include "app_tx_io_ctl.h"
-
+#include "sharemem.h"
+#include "app_broadcast.h"
 
 static pthread_t uartWatchdogHandler;
 static pthread_t watchdogHandler;
+static pthread_t controlHandler;
 static SL_U32 need_feed_dog = 1;
 
 void *mutexlock;
@@ -140,10 +142,18 @@ int main(int argc, char* argv[])
 	//share memory thread
 	InitShareMem();
 	AppWriteCfgInfotoFile();
+
 	//API thread
 
 
 	//broadcast thread
+	ret = pthread_create(&controlHandler, NULL, control_slave, NULL);
+	if (ret) {
+		log_err("Failed to Create uartWatchdogHandler Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}	
 	while(1) sleep(1);
 	
 	//

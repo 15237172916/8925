@@ -83,6 +83,30 @@ try_socket:
 		//sleep(1);
 		if (readable_timeo(sockfd, 2))
 		{
+			len = recvfrom(sockfd, &broadCollect_s, sizeof(broadCollect_s), \
+				0, (struct sockaddr_in *) &servaddr, &servlen_addr_length);
+			if (len <= 0)
+			{
+				perror("recvfrom");
+				printf("recv len = %d \n", len);
+				printf("server_broadcast recvfrom error \n");
+			}
+			else
+			{
+
+				printf("ucRepayType:%d \n", broadCollect_s.ucRepayType);
+				printf("ucCurrentState:%d \n", broadCollect_s.ucCurrentState);
+				printf("ucProbe:%d \n", broadCollect_s.ucProbe);
+				printf("uuid:%d \n", broadCollect_s.uuid);
+				printf("audio_ch:%d \n", broadCollect_s.tx_info_s.audio_ch);
+				printf("audio_sample:%d \n", broadCollect_s.tx_info_s.audio_sample);
+				printf("is_hdmi_input:%d \n", broadCollect_s.tx_info_s.is_hdmi_input);
+				printf("video_framrate:%d \n", broadCollect_s.tx_info_s.video_framrate);
+				printf("video_height:%d \n", broadCollect_s.tx_info_s.video_height);
+				printf("video_width:%d \n", broadCollect_s.tx_info_s.video_width);
+				//printf("", broadCollect_s.tx_info_s);
+
+			} 
 			#if 0
 			len = recvfrom(sockfd, &broadCollect_s, sizeof(broadCollect_s), \
 				0, (struct sockaddr_in *) &servaddr, &servlen_addr_length);

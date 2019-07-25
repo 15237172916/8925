@@ -117,35 +117,37 @@ MODE_RENAME_S mode_rename;
 */
 typedef struct
 {
-    char input;
-    char resolution;
-    char framrate;
-    char audio_type;
-    char audio_sample;
-    char audio_ch;
+    unsigned char is_hdmi_input;
+    //char video_resolution;
+    unsigned short video_width;
+    unsigned short video_height;
+    unsigned char video_framrate;
+    unsigned char audio_type;
+    unsigned char audio_sample;
+    unsigned char audio_ch;
     char fw_version[20];
     char fw_status;
 } TX_INFORMATION_S;
 
 typedef struct
 {
-    char baud_rate;
-    char data_bit;
-    char parity_bit;
-    char data_type;
+    unsigned char baud_rate;
+    unsigned char data_bit;
+    unsigned char parity_bit;
+    unsigned char data_format;
     char on_data[128];
     char off_data[128];
 } CONTROL_DATA_S;
+
 typedef struct
 {
-    char video_source;
-    char online_count;
+    unsigned char video_source;
+    unsigned char online_count;
     char fw_version[20];
-    char fw_status;
-    char data_type;
+    unsigned char fw_status;
+    unsigned char data_type;
     CONTROL_DATA_S control_data;
 } RX_INFORMATION_S;
-
 
 
 

@@ -1,12 +1,13 @@
 #ifndef __SHAREMEM_H_
-#define __SHAREMEM_H
+#define __SHAREMEM_H_
 
 #include <stdio.h>
 #include <sys/shm.h>
 #include <sl_types.h>
 #include "Setting.h"
-#include "cfginfo.h"
-
+//#include "cfginfo.h"
+#if 0
+/*
 typedef struct{
 	unsigned char ucUpdateFlag; //1:updated
 	unsigned char ucModeApplyFlag; //1:apply
@@ -22,8 +23,16 @@ typedef struct{
 	GROUP_RENAME_S sm_group_rename;
 	MODE_RENAME_S sm_mode_rename;
 }SHARE_MEM;
+*/
+#endif
 
-SHARE_MEM *share_mem;
+typedef struct _SHARE_MEM_{
+	unsigned char ucUpdateFlag; //1:updated
+	//RUN_STATUS sm_run_status;
+	ETH_SETTING sm_eth_setting;
+	TX_INFORMATION_S sm_tx_info;
+} SHARE_MEM_S, *pSHARE_MEM_S;
+pSHARE_MEM_S share_mem;
 
 int InitShareMem(void);
 SL_POINTER  sharemem_handle(SL_POINTER Args);
