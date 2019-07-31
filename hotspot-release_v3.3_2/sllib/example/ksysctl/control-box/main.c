@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
 
 
 	//broadcast thread
-	ret = pthread_create(&controlHandler, NULL, control_slave, NULL);
+	ret = pthread_create(&controlHandler, NULL, control_respond, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
 		log_err("%d reboot",__LINE__);

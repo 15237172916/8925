@@ -58,10 +58,10 @@
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
 //#define APP_CODE
-#define WEB_ENABLE
+//#define WEB_ENABLE
 //#define KVM_UART
-#define APP_IO
-#define APP_RTP
+//#define APP_IO
+//#define APP_RTP
 
 
 #define AUDIO_SUPPORT
@@ -2183,26 +2183,10 @@ int main(int argc, char* argv[])
 	//AppWriteCfgInfotoFile();
 	printf(PRINT_VERSION);
 #if 0
-	ret = InitCfgInfo(&fd_config);
-	if(!ret) {
-
-		sprintf(rtspURL_video,  "%s%s%s", "rtsp://",cfginfo.serverip,":8554/ch0");
-
-		sprintf(rtspURL_audio,  "%s%s%s", "rtsp://",cfginfo.serverip,":8559/testStream");
-
-		//sprintf(configs, "%s%s", "ifconfig eth0 ",cfginfo.ip);
-		//system(configs);
-
-		sprintf(cfginfo.ip,  "%s", "192.168.1.10");
-
-		update_cfg_info(fd_config, &cfginfo);
-
-	}
-	close(fd_config);
-#endif
 	ret = SLSYSCTL_openSysCtlLib();
 	if (SL_NO_ERROR != ret)
 		return 0;
+#endif
 	//printf("rtspURL_video:%s\n",rtspURL_video);
 	//printf("rtspURL_audio:%s\n",rtspURL_audio);
 
@@ -2213,7 +2197,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	
-#if 1
+#if 0
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
@@ -2222,7 +2206,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 1
+#if 0
 	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
@@ -2258,7 +2242,7 @@ int main(int argc, char* argv[])
 	
 #endif
 
-#if 1
+#if 0
 	ret = pthread_create(&IP_switch_handle, NULL, IP_switch, NULL);
 	if (ret) {
 		log_err("Failed to Create IP_switch Thread\n");
@@ -2267,7 +2251,16 @@ int main(int argc, char* argv[])
 	}
 #endif
 	sleep(1);
-	
+#if 1
+	ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_ask, NULL);
+	if (ret) {
+		log_err("Failed to Create watchdogHandle Thread\n");
+		reboot1();
+		return ret;
+	}
+#endif	
+	while (1) sleep(1);
+
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, OSD_VERSION);
@@ -2277,16 +2270,6 @@ int main(int argc, char* argv[])
 	//sleep(1);
 #endif
 
-
-#if 1
-	ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_report, NULL);
-	if (ret) {
-		log_err("Failed to Create watchdogHandle Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-	
 #ifdef KVM_UART
 	ret = pthread_create(&app_rx_uart_handler, NULL, app_rx_uart_main, NULL);
 	if (ret) {
@@ -2399,8 +2382,6 @@ int main(int argc, char* argv[])
 	}
 #endif
 	
-	//while (1) sleep(1);
-	
 	ret = pthread_create(&iHandle, NULL, MDEV_Input_ThreadFunc, (void *)im_devman);
 	if (ret) {
 		log_err("Failed to MDEV_Input_ThreadFunc Thread\n");
@@ -2486,6 +2467,7 @@ int main(int argc, char* argv[])
 		sleep(1);
 		//printf("tmp:%d \n", tmp);
 		//printf("display_flag: %d\n", display_flag);
+#if 0
 		if (key_display || display_flag)
 		{
 			if (0==tmp)
@@ -2509,7 +2491,7 @@ int main(int argc, char* argv[])
 				tmp = 0;
 			}
 		}
-		
+#endif
 #if 0
 		//add for wang in 20181219
 		ret = SLSYSCTL_getTimeoutDev(&dd);

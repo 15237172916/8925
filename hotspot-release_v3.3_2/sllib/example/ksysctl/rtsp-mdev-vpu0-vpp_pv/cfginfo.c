@@ -48,6 +48,7 @@ static int get_random(void)
 
 int AppInitCfgInfoDefault(void)
 {
+    #if 0
     //RUN_STATUS.ucHDMIStatus = HDMI_OUT;
     share_mem->sm_run_status.ucInputStatus = NONE;
     share_mem->sm_run_status.usWidth = 0;
@@ -103,7 +104,7 @@ int AppInitCfgInfoDefault(void)
     //strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, share_mem->sm_eth_setting.strEthIp);
     strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, "main");
     //printf("init interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
-	
+	#endif
     return 1;
 }
 
@@ -129,6 +130,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	memset(&cfginfo,0,sizeof(cfginfo));
 
     printf("get eth ip \n");
+    #if 0
     printf("share_mem->sm_eth_setting.strEthIp = %s \n", share_mem->sm_eth_setting.strEthIp);
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_IP",share_mem->sm_eth_setting.strEthIp);  
 	
@@ -234,7 +236,7 @@ int AppInitCfgInfoFromFile(int *fp)
         strcpy(share_mem->sm_rtsp_setting.strRTSPIp, share_mem->sm_wlan_setting.strWlanIp);
     }
     */
-	
+	#endif
 #if 0   
 	printf("Info -----------------------------------\n");  
 	printf("IP: %s\n", cfginfo.ip); 
@@ -253,7 +255,7 @@ int AppWriteCfgInfotoFile(void)
     FILE* fp;
     fp = fopen(CONFIG_FILE, "w");
     printf("write conf file \n");
-    
+    #if 0
     //Section Eth
     //fwrite("[ETH]\r\n",strlen("[ETH]\r\n"),1,fp);
     fprintf(fp,"[ETH]\n");
@@ -300,7 +302,7 @@ int AppWriteCfgInfotoFile(void)
 	
 	//UUID
     fprintf(fp,"UUID=%d\n",share_mem->uuid);
-    
+    #endif
     fprintf(fp,"[END]");
     
     fclose(fp);

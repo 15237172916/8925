@@ -40,10 +40,50 @@ int AppInitCfgInfoDefault(void)
 	int i, j;
 	char s[40];
 
+	//TX information init
+	for (i=0; i<24; i++)
+	{
+		strcpy(share_mem->config_info.TX_Alias[i], "TX");
+		share_mem->tx_info[i].uuid = 0;
+		share_mem->tx_info[i].audio_ch = 0;
+		share_mem->tx_info[i].audio_sample = 0;
+		share_mem->tx_info[i].audio_type = 0;
+		share_mem->tx_info[i].video_framrate = 0;
+		share_mem->tx_info[i].video_height = 0;
+		share_mem->tx_info[i].video_width = 0;
+		share_mem->tx_info[i].is_hdmi_input = 0;
+		share_mem->tx_info[i].fw_status = 0;
+		//share_mem->tx_info[i].fw_version = 1;
+		strcpy(share_mem->tx_info[i].fw_version, "V0.0.1");	
+	}
+
+	//RX information init
+	for (i=0; i<128; i++)
+	{
+		//sprintf(s,"");
+		strcpy(share_mem->config_info.RX_Alias[i], "RX");
+		share_mem->rx_info[i].uuid = 0;
+		share_mem->rx_info[i].video_source = 1;
+		share_mem->rx_info[i].heart_count = 0;
+		share_mem->rx_info[i].data_type = 0;
+		share_mem->rx_info[i].fw_status = 0;
+		strcpy(share_mem->rx_info[i].fw_version, "V0.0.1");
+		share_mem->rx_info[i].control_data.baud_rate = 0;
+		share_mem->rx_info[i].control_data.data_bit = 0;
+		share_mem->rx_info[i].control_data.data_format = 0;
+		share_mem->rx_info[i].control_data.parity_bit = 0;
+		for (j=0; j<128; j++)
+		{
+			share_mem->rx_info[i].control_data.off_data[j] = '0';
+			share_mem->rx_info[i].control_data.on_data[j] = '0';	
+		}
+	}
+
 	//Group init
 	for (i=0; i<20; i++)
 	{
 		//share_mem->config_info.group[i].group_alias = 0;
+		strcpy(share_mem->config_info.group[i].group_alias, "Group");
 		for (j=0; j<128; j++)
 		{
 			share_mem->config_info.group[i].group_member[j] = 0;
@@ -53,48 +93,84 @@ int AppInitCfgInfoDefault(void)
 	//Scene
 	for (i=0; i<10; i++)
 	{
-		//share_mem->config_info.scene[i].scene_alias = 0;
+		share_mem->config_info.scene[i].scene_source = 1;
+		strcpy(share_mem->config_info.scene[i].scene_alias, "Scene");
 		for (j=0; j<20; j++)
 		{
 			share_mem->config_info.scene[i].scene_member[j] = 0;
 		}
-		share_mem->config_info.scene[i].scene_source = 1;
-	}
-
-	//TX information init
-	for (i=0; i<24; i++)
-	{
-		//share_mem->config_info.TX_Alias[i] = 0;
-		share_mem->tx_info[i].audio_ch = 0;
-		share_mem->tx_info[i].audio_sample = 0;
-		share_mem->tx_info[i].audio_type = 0;
-		share_mem->tx_info[i].video_framrate = 0;
-		//share_mem->tx_info[i].video_resolution = 0;
-		share_mem->tx_info[i].video_height = 0;
-		share_mem->tx_info[i].video_width = 0;
-		share_mem->tx_info[i].is_hdmi_input = 0;
-		share_mem->tx_info[i].fw_status = 0;
-		//share_mem->tx_info[i].fw_version = 1;
-	}
-
-	//RX information init
-	for (i=0; i++; i<128)
-	{
-		//share_mem->config_info.RX_Alias[i] = 0;
-		share_mem->rx_info[i].video_source = 1;
-		share_mem->rx_info[i].online_count = 0;
-		share_mem->rx_info[i].data_type = 0;
-		share_mem->rx_info[i].fw_status = 0;
-		//share_mem->rx_info[i].fw_version = 0;
-		share_mem->rx_info[i].control_data.baud_rate = 0;
-		share_mem->rx_info[i].control_data.data_bit = 0;
-		share_mem->rx_info[i].control_data.data_format = 0;
-		share_mem->rx_info[i].control_data.parity_bit = 0;
-		//share_mem->rx_info[i].control_data.off_data = 0;
-		//share_mem->rx_info[i].control_data.on_data = 0;
+		
+		//printf("scene_alias:%s \n", share_mem->config_info.scene[i].scene_alias);
 	}
 
     return 1;
+}
+
+int AppWriteCfgInfotoFile(void)
+{
+	int iRetCode = 0 , i; 
+	char strTemp[200];
+    FILE* fp;
+    fp = fopen(CONFIG_FILE, "w");
+    printf("start write conf file \n");
+	fprintf(fp, "[ETH]\n");
+
+	//TX information
+	for (i=0; i<24; i++)
+	{
+		fprintf(fp, "TX[%d]\n{\n", i+1);
+		fprintf(fp, "\tTX[%d].ALIAS=%s\n", i+1, share_mem->config_info.TX_Alias[i]);
+		fprintf(fp, "\tTX[%d].HDMI_INPUT=%d\n", i+1, share_mem->tx_info[i].is_hdmi_input);
+		fprintf(fp, "\tTX[%d].AUDIO_TYPE=%d\n", i+1, share_mem->tx_info[i].audio_type);
+		fprintf(fp, "\tTX[%d].AUDIO_SAMPLE=%d\n", i+1, share_mem->tx_info[i].audio_sample);
+		fprintf(fp, "\tTX[%d].AUDIO_CH=%d\n", i+1, share_mem->tx_info[i].audio_ch);
+		fprintf(fp, "\tTX[%d].VIDEO_FRAMRATE=%d\n", i+1, share_mem->tx_info[i].video_framrate);
+		fprintf(fp, "\tTX[%d].VIDEO_WIDTH=%d\n", i+1, share_mem->tx_info[i].video_width);
+		fprintf(fp, "\tTX[%d].VIDEO_HEIGHT=%d\n", i+1, share_mem->tx_info[i].video_height);
+		fprintf(fp, "\tTX[%d].FW_STATUS=%d\n", i+1, share_mem->tx_info[i].fw_status);
+    	fprintf(fp, "\tTX[%d].FW_VERSION=%s\n", i+1, share_mem->tx_info[i].fw_version);
+		fprintf(fp, "}\n");
+	}
+	//RX information
+	for (i=0; i<128; i++)
+	{
+		fprintf(fp, "RX[%d]\n{\n", i+1);
+		fprintf(fp, "\tRX[%d].ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);	
+		fprintf(fp, "\tRX[%d].VIDEO_SOURCE=%d\n", i+1, share_mem->rx_info[i].video_source);
+		fprintf(fp, "\tRX[%d].ONLINE_COUNT=%d\n", i+1, share_mem->rx_info[i].heart_count);
+		fprintf(fp, "\tRX[%d].FW_STATUS=%d\n", i+1, share_mem->rx_info[i].fw_status);
+		fprintf(fp, "\tRX[%d].FW_VWESION=%s\n", i+1, share_mem->rx_info[i].fw_version);
+		fprintf(fp, "\tRX[%d].DATA_TYPE=%d\n", i+1, share_mem->rx_info[i].data_type);
+		fprintf(fp, "\tRX[%d].BAUD_RATE=%d\n", i+1, share_mem->rx_info[i].control_data.baud_rate);
+		fprintf(fp, "\tRX[%d].DATA_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.data_bit);
+		fprintf(fp, "\tRX[%d].DATA_FORMAT=%d\n", i+1, share_mem->rx_info[i].control_data.data_format);
+		fprintf(fp, "\tRX[%d].PARITY_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.parity_bit);
+		fprintf(fp, "\tRX[%d].OFF_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.off_data);
+		fprintf(fp, "\tRX[%d].ON_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.on_data);
+		fprintf(fp, "}\n");
+	}
+	//Group 
+	for (i=0; i<20; i++)
+	{
+		fprintf(fp, "GROUP[%d]\n{\n", i+1);
+		fprintf(fp, "\tGROUP[%d].MEMBER=%s\n", i+1, share_mem->config_info.group[i].group_member);
+		fprintf(fp, "\tGROUP[%d].ALIA=%s\n", i+1, share_mem->config_info.group[i].group_alias);
+		fprintf(fp, "}\n");	
+	}
+	//Scene
+	for (i=0; i<10; i++)
+	{
+		fprintf(fp, "SCENE[%d]\n{\n", i+1);
+		fprintf(fp, "\tSCENE[%d].SOURCE=%d\n", i+1, share_mem->config_info.scene[i].scene_source);
+		fprintf(fp, "\tSCENE[%d].MEMBER=%s\n", i+1, share_mem->config_info.scene[i].scene_member);
+		fprintf(fp, "\tSCENE[%d].ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
+		//printf("SCENE[%d].ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
+		//fprintf(fp, "SCENE[%d].SOURCE=%d\n",i+1, share_mem->config_info.scene[i].scene_source);
+		fprintf(fp, "}\n");
+	}
+
+    fprintf(fp,"[END]\n");
+	fclose(fp);
 }
 
 int AppInitCfgInfoFromFile(int *fp)
@@ -121,220 +197,8 @@ int AppInitCfgInfoFromFile(int *fp)
     printf("get eth ip \n");
 
 	
-
-
-	
-
-	
-
-	
-   // printf("file interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
 	return 0;
 }
-
-int AppWriteCfgInfotoFile(void)
-{
-	int iRetCode = 0 , i; 
-	char strTemp[200];
-    FILE* fp;
-    fp = fopen(CONFIG_FILE, "w");
-    printf("start write conf file \n");
-	fprintf(fp, "[ETH]\n");
-
-	//TX information
-	for (i=0; i<24; i++)
-	{
-		fprintf(fp, "TX[%d]\n{\n", i+1);
-		fprintf(fp, "\tTX[%d].ALIAS=%s\n", i+1, share_mem->config_info.TX_Alias[i]);
-		fprintf(fp, "\tTX[%d].HDMI_INPUT=%d\n", i+1, share_mem->tx_info[i].is_hdmi_input);
-		fprintf(fp, "\tTX[%d].AUDIO_TYPE=%d\n", i+1, share_mem->tx_info[i].audio_type);
-		fprintf(fp, "\tTX[%d].AUDIO_SAMPLE=%d\n", i+1, share_mem->tx_info[i].audio_sample);
-		fprintf(fp, "\tTX[%d].AUDIO_CH=%d\n", i+1, share_mem->tx_info[i].audio_ch);
-		fprintf(fp, "\tTX[%d].VIDEO_FRAMRATE=%d\n", i+1, share_mem->tx_info[i].video_framrate);
-		//fprintf(fp, "\tTX[%d].VIDEO_RESOLUTION=%d\n", i+1, share_mem->tx_info[i].video_resolution);
-		fprintf(fp, "\tTX[%d].VIDEO_WIDTH=%d\n", i+1, share_mem->tx_info[i].video_width);
-		fprintf(fp, "\tTX[%d].VIDEO_HEIGHT=%d\n", i+1, share_mem->tx_info[i].video_height);
-		fprintf(fp, "\tTX[%d].FW_STATUS=%d\n", i+1, share_mem->tx_info[i].fw_status);
-    	fprintf(fp, "\tTX[%d].FW_VERSION=%s\n", i+1, share_mem->tx_info[i].fw_version);
-		//fprintf(fp, "-.=%d\n", i+1, share_mem->tx_info[i].);
-		//fprintf(fp, "-.=%d\n", i+1, share_mem->tx_info[i].);
-		fprintf(fp, "}\n");
-	}
-	//RX information
-	for (i=0; i<128; i++)
-	{
-		fprintf(fp, "RX[%d]\n{\n", i+1);
-		fprintf(fp, "\tRX[%d].ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);	
-		fprintf(fp, "\tRX[%d].VIDEO_SOURCE=%d\n", i+1, share_mem->rx_info[i].video_source);
-		fprintf(fp, "\tRX[%d].ONLINE_COUNT=%d\n", i+1, share_mem->rx_info[i].online_count);
-		fprintf(fp, "\tRX[%d].FW_STATUS=%d\n", i+1, share_mem->rx_info[i].fw_status);
-		fprintf(fp, "\tRX[%d].FW_VWESION=%s\n", i+1, share_mem->rx_info[i].fw_version);
-		fprintf(fp, "\tRX[%d].DATA_TYPE=%d\n", i+1, share_mem->rx_info[i].data_type);
-		fprintf(fp, "\tRX[%d].BAUD_RATE=%d\n", i+1, share_mem->rx_info[i].control_data.baud_rate);
-		fprintf(fp, "\tRX[%d].DATA_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.data_bit);
-		fprintf(fp, "\tRX[%d].DATA_FORMAT=%d\n", i+1, share_mem->rx_info[i].control_data.data_format);
-		fprintf(fp, "\tRX[%d].PARITY_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.parity_bit);
-		fprintf(fp, "\tRX[%d].OFF_DATA=%d\n", i+1, share_mem->rx_info[i].control_data.off_data);
-		fprintf(fp, "\tRX[%d].ON_DATA=%d\n", i+1, share_mem->rx_info[i].control_data.on_data);
-		fprintf(fp, "}\n");
-	}
-	//Group 
-	for (i=0; i<20; i++)
-	{
-		fprintf(fp, "GROUP[%d]\n{\n", i+1);
-		fprintf(fp, "\tGROUP[%d].MEMBER=%d\n", i+1, share_mem->config_info.group[i].group_member);
-		fprintf(fp, "\tGROUP[%d].ALIA=%s\n", i+1, share_mem->config_info.group[i].group_alias);
-		fprintf(fp, "}\n");	
-	}
-	//Scene
-	for (i=0; i<10; i++)
-	{
-		fprintf(fp, "SCENE[%d]\n{\n", i+1);
-		fprintf(fp, "\tSCENE[%d].SOURCE=%d\n", i+1, share_mem->config_info.scene[i].scene_source);
-		fprintf(fp, "\tSCENE[%d].MEMBER=%d\n", i+1, share_mem->config_info.scene[i].scene_member);
-		fprintf(fp, "\tSCENE[%d].ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
-		//fprintf(fp, "SCENE[%d].SOURCE=%d\n",i+1, share_mem->config_info.scene[i].scene_source);
-		fprintf(fp, "}\n");
-	}
-
-    #if 0
-    //Section Eth
-    //fwrite("[ETH]\r\n",strlen("[ETH]\r\n"),1,fp);
-    fprintf(fp,"[ETH]\n");
-
-    fprintf(fp,"ETH_IP=%s\n",share_mem->sm_eth_setting.strEthIp);
-    fprintf(fp,"ETH_MASK=%s\n",share_mem->sm_eth_setting.strEthMask);
-    fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
-	fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
-	
-    //Section WLAN
-    //fprintf(fp,"[WLAN]\n");
-    fprintf(fp,"WLAN_DHCP_SWITCH=%d\n",share_mem->sm_wlan_setting.ucWlanDHCPSwitch);
-    fprintf(fp,"WLAN_IP=%s\n"," - ");
-    fprintf(fp,"WLAN_MASK=%s\n"," - ");
-    fprintf(fp,"WLAN_GATEWAY=%s\n"," - ");
-    fprintf(fp,"WLAN_SSID=%s\n",share_mem->sm_wlan_setting.strWlanSSID);
-    fprintf(fp,"WLAN_PSK=%s\n",share_mem->sm_wlan_setting.strWlanPSK);
-    fprintf(fp,"WLAN_ENCRYPTION=%d\n",share_mem->sm_wlan_setting.ucWlanEyp);
-    fprintf(fp,"WLAN_ENABLE=%d\n",share_mem->sm_wlan_setting.ucWlanEnable);  
-    
-    //Section ENCODER
-    //fprintf(fp,"[ENCODER]\n");
-    fprintf(fp,"ENC_RATE=%d\n",share_mem->sm_encoder_setting.usEncRate);
-    fprintf(fp,"INTERVAL=%d\n",share_mem->sm_encoder_setting.ucInterval);
-    fprintf(fp,"IQP=%d\n",share_mem->sm_encoder_setting.ucIQP);
-    fprintf(fp,"PQP=%d\n",share_mem->sm_encoder_setting.ucPQP);
-    fprintf(fp,"FRAME_RATE=%d\n",share_mem->sm_encoder_setting.ucFrameRate);
-	//printf("ENC_RATE=%d\n",share_mem->sm_encoder_setting.usEncRate);
-	//printf("INTERVAL=%d\n",share_mem->sm_encoder_setting.ucInterval);
-    //printf("FRAME_RATE=%d\n",share_mem->sm_encoder_setting.ucFrameRate);
-    
-    //Section RTMP
-    //fprintf(fp,"[RTMP]\n");
-    fprintf(fp,"RTMP_SWITCH=%d\n",share_mem->sm_rtmp_setting.ucRTMPSwitch);
-    fprintf(fp,"RTMP_URL=%s\n",share_mem->sm_rtmp_setting.strRTMPUrl);
-    fprintf(fp,"RTMP_INTERFACE=%d\n",share_mem->sm_rtmp_setting.ucRTMPInterface);
-    fprintf(fp,"RTMP_PORT=%d\n",share_mem->sm_rtmp_setting.usRTMPPort);
-    
-    //Section RTSP
-    //fprintf(fp,"[RTSP]\n");
-    fprintf(fp,"RTSP_SWITCH=%d\n",share_mem->sm_rtsp_setting.ucRTSPSwitch);
-    fprintf(fp,"RTSP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTSPPort);
-    fprintf(fp,"RTP_PORT=%d\n",share_mem->sm_rtsp_setting.usRTPPort);
-    fprintf(fp,"RTP_BROADCAST_IP=%s\n",share_mem->sm_rtsp_setting.strRTPBroadcastIp);
-    fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
-    fprintf(fp,"RTSP_URL=%s\n",share_mem->sm_rtsp_setting.strRTSPUrl);
-    
-    //group ip address 
-    #if 0
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_IP[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.ucIpAddress[i]);
-		//fprintf(fp,"\n");
-	}
-    #endif
-    
-    //multicast
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_MULTICAST[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.ucMultiAddress[i]);
-		//fprintf(fp,"\n");
-		//printf("%d", share_mem->sm_group_pack.ucMultiAddress[i]);
-	}
-    
-    //uuid
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp,"GROUP_UUID[%d]=", i);
-		fprintf(fp,"%d\n",share_mem->sm_group_pack.uuid[i]);
-		//fprintf(fp,"\n");
-	}
-    
-    //rx rename
-    for (i=0; i<128; i++)
-    {
-		fprintf(fp, "GROUP_RXNAME[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_group_rename.rxRename[i]);
-		//printf("%s \n", share_mem->sm_group_rename.rxRename[i]);
-	}
-    
-    //tx rename
-    for (i=0; i<24; i++)
-    {
-		fprintf(fp, "GROUP_TXNAME[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_group_rename.txRename[i]);
-	}
-	
-	fprintf(fp,"[END]");
-	fclose(fp);
-	
-	//mode rename
-	fp = fopen(CONFIG_FILE1, "w");
-	fprintf(fp,"[ETH]\n");
-	
-    for (i=0; i<10; i++)
-    {
-		fprintf(fp, "MODE[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
-		//printf("Write config : %s",share_mem->sm_mode_rename.modeRename[i]);
-	}
-	//current mode
-	fprintf(fp, "CurrentMode=");
-	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
-	
-	//printf("end");
-	#endif
-    fprintf(fp,"[END]");
-	fclose(fp);
-}
-
-int AppWrinteModeInfotoFile(void)
-{
-	int iRetCode = 0 , i; 
-	char strTemp[200];
-    FILE* fp;
-	
-	fp = fopen(CONFIG_FILE1, "w");
-	fprintf(fp,"[ETH]\n");
-	#if 0
-    for (i=0; i<10; i++)
-    {
-		fprintf(fp, "MODE[%d]=", i);
-		fprintf(fp,"%s\n",share_mem->sm_mode_rename.modeRename[i]);
-		//printf("%s",share_mem->sm_mode_rename.modeRename[i]);
-	}
-	//current mode
-	fprintf(fp, "CurrentMode=");
-	fprintf(fp,"%d\n",share_mem->ucCurrentMode);
-	
-	//printf("end");
-	#endif
-    fprintf(fp,"[END]");
-	fclose(fp);
-}
-
 #if 0
 int AppInitCfgInfoFromFile(int *fp)
 {

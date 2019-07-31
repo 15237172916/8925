@@ -116,6 +116,8 @@ MODE_RENAME_S mode_rename;
 */
 typedef struct
 {
+    unsigned int uuid;
+    unsigned char heart_count;
     unsigned char is_hdmi_input;
     //char video_resolution;
     unsigned short video_width;
@@ -140,8 +142,9 @@ typedef struct
 
 typedef struct
 {
+    unsigned int uuid;
     unsigned char video_source;
-    unsigned char online_count;
+    unsigned char heart_count;
     char fw_version[20];
     unsigned char fw_status;
     unsigned char data_type;
@@ -157,7 +160,7 @@ typedef struct
 typedef struct
 {
     unsigned char scene_source;
-    unsigned char scene_member[10];
+    unsigned char scene_member[20];
     char scene_alias[20];
 } SCENE_S;
 

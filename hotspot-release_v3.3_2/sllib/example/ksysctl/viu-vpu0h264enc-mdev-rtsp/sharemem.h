@@ -28,7 +28,9 @@ typedef struct{
 
 typedef struct _SHARE_MEM_{
 	unsigned char ucUpdateFlag; //1:updated
-	//RUN_STATUS sm_run_status;
+	unsigned char ucIpAddress;
+	unsigned int uuid;
+	
 	ETH_SETTING sm_eth_setting;
 	TX_INFORMATION_S sm_tx_info;
 } SHARE_MEM_S, *pSHARE_MEM_S;

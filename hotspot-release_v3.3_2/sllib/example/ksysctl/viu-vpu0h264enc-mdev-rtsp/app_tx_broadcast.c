@@ -13,7 +13,9 @@
 #include "sharemem.h"
 #include "init.h"
 
-char display_flag = 0;
+//char display_flag = 0;
+static REPORT_PACK_S broadSend_s;
+static REPORT_PACK_S broadRecv_s;
 
 #if 1
 static int get_random(void)
@@ -28,9 +30,7 @@ static int get_random(void)
 }
 #endif
 
-
 #if 1
-
 static int readable_timeo(int fd, int sec)
 {
 	fd_set rset;
@@ -46,12 +46,21 @@ static int readable_timeo(int fd, int sec)
 }
 #endif
 
-void *IP_broadcast_report()
+static void AVclean(void)
+{
+	printf("AV clean \n");
+}
+
+static void AVupdate(void)
+{
+	printf("AV update");
+}
+
+void *IP_broadcast_ask()
 {
 	int sockfd = -1;
 	int ret = -1;
 	int len = -1;
-	
 	
 	const int opt = -1;
 	unsigned int ip_add, mul_add;
@@ -60,9 +69,7 @@ void *IP_broadcast_report()
 	socklen_t servlen_addr_length;
 	struct sockaddr_in servaddr;
 	char * s = malloc(20*sizeof(char));
-	REPORT_PACK_S broadReport_s;
-	REPORT_PACK_S broadRecv_s;
-	
+
 	servlen_addr_length = sizeof(servaddr);
 	memset(&servaddr, 0, sizeof(servaddr));
 	
@@ -87,11 +94,11 @@ try_socket:
 		
 	//set socket broadcast 
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
-	broadReport_s.ucProbe = PROBE;
-	broadReport_s.uuid = random_number; //random number
-	broadReport_s.ucCurrentState = START; 
-	broadReport_s.ucRepayType = TX;
-
+	broadSend_s.ucProbe = PROBE;
+	broadSend_s.uuid = random_number; //random number
+	broadSend_s.ucCurrentState = START; 
+	broadSend_s.ucRepayType = TX;
+	
 	while (1)
 	{
 		sleep(1);
@@ -100,21 +107,23 @@ try_socket:
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
 		mul_add = ntohl(mul_add); //host
 		mul_add &= 0xFF;
-		broadReport_s.rx_info_s.video_source = mul_add; //multicast address
+		broadSend_s.rx_info_s.video_source = mul_add; //multicast address
 		printf("multicast address : %d \n", mul_add);
 		
 		//get ip address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
 		ip_add = ntohl(ip_add); //host
 		ip_add &= 0xFF;
-		broadReport_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
+		broadSend_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
 		printf("ip address : %d \n", ip_add);
 		
-		//printf("broadReport_s.ucIpAddress : %d \n", broadReport_s.ucIpAddress);
-		//printf("broadReport_s.ucMultiAddress : %d \n", broadReport_s.ucMultiAddress);
+		//printf("broadSend_s.ucIpAddress : %d \n", broadSend_s.ucIpAddress);
+		//printf("broadSend_s.ucMultiAddress : %d \n", broadSend_s.ucMultiAddress);
 		//printf("buffer 1 : %d \n", buffer_flag[1]);
-		
-		len = sendto(sockfd, &broadReport_s, sizeof(broadReport_s), \
+		broadSend_s.ucIpAddress = 205;	
+		broadSend_s.tx_info_s.is_hdmi_input = 1;
+		printf("broadSend_s.tx_info_s.is_hdmi_input: %d \n", broadSend_s.tx_info_s.is_hdmi_input);
+		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 		if (len <= 0)
 		{
@@ -138,11 +147,49 @@ try_socket:
 				}
 				else
 				{
-					//printf("ucInfoDisplayFlag : %d \n", broadRecv_s.ucInfoDisplayFlag);
-					//printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
-					//printf("ucMultiAddress : %d \n", broadRecv_s.ucMultiAddress);
-					//printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
-					//printf("uuid : %d \n", broadRecv_s.uuid);
+					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
+					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
+					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
+					printf("uProbe : 0x%x \n", broadRecv_s.ucProbe);
+					printf("uuid : %d \n", broadRecv_s.uuid);
+
+					if (PROBE != broadRecv_s.ucProbe)
+					{
+						printf("PROBE is error \n");
+						continue;
+					}
+					if (broadRecv_s.uuid != broadSend_s.uuid)
+					{
+						printf("uuid is error \n");
+						continue;
+					}
+					if (broadRecv_s.ucRepayType != TX)
+					{
+						printf("repay type is error \n");
+						printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);
+						continue;
+					}
+					if (broadSend_s.ucIpAddress != broadRecv_s.ucIpAddress)
+					{
+						printf("ip address is error \n");
+						continue;
+					}
+					switch (broadRecv_s.ucCurrentState)
+					{
+						case HEART:
+							//broadSend_s.ucCurrentState = HEART;
+							AVclean();
+							break;
+						case START:
+							AVupdate();
+							broadSend_s.ucCurrentState = START;
+							break;
+						case RESPOND:
+							broadSend_s.ucCurrentState = HEART;
+							AVclean();
+							break;
+					}
+
 					#if 0
 					if (PROBE != broadRecv_s.uProbe)
 					{
@@ -154,17 +201,17 @@ try_socket:
 						display_flag = broadRecv_s.ucInfoDisplayFlag;
 						//printf("ucInfoDisplayFlag: %d \n", broadRecv_s.ucInfoDisplayFlag);
 					}
-					if (broadReport_s.ucIpAddress != broadRecv_s.ucIpAddress)
+					if (broadSend_s.ucIpAddress != broadRecv_s.ucIpAddress)
 					{
 						printf("IP address is not same \n");
 						continue;
 					}
-					else if (broadReport_s.uuid != broadRecv_s.uuid)
+					else if (broadSend_s.uuid != broadRecv_s.uuid)
 					{
 						printf("uuid is error \n");
 						continue;
 					}
-					else if (broadReport_s.ucMultiAddress == broadRecv_s.ucMultiAddress)
+					else if (broadSend_s.ucMultiAddress == broadRecv_s.ucMultiAddress)
 					{
 						printf("Multicast address is same \n");
 						sprintf(s, "239.255.42.%d", broadRecv_s.ucMultiAddress);
@@ -180,10 +227,6 @@ try_socket:
 					}
 					#endif
 				}
-			}
-			else
-			{
-				display_flag = 0;
 			}
 		}
 	}

@@ -8,7 +8,7 @@ int InitShareMem(void)
 {
 	int shmid;
 	printf("statr init share memory\n");
-	shmid = shmget((key_t)1234, sizeof(SHARE_MEM), 0666|IPC_CREAT);	
+	shmid = shmget((key_t)1234, sizeof(SHARE_MEM_S), 0666|IPC_CREAT);	
 	if(shmid == -1)  
 	{  
 		printf("shmget failed\n");  
@@ -22,15 +22,16 @@ int InitShareMem(void)
 		exit(0);  
 	}
 	printf("Memory attached at %X\n", (int)share_mem);  
-
-    share_mem->sm_eth_setting = eth_setting;
-    share_mem->sm_wlan_setting = wlan_setting;
+#if 0
+    //share_mem->sm_eth_setting = eth_setting;
+    //share_mem->sm_wlan_setting = wlan_setting;
     
     printf("%s \n",eth_setting.strEthIp);
     printf("%s \n",wlan_setting.strWlanIp);        
 
     printf("%s \n",share_mem->sm_eth_setting.strEthIp);
     printf("%s \n",share_mem->sm_wlan_setting.strWlanIp);        
+#endif
 }
 
 int UpdateShareMemStatus(void)
@@ -49,7 +50,7 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 		{
 			printf("web start \n");
 			AppWriteCfgInfotoFile();
-#if 1
+#if 0
 			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast); //get now multicast address
 			//init_eth(); //set ip address
 #endif

@@ -2775,7 +2775,7 @@ int main(int argc, char* argv[])
 	printf("ip address : %d \n", ip_add);
 #endif
 	InitShareMem();	
-	ret = pthread_create(&controlHandle, NULL, IP_broadcast_report, NULL);
+	ret = pthread_create(&controlHandle, NULL, IP_broadcast_ask, NULL);
 	if (ret) 
 	{
 		log_err("Failed to Create controlHandle Thread\n");

@@ -10,6 +10,8 @@
 #define RESPOND		2
 #define TX			1
 #define RX			0
+#define ON			1
+#define OFF 		0
 
 
 #if 0
@@ -35,7 +37,7 @@ typedef struct
 	RX_INFORMATION_S rx_info_s;
 } REPORT_PACK_S;
 
-void *IP_broadcast_report();
+void *IP_broadcast_ask();
 
 
 

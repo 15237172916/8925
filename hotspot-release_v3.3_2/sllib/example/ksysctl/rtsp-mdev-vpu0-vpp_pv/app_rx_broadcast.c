@@ -13,7 +13,8 @@
 #include "sharemem.h"
 #include "init.h"
 
-char display_flag = 0;
+static REPORT_PACK_S broadSend_s;
+static REPORT_PACK_S broadRecv_s;
 
 #if 1
 static int get_random(void)
@@ -46,23 +47,20 @@ static int readable_timeo(int fd, int sec)
 }
 #endif
 
-void *IP_broadcast_report()
+void *IP_broadcast_ask(void)
 {
 	int sockfd = -1;
 	int display_count = 0;
 	int ret = -1;
 	int len = -1;
-	
-	
+
 	const int opt = -1;
 	unsigned int ip_add, mul_add;
-	//int random_number = get_random();
-	int random_number = share_mem->uuid;
+	int random_number = get_random();
+	//int random_number = share_mem->uuid;
 	socklen_t servlen_addr_length;
 	struct sockaddr_in servaddr;
 	char * s = malloc(20*sizeof(char));
-	REPORT_PACK_S broadReport_s;
-	REPORT_PACK_S broadRecv_s;
 	
 	servlen_addr_length = sizeof(servaddr);
 	memset(&servaddr, 0, sizeof(servaddr));
@@ -83,36 +81,111 @@ try_socket:
 		printf("client broadcast socket error \n");
 		goto try_socket;
 	}
-	else
-		printf("creat socket success \n");
-		
+	printf("creat socket success \n");
+	
 	//set socket broadcast 
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
-	broadReport_s.uProbe = PROBE;
-	broadReport_s.uuid = random_number; //random number
+	broadSend_s.uProbe = PROBE;
+	broadSend_s.uuid = random_number; //random number
 	while (1)
 	{
 		sleep(1);
-		
+		#if 0
 		//get multicast address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
 		mul_add = ntohl(mul_add); //host
 		mul_add &= 0xFF;
-		broadReport_s.ucMultiAddress = mul_add; //multicast address
+		broadSend_s.rx_info_s.video_source = mul_add; //multicast address
 		printf("multicast address : %d \n", mul_add);
 		
 		//get ip address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
 		ip_add = ntohl(ip_add); //host
 		ip_add &= 0xFF;
-		broadReport_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
+		broadSend_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
 		printf("ip address : %d \n", ip_add);
-		
-		
+		#endif
+		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
+				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
+		if (len <= 0)
+		{
+			perror("sendto");
+			printf("send len = %d \n", len);
+			printf("client broadcast sendto error \n");
+			close(sockfd);
+			goto try_socket;
+		}
+		else
+		{
+			if (readable_timeo(sockfd, 2))
+			{
+				len = recvfrom(sockfd, &broadRecv_s, sizeof(broadRecv_s), \
+				0, (struct sockaddr_in *) &servaddr, &servlen_addr_length);
+				if (len <= 0)
+				{
+					perror("recvfrom");
+					printf("recv len = %d \n", len);
+					printf("client broadcast recvfrom error \n");
+				}
+				else
+				{
+					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
+					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
+					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
+					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
+					printf("uuid : %d \n", broadRecv_s.uuid);
+
+					if (PROBE != broadRecv_s.uProbe)
+					{
+						printf("PROBE is error \n");
+						continue;
+					}
+					if (broadRecv_s.uuid != broadSend_s.uuid)
+					{
+						printf("uuid is error \n");
+						continue;
+					}
+					if (broadRecv_s.ucRepayType != TX)
+					{
+						printf("repay type is error \n");
+						printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);
+						continue;
+					}
+					if (broadSend_s.ucIpAddress != broadRecv_s.ucIpAddress)
+					{
+						printf("ip address is error \n");
+						continue;
+					}
+					switch (broadRecv_s.ucCurrentState)
+					{
+						case HEART:
+							//broadSend_s.ucCurrentState = HEART;
+							
+							break;
+						case START:
+							
+							broadSend_s.ucCurrentState = START;
+							break;
+						case RESPOND:
+							broadSend_s.ucCurrentState = HEART;
+							
+							break;
+					}
+				}
+			}
+		}
+
+
+
+
+
+
+
+
 		//printf("broadReport_s.ucIpAddress : %d \n", broadReport_s.ucIpAddress);
 		//printf("broadReport_s.ucMultiAddress : %d \n", broadReport_s.ucMultiAddress);
 		//printf("buffer 1 : %d \n", buffer_flag[1]);
-		
+#if 0
 		len = sendto(sockfd, &broadReport_s, sizeof(broadReport_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 		if (len <= 0)
@@ -184,6 +257,7 @@ try_socket:
 				display_flag = 0;
 			}
 		}
+#endif
 	}
 	
 	close(sockfd);

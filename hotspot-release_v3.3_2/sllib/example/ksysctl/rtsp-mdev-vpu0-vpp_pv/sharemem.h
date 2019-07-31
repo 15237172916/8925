@@ -7,6 +7,7 @@
 #include "cfginfo.h"
 #include <sl_types.h>
 
+#if 0
 typedef struct{
 	unsigned char ucUpdateFlag; //1:updated
 	unsigned int uuid;
@@ -18,8 +19,18 @@ typedef struct{
 	RTMP_SETTING sm_rtmp_setting;
 	RTSP_SETTING sm_rtsp_setting;
 }SHARE_MEM;
-
 SHARE_MEM *share_mem;
+#endif
+
+typedef struct _SHARE_MEM_{
+	unsigned char ucUpdateFlag; //1:updated
+	unsigned char ucIpAddress;
+	unsigned int uuid;
+	
+	ETH_SETTING sm_eth_setting;
+	TX_INFORMATION_S sm_tx_info;
+} SHARE_MEM_S, *pSHARE_MEM_S;
+pSHARE_MEM_S share_mem;
 
 int InitShareMem(void);
 SL_POINTER  sharemem_handle(SL_POINTER Args);

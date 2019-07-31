@@ -85,4 +85,47 @@ typedef struct{
     unsigned char ucRTSPInterface;
 }RTSP_SETTING;
 RTSP_SETTING rtsp_setting;
+
+
+/*
+**
+*/
+typedef struct
+{
+    char is_hdmi_input;
+    //char video_resolution;
+    unsigned short video_width;
+    unsigned short video_height;
+    unsigned char video_framrate;
+    unsigned char audio_type;
+    unsigned char audio_sample;
+    unsigned char audio_ch;
+    char fw_version[20];
+    char fw_status;
+} TX_INFORMATION_S;
+
+typedef struct
+{
+    unsigned char baud_rate;
+    unsigned char data_bit;
+    unsigned char parity_bit;
+    unsigned char data_format;
+    char on_data[128];
+    char off_data[128];
+} CONTROL_DATA_S;
+
+typedef struct
+{
+    char OSD_state;
+    unsigned char video_source;
+    unsigned char online_count;
+    char fw_version[20];
+    unsigned char fw_status;
+    unsigned char data_type;
+    CONTROL_DATA_S control_data;
+} RX_INFORMATION_S;
+
+
+
+
 #endif

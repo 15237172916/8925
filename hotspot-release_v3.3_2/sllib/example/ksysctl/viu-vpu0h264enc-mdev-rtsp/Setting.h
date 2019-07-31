@@ -117,7 +117,7 @@ MODE_RENAME_S mode_rename;
 */
 typedef struct
 {
-    unsigned char is_hdmi_input;
+    char is_hdmi_input;
     //char video_resolution;
     unsigned short video_width;
     unsigned short video_height;
@@ -141,6 +141,7 @@ typedef struct
 
 typedef struct
 {
+    char OSD_state;
     unsigned char video_source;
     unsigned char online_count;
     char fw_version[20];
