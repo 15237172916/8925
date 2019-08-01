@@ -28,7 +28,7 @@ typedef struct _SHARE_MEM_{
 	unsigned int uuid;
 	
 	ETH_SETTING sm_eth_setting;
-	TX_INFORMATION_S sm_tx_info;
+	RX_INFORMATION_S sm_rx_info;
 } SHARE_MEM_S, *pSHARE_MEM_S;
 pSHARE_MEM_S share_mem;
 

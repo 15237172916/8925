@@ -47,6 +47,26 @@ static int readable_timeo(int fd, int sec)
 }
 #endif
 
+static void controlDataUpdate(void)
+{
+	//printf("recv video source %d \n", broadRecv_s.rx_info_s.video_source);
+	share_mem->sm_rx_info.video_source = broadRecv_s.rx_info_s.video_source;
+	//printf("share video source %d \n", share_mem->sm_rx_info.video_source);
+	share_mem->sm_rx_info.data_type = broadRecv_s.rx_info_s.data_type;
+	share_mem->sm_rx_info.control_data.baud_rate = broadRecv_s.rx_info_s.control_data.baud_rate;
+	share_mem->sm_rx_info.control_data.data_bit = broadRecv_s.rx_info_s.control_data.data_bit;
+	share_mem->sm_rx_info.control_data.data_format = broadRecv_s.rx_info_s.control_data.data_format;
+	share_mem->sm_rx_info.control_data.parity_bit = broadRecv_s.rx_info_s.control_data.parity_bit;
+
+	strcpy(share_mem->sm_rx_info.control_data.off_data, broadRecv_s.rx_info_s.control_data.off_data);
+	strcpy(share_mem->sm_rx_info.control_data.on_data, broadRecv_s.rx_info_s.control_data.on_data);
+	strcpy(broadSend_s.rx_info_s.fw_version, share_mem->sm_rx_info.fw_version);
+
+	broadSend_s.rx_info_s.video_source = share_mem->sm_rx_info.video_source;
+	//printf("send video source %d \n", broadSend_s.rx_info_s.video_source);
+	printf("control data update \n");
+}
+
 void *IP_broadcast_ask(void)
 {
 	int sockfd = -1;
@@ -87,24 +107,29 @@ try_socket:
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
 	broadSend_s.uProbe = PROBE;
 	broadSend_s.uuid = random_number; //random number
+	broadSend_s.ucCurrentState = START; 
+	broadSend_s.ucRepayType = RX;
+
 	while (1)
 	{
 		sleep(1);
-		#if 0
+		#if 1
 		//get multicast address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
 		mul_add = ntohl(mul_add); //host
 		mul_add &= 0xFF;
-		broadSend_s.rx_info_s.video_source = mul_add; //multicast address
-		printf("multicast address : %d \n", mul_add);
+		//broadSend_s.rx_info_s.video_source = mul_add; //multicast address
+		//printf("multicast address : %d \n", mul_add);
 		
 		//get ip address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
 		ip_add = ntohl(ip_add); //host
 		ip_add &= 0xFF;
 		broadSend_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
-		printf("ip address : %d \n", ip_add);
+		//printf("ip address : %d \n", ip_add);
 		#endif
+		broadSend_s.ucIpAddress = 10;
+		printf("video source %d \n", broadSend_s.rx_info_s.video_source);
 		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 		if (len <= 0)
@@ -117,6 +142,7 @@ try_socket:
 		}
 		else
 		{
+			//printf("send is ok \n");
 			if (readable_timeo(sockfd, 2))
 			{
 				len = recvfrom(sockfd, &broadRecv_s, sizeof(broadRecv_s), \
@@ -134,18 +160,14 @@ try_socket:
 					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
 					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
 					printf("uuid : %d \n", broadRecv_s.uuid);
+					printf("RX device on-line number: %d \n", broadRecv_s.rx_info_s.online_count);
 
 					if (PROBE != broadRecv_s.uProbe)
 					{
 						printf("PROBE is error \n");
 						continue;
 					}
-					if (broadRecv_s.uuid != broadSend_s.uuid)
-					{
-						printf("uuid is error \n");
-						continue;
-					}
-					if (broadRecv_s.ucRepayType != TX)
+					if (broadRecv_s.ucRepayType != RX)
 					{
 						printf("repay type is error \n");
 						printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);
@@ -156,15 +178,24 @@ try_socket:
 						printf("ip address is error \n");
 						continue;
 					}
+					if (broadRecv_s.rx_info_s.online_count >= 2)
+					{
+						printf("RX[%d] device number more than 2, please check device number \n", broadRecv_s.ucIpAddress);
+						continue;
+					}
+					if (broadRecv_s.uuid != broadSend_s.uuid)
+					{
+						printf("uuid is error \n");
+						continue;
+					}
 					switch (broadRecv_s.ucCurrentState)
 					{
 						case HEART:
-							//broadSend_s.ucCurrentState = HEART;
-							
+							broadSend_s.ucCurrentState = HEART;
 							break;
 						case START:
-							
-							broadSend_s.ucCurrentState = START;
+							controlDataUpdate();
+							broadSend_s.ucCurrentState = RESPOND;
 							break;
 						case RESPOND:
 							broadSend_s.ucCurrentState = HEART;

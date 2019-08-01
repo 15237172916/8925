@@ -187,10 +187,7 @@ int AppInitCfgInfoFromFile(int *fp)
 		printf("%s open failed\n",CONFIG_FILE);
 		return -1;
 	}
-
-    printf("open config file ok \n");
-	if (cfginfo.flag)
-		return 0;
+	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_GATEWAY",share_mem->sm_eth_setting.strEthGateway);
 
 	memset(&cfginfo,0,sizeof(cfginfo));
 

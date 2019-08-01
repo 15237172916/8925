@@ -28,7 +28,7 @@ typedef struct
 
 typedef struct
 {
-	unsigned int ucProbe;
+	unsigned int uProbe;
 	unsigned int uuid;
 	unsigned char ucRepayType;
 	unsigned char ucCurrentState;

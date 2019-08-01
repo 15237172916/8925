@@ -145,6 +145,7 @@ typedef struct
     unsigned int uuid;
     unsigned char video_source;
     unsigned char heart_count;
+    unsigned char online_count;
     char fw_version[20];
     unsigned char fw_status;
     unsigned char data_type;

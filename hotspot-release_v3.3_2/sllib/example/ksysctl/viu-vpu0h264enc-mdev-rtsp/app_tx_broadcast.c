@@ -94,7 +94,7 @@ try_socket:
 		
 	//set socket broadcast 
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
-	broadSend_s.ucProbe = PROBE;
+	broadSend_s.uProbe = PROBE;
 	broadSend_s.uuid = random_number; //random number
 	broadSend_s.ucCurrentState = START; 
 	broadSend_s.ucRepayType = TX;
@@ -150,10 +150,10 @@ try_socket:
 					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
 					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
 					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
-					printf("uProbe : 0x%x \n", broadRecv_s.ucProbe);
+					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
 					printf("uuid : %d \n", broadRecv_s.uuid);
 
-					if (PROBE != broadRecv_s.ucProbe)
+					if (PROBE != broadRecv_s.uProbe)
 					{
 						printf("PROBE is error \n");
 						continue;

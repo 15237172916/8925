@@ -55,6 +55,8 @@
 #include "uart_watchdog.h"
 #include "../version.h"
 
+#include "sharemem.h"
+#include "init.h"
 //#define IR_DEBUG
 //#define ENABLE_IR_SEND
 //#define APP_CODE
@@ -116,8 +118,7 @@ extern void * check_wr_thread(void * Args);
 char 	web_flag;
 
 #ifdef WEB_ENABLE
-#include "sharemem.h"
-#include "init.h"
+
 static pthread_t ConfigHandle;
 #endif
 
@@ -2215,9 +2216,9 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-
-#ifdef 	WEB_ENABLE
 	InitShareMem();
+#ifdef 	WEB_ENABLE
+	
 	AppInitCfgInfoDefault();
     printf("cfg init ok \n");
     ret = AppInitCfgInfoFromFile(&fd_config);

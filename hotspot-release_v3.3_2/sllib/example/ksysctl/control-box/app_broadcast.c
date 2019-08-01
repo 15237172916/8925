@@ -37,17 +37,61 @@ static int readable_timeo(int fd, int sec)
 
 static void AVupdate(unsigned char order)
 {	
+	share_mem->tx_info[order].audio_ch = broadRecv_s.tx_info_s.audio_ch;
+	share_mem->tx_info[order].audio_sample = broadRecv_s.tx_info_s.audio_sample;
+	share_mem->tx_info[order].audio_type = broadRecv_s.tx_info_s.audio_type;
+	share_mem->tx_info[order].video_framrate = broadRecv_s.tx_info_s.video_framrate;
+	share_mem->tx_info[order].video_height = broadRecv_s.tx_info_s.video_height;
+	share_mem->tx_info[order].video_width = broadRecv_s.tx_info_s.video_width;
+	share_mem->tx_info[order].is_hdmi_input = broadRecv_s.tx_info_s.is_hdmi_input;
+	strcpy(share_mem->tx_info[order].fw_version, broadRecv_s.tx_info_s.fw_version);
+
 	printf("AV update \n");
 }
 
 static void AVclean(unsigned char order)
 {
+	share_mem->tx_info[order].audio_ch = 0;
+	share_mem->tx_info[order].audio_sample = 0;
+	share_mem->tx_info[order].audio_type = 0;
+	share_mem->tx_info[order].video_framrate = 0;
+	share_mem->tx_info[order].video_height = 0;
+	share_mem->tx_info[order].video_width = 0;
+	share_mem->tx_info[order].is_hdmi_input = 0;
+
 	printf("AV clean \n");
+}
+
+static void controlDataUpdate(unsigned char order)
+{
+
+	//printf("rx %d share video %d \n", order, share_mem->rx_info[order].video_source);
+	broadSend_s.rx_info_s.data_type = share_mem->rx_info[order].data_type;
+	//update video source
+	broadSend_s.rx_info_s.video_source = share_mem->rx_info[order].video_source;
+	//update control data from control box to RX
+	broadSend_s.rx_info_s.control_data.baud_rate = share_mem->rx_info[order].control_data.baud_rate;
+	broadSend_s.rx_info_s.control_data.data_bit = share_mem->rx_info[order].control_data.data_bit;
+	broadSend_s.rx_info_s.control_data.data_format = share_mem->rx_info[order].control_data.data_format;
+	broadSend_s.rx_info_s.control_data.parity_bit = share_mem->rx_info[order].control_data.parity_bit;
+	strcpy(broadSend_s.rx_info_s.control_data.off_data, share_mem->rx_info[order].control_data.off_data);
+	strcpy(broadSend_s.rx_info_s.control_data.on_data, share_mem->rx_info[order].control_data.on_data);
+	//update software version from RX to control box
+	strcpy(share_mem->rx_info[order].fw_version, broadRecv_s.rx_info_s.fw_version);
+	//printf("broad send rx video source %d \n", broadSend_s.rx_info_s.video_source);
+	printf("control data update \n");
+}
+
+static void controlDataClean(unsigned char order)
+{
+
+	printf("control data clean \n");
 }
 
 void updateOffLineDeviceNumbers(int sig)
 {
 	unsigned char i = 0;
+	unsigned char tx_online_count = 0, rx_online_count = 0;
 
 	if (SIGALRM == sig)
 	{
@@ -61,8 +105,10 @@ void updateOffLineDeviceNumbers(int sig)
 			}
 			else
 			{
+				rx_online_count++;
 				share_mem->rx_info[i].heart_count = 0;
-			}	
+			}
+			share_mem->rx_info[i].online_count = 0;
 		}
 		//Check off-line TX's devices 
 		for (i=0; i<24; i++)
@@ -73,10 +119,14 @@ void updateOffLineDeviceNumbers(int sig)
 			}
 			else
 			{
+				tx_online_count++;
 				share_mem->tx_info[i].heart_count = 0;
 			}
 		}
-		alarm(20);
+		printf("tx on-line number is %d \n", tx_online_count);
+		printf("rx on-line number is %d \n", rx_online_count);
+
+		alarm(40);
 	}
 	return ;
 }
@@ -90,7 +140,7 @@ void *control_respond()
 	struct sockaddr_in servaddr;
 	
 	const int opt = -1;
-	
+	broadSend_s.ucCurrentState = START;	
 	memset(&servaddr, 0, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(SERV_UDP_PORT);
@@ -126,6 +176,7 @@ try_socket:
 	setsockopt(sockfd, SOL_SOCKET,SO_SNDTIMEO, &timeout, sizeof(timeout));
 	signal(SIGALRM, updateOffLineDeviceNumbers);
 	alarm(20);
+	
 	while (1)
 	{
 		//refresh_count++;
@@ -150,12 +201,7 @@ Recv:
 				printf("ucCurrentState:%d \n", broadRecv_s.ucCurrentState);
 				printf("ucProbe:%d \n", broadRecv_s.ucProbe);
 				printf("uuid:%d \n", broadRecv_s.uuid);
-				printf("audio_ch:%d \n", broadRecv_s.tx_info_s.audio_ch);
-				printf("audio_sample:%d \n", broadRecv_s.tx_info_s.audio_sample);
-				printf("is_hdmi_input:%d \n", broadRecv_s.tx_info_s.is_hdmi_input);
-				printf("video_framrate:%d \n", broadRecv_s.tx_info_s.video_framrate);
-				printf("video_height:%d \n", broadRecv_s.tx_info_s.video_height);
-				printf("video_width:%d \n", broadRecv_s.tx_info_s.video_width);
+				
 				//printf("", broadRecv_s.tx_info_s);
 				if (PROBE != broadRecv_s.ucProbe)
 				{
@@ -166,6 +212,12 @@ Recv:
 				switch (broadRecv_s.ucRepayType)
 				{
 					case TX:
+						printf("audio_ch:%d \n", broadRecv_s.tx_info_s.audio_ch);
+						printf("audio_sample:%d \n", broadRecv_s.tx_info_s.audio_sample);
+						printf("is_hdmi_input:%d \n", broadRecv_s.tx_info_s.is_hdmi_input);
+						printf("video_framrate:%d \n", broadRecv_s.tx_info_s.video_framrate);
+						printf("video_height:%d \n", broadRecv_s.tx_info_s.video_height);
+						printf("video_width:%d \n", broadRecv_s.tx_info_s.video_width);
 						printf("repay type is TX \n");
 						broadSend_s.ucRepayType = TX;
 						//printf("broadSend_s.ucRepayType : %d \n", broadSend_s.ucRepayType);
@@ -209,6 +261,7 @@ Recv:
 						}
 						break;
 					case RX:
+						//printf("rx recv video source %d \n", broadRecv_s.rx_info_s.video_source);
 						printf("repay type is RX \n");
 						RX_ID = broadRecv_s.ucIpAddress;
 						order = RX_ID;
@@ -216,6 +269,56 @@ Recv:
 						{
 							printf("RX's ip address is error \n");
 							continue;
+						}
+						broadSend_s.ucIpAddress = RX_ID;
+						//judge rx's device repeat number
+						if (broadRecv_s.uuid != share_mem->rx_info[order].uuid)
+						{
+							share_mem->rx_info[order].uuid = broadRecv_s.uuid;
+							share_mem->rx_info[order].online_count++;
+							printf("RX[%d]'s number is %d \n", order, share_mem->rx_info[order].online_count);
+							broadSend_s.rx_info_s.online_count = share_mem->rx_info[order].online_count;
+							if (broadSend_s.rx_info_s.online_count >= 2)
+							{
+								printf("RX[%d] device number more than 2, please check \n", order);
+								goto Send;
+							}
+						}
+						broadSend_s.uuid = broadRecv_s.uuid;
+						switch (broadRecv_s.ucCurrentState)
+						{
+							case HEART:
+								share_mem->rx_info[order].heart_count++;
+								printf("heart count: %d \n", share_mem->rx_info[order].heart_count);
+								//broadSend_s.ucCurrentState = HEART;
+								if (START == broadSend_s.ucCurrentState)
+								{
+									goto Send;
+								}
+								//printf("-----recv video source %d \n", broadRecv_s.rx_info_s.video_source);
+								//printf("-----share rx %d video source %d \n",order, share_mem->rx_info[order].video_source);
+								if (broadRecv_s.rx_info_s.video_source != share_mem->rx_info[order].video_source)
+								{
+									broadSend_s.ucCurrentState = START;
+									printf("order : %d \n", order);
+									controlDataUpdate(order);
+									printf("rx[%d] video sourve is changed \n");
+									goto Send;
+								}
+								continue;
+								break;
+							case START:
+								printf("current state is START \n");
+								
+								controlDataUpdate(order);
+								
+								broadSend_s.ucCurrentState = START;
+								break;
+							case RESPOND:
+								broadSend_s.ucCurrentState = HEART;
+								controlDataClean(order);
+
+								break;
 						}
 						break;
 					default:

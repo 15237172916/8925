@@ -4,6 +4,7 @@
         "unistd.h": "c",
         "app_tx_broadcast.h": "c",
         "sharemem.h": "c",
-        "cfginfo.h": "c"
+        "cfginfo.h": "c",
+        "version.h": "c"
     }
 }
