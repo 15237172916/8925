@@ -101,7 +101,7 @@ void updateOffLineDeviceNumbers(int sig)
 		{
 			if (share_mem->rx_info[i].heart_count==0)
 			{
-				printf("RX[%d] is off-line \n", i);
+				printf("RX[%d] is off-line \n", i+1);
 			}
 			else
 			{
@@ -115,7 +115,7 @@ void updateOffLineDeviceNumbers(int sig)
 		{
 			if (share_mem->tx_info[i].heart_count == 0)
 			{
-				printf("TX[%d] is off-line \n", i);	
+				printf("TX[%d] is off-line \n", i+1);	
 			}
 			else
 			{
@@ -181,7 +181,6 @@ try_socket:
 	{
 		//refresh_count++;
 		//printf("clock : %ld \n", clock());
-
 Recv:
 		//sleep(1);
 		if (readable_timeo(sockfd, 2))
@@ -212,13 +211,14 @@ Recv:
 				switch (broadRecv_s.ucRepayType)
 				{
 					case TX:
+						printf("repay type is TX \n");
 						printf("audio_ch:%d \n", broadRecv_s.tx_info_s.audio_ch);
 						printf("audio_sample:%d \n", broadRecv_s.tx_info_s.audio_sample);
 						printf("is_hdmi_input:%d \n", broadRecv_s.tx_info_s.is_hdmi_input);
 						printf("video_framrate:%d \n", broadRecv_s.tx_info_s.video_framrate);
 						printf("video_height:%d \n", broadRecv_s.tx_info_s.video_height);
 						printf("video_width:%d \n", broadRecv_s.tx_info_s.video_width);
-						printf("repay type is TX \n");
+						
 						broadSend_s.ucRepayType = TX;
 						//printf("broadSend_s.ucRepayType : %d \n", broadSend_s.ucRepayType);
 						TX_ID = broadRecv_s.ucIpAddress;
@@ -263,6 +263,7 @@ Recv:
 					case RX:
 						//printf("rx recv video source %d \n", broadRecv_s.rx_info_s.video_source);
 						printf("repay type is RX \n");
+						//printf("rx send video source : %d \n", broadSend_s.rx_info_s.video_source);	
 						RX_ID = broadRecv_s.ucIpAddress;
 						order = RX_ID;
 						if ((RX_ID < 1) || (RX_ID > 128))

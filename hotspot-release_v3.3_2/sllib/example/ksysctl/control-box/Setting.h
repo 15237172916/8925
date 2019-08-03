@@ -114,6 +114,21 @@ MODE_RENAME_S mode_rename;
 /*
 **
 */
+
+#define UART    0
+#define RS232   1
+#define IR      2
+#define START		0
+#define HEART		1
+#define RESPOND		2
+#define TX			1
+#define RX			0
+#define ON			1
+#define OFF 		0
+#define ASCII       0
+#define HEX         1
+
+
 typedef struct
 {
     unsigned int uuid;
@@ -130,11 +145,20 @@ typedef struct
     char fw_status;
 } TX_INFORMATION_S;
 
+
+enum BAUD_RATE
+{
+    BAUD_9600   = 0,
+    BAUD_115200 = 1
+};
+typedef enum BAUD_RATE BAUD_RATE_E;
+
 typedef struct
 {
-    unsigned char baud_rate;
+    BAUD_RATE_E baud_rate;
     unsigned char data_bit;
     unsigned char parity_bit;
+    unsigned char stop_bit;
     unsigned char data_format;
     char on_data[128];
     char off_data[128];

@@ -35,6 +35,7 @@ static pthread_t controlHandler;
 static SL_U32 need_feed_dog = 1;
 
 void *mutexlock;
+int fd_config = NULL;
 
 extern int reboot1(void);
 typedef struct
@@ -141,7 +142,23 @@ int main(int argc, char* argv[])
 #endif
 	//share memory thread
 	InitShareMem();
-	AppWriteCfgInfotoFile();
+	AppInitCfgInfoDefault();
+	//AppWriteCfgInfotoFile();
+	ret = AppInitCfgInfoFromFile(&fd_config);
+	if (ret < 0)
+	{
+		if (NULL != fd_config)
+		{
+			close(fd_config);
+		}
+		AppWriteCfgInfotoFile();
+	}
+	else
+	{
+		printf("cfg get from file \n");
+        close(fd_config);
+	}
+	
 
 	//API thread
 

@@ -30,7 +30,7 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	printf("pInKeyName: %s !\n",pInKeyName); 
 #endif
 
-	while(1)  
+	while (1)
 	{
 		//printf("GetConifgStringValue \n");
 
@@ -116,19 +116,22 @@ int GetKeyValue(int fpConfig,char *pInKeyName,char *pOutKeyValue)
 	int iRetCode = 0;  
 	int cnt = 0;  
 	int seek = 0;
-	int timeOut = 0;
+	unsigned int timeOut = 0;
 	//printf("Key \n");
 
 	memset(szBuffer,0,sizeof(szBuffer));      
 	while(1)  
 	{   
 		timeOut++;
-		if (timeOut > 500)
+		#if 1
+		if (timeOut > 2500)
 		{
+			printf("time out : %d \n", timeOut);
 			printf("\n GetKeyValue time out \n");
 			return FAILURE;
 		}
-		//printf("*");
+		#endif
+		//printf("timeOut : %ld \n", timeOut);
 		cnt =0;
 		pStr = szBuffer ;    
 
@@ -140,6 +143,7 @@ int GetKeyValue(int fpConfig,char *pInKeyName,char *pOutKeyValue)
 			cnt++;
 		} while((*pStr ++) != '\n');
 		seek = seek + cnt;
+		//printf("seek : %d \n", seek);
 		iRetCode = lseek(fpConfig, seek, SEEK_SET);
 		if (iRetCode < 0) {
 			log_err("'lseek' failed, request offset = 0");

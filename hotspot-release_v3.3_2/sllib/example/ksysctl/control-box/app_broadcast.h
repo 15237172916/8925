@@ -5,13 +5,7 @@
 
 #define SERV_UDP_PORT	8888
 #define PROBE		0xFEDCBA
-#define START		0
-#define HEART		1
-#define RESPOND		2
-#define TX			1
-#define RX			0
-#define ON			1
-#define OFF 		0
+
 
 #if 0
 typedef struct
@@ -36,7 +30,6 @@ typedef struct
     unsigned char audio_sample;
     unsigned char audio_ch;
     char fw_version[20];
-    char fw_status;
 } TX_INFORMATION_BROAD_S;
 
 typedef struct
@@ -45,7 +38,6 @@ typedef struct
     unsigned char video_source;
     unsigned char online_count;
     char fw_version[20];
-    unsigned char fw_status;
     unsigned char data_type;
     CONTROL_DATA_S control_data;
 } RX_INFORMATION_BROAD_S;

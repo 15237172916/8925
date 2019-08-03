@@ -72,11 +72,15 @@ int AppInitCfgInfoDefault(void)
 		share_mem->rx_info[i].control_data.data_bit = 0;
 		share_mem->rx_info[i].control_data.data_format = 0;
 		share_mem->rx_info[i].control_data.parity_bit = 0;
-		for (j=0; j<128; j++)
+		for (j=0; j<127; j++)
 		{
 			share_mem->rx_info[i].control_data.off_data[j] = '0';
 			share_mem->rx_info[i].control_data.on_data[j] = '0';	
 		}
+		share_mem->rx_info[i].control_data.off_data[127] = '\0';
+		share_mem->rx_info[i].control_data.on_data[127] = '\0';
+		//printf("share_mem->rx_info[i].control_data.off_data: %s \n", share_mem->rx_info[i].control_data.off_data);
+		//printf("share_mem->rx_info[i].control_data.on_data: %s \n", share_mem->rx_info[i].control_data.on_data);
 	}
 
 	//Group init
@@ -109,75 +113,75 @@ int AppInitCfgInfoDefault(void)
 int AppWriteCfgInfotoFile(void)
 {
 	int iRetCode = 0 , i; 
-	char strTemp[200];
     FILE* fp;
     fp = fopen(CONFIG_FILE, "w");
     printf("start write conf file \n");
-	fprintf(fp, "[ETH]\n");
+	fprintf(fp, "[START]\n");
 
 	//TX information
 	for (i=0; i<24; i++)
 	{
-		fprintf(fp, "TX[%d]\n{\n", i+1);
-		fprintf(fp, "\tTX[%d].ALIAS=%s\n", i+1, share_mem->config_info.TX_Alias[i]);
-		fprintf(fp, "\tTX[%d].HDMI_INPUT=%d\n", i+1, share_mem->tx_info[i].is_hdmi_input);
-		fprintf(fp, "\tTX[%d].AUDIO_TYPE=%d\n", i+1, share_mem->tx_info[i].audio_type);
-		fprintf(fp, "\tTX[%d].AUDIO_SAMPLE=%d\n", i+1, share_mem->tx_info[i].audio_sample);
-		fprintf(fp, "\tTX[%d].AUDIO_CH=%d\n", i+1, share_mem->tx_info[i].audio_ch);
-		fprintf(fp, "\tTX[%d].VIDEO_FRAMRATE=%d\n", i+1, share_mem->tx_info[i].video_framrate);
-		fprintf(fp, "\tTX[%d].VIDEO_WIDTH=%d\n", i+1, share_mem->tx_info[i].video_width);
-		fprintf(fp, "\tTX[%d].VIDEO_HEIGHT=%d\n", i+1, share_mem->tx_info[i].video_height);
-		fprintf(fp, "\tTX[%d].FW_STATUS=%d\n", i+1, share_mem->tx_info[i].fw_status);
-    	fprintf(fp, "\tTX[%d].FW_VERSION=%s\n", i+1, share_mem->tx_info[i].fw_version);
-		fprintf(fp, "}\n");
+		//fprintf(fp, "[TX%d]\n", i+1);
+		fprintf(fp, "TX%d.ALIAS=%s\n", i+1, share_mem->config_info.TX_Alias[i]);
+		fprintf(fp, "TX%d.HDMI_INPUT=%d\n", i+1, share_mem->tx_info[i].is_hdmi_input);
+		fprintf(fp, "TX%d.AUDIO_TYPE=%d\n", i+1, share_mem->tx_info[i].audio_type);
+		fprintf(fp, "TX%d.AUDIO_SAMPLE=%d\n", i+1, share_mem->tx_info[i].audio_sample);
+		fprintf(fp, "TX%d.AUDIO_CH=%d\n", i+1, share_mem->tx_info[i].audio_ch);
+		fprintf(fp, "TX%d.VIDEO_FRAMRATE=%d\n", i+1, share_mem->tx_info[i].video_framrate);
+		fprintf(fp, "TX%d.VIDEO_WIDTH=%d\n", i+1, share_mem->tx_info[i].video_width);
+		fprintf(fp, "TX%d.VIDEO_HEIGHT=%d\n", i+1, share_mem->tx_info[i].video_height);
+		fprintf(fp, "TX%d.FW_STATUS=%d\n", i+1, share_mem->tx_info[i].fw_status);
+    	fprintf(fp, "TX%d.FW_VERSION=%s\n", i+1, share_mem->tx_info[i].fw_version);
+		fprintf(fp, "\n");
 	}
 	//RX information
 	for (i=0; i<128; i++)
 	{
-		fprintf(fp, "RX[%d]\n{\n", i+1);
-		fprintf(fp, "\tRX[%d].ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);	
-		fprintf(fp, "\tRX[%d].VIDEO_SOURCE=%d\n", i+1, share_mem->rx_info[i].video_source);
-		fprintf(fp, "\tRX[%d].ONLINE_COUNT=%d\n", i+1, share_mem->rx_info[i].heart_count);
-		fprintf(fp, "\tRX[%d].FW_STATUS=%d\n", i+1, share_mem->rx_info[i].fw_status);
-		fprintf(fp, "\tRX[%d].FW_VWESION=%s\n", i+1, share_mem->rx_info[i].fw_version);
-		fprintf(fp, "\tRX[%d].DATA_TYPE=%d\n", i+1, share_mem->rx_info[i].data_type);
-		fprintf(fp, "\tRX[%d].BAUD_RATE=%d\n", i+1, share_mem->rx_info[i].control_data.baud_rate);
-		fprintf(fp, "\tRX[%d].DATA_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.data_bit);
-		fprintf(fp, "\tRX[%d].DATA_FORMAT=%d\n", i+1, share_mem->rx_info[i].control_data.data_format);
-		fprintf(fp, "\tRX[%d].PARITY_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.parity_bit);
-		fprintf(fp, "\tRX[%d].OFF_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.off_data);
-		fprintf(fp, "\tRX[%d].ON_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.on_data);
-		fprintf(fp, "}\n");
+		//fprintf(fp, "[RX%d]\n", i+1);
+		fprintf(fp, "RX%d.ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);	
+		fprintf(fp, "RX%d.VIDEO_SOURCE=%d\n", i+1, share_mem->rx_info[i].video_source);
+		fprintf(fp, "RX%d.ONLINE_COUNT=%d\n", i+1, share_mem->rx_info[i].heart_count);
+		fprintf(fp, "RX%d.FW_STATUS=%d\n", i+1, share_mem->rx_info[i].fw_status);
+		fprintf(fp, "RX%d.FW_VWESION=%s\n", i+1, share_mem->rx_info[i].fw_version);
+		fprintf(fp, "RX%d.DATA_TYPE=%d\n", i+1, share_mem->rx_info[i].data_type);
+		fprintf(fp, "RX%d.BAUD_RATE=%d\n", i+1, share_mem->rx_info[i].control_data.baud_rate);
+		fprintf(fp, "RX%d.DATA_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.data_bit);
+		fprintf(fp, "RX%d.DATA_FORMAT=%d\n", i+1, share_mem->rx_info[i].control_data.data_format);
+		fprintf(fp, "RX%d.PARITY_BIT=%d\n", i+1, share_mem->rx_info[i].control_data.parity_bit);
+		fprintf(fp, "RX%d.OFF_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.off_data);
+		fprintf(fp, "RX%d.ON_DATA=%s\n", i+1, share_mem->rx_info[i].control_data.on_data);
+		fprintf(fp, "\n");
 	}
 	//Group 
 	for (i=0; i<20; i++)
 	{
-		fprintf(fp, "GROUP[%d]\n{\n", i+1);
-		fprintf(fp, "\tGROUP[%d].MEMBER=%s\n", i+1, share_mem->config_info.group[i].group_member);
-		fprintf(fp, "\tGROUP[%d].ALIA=%s\n", i+1, share_mem->config_info.group[i].group_alias);
-		fprintf(fp, "}\n");	
+		//fprintf(fp, "[GROUP%d]\n", i+1);
+
+		fprintf(fp, "GROUP%d.MEMBER=%s\n", i+1, share_mem->config_info.group[i].group_member);
+		fprintf(fp, "GROUP%d.ALIA=%s\n", i+1, share_mem->config_info.group[i].group_alias);
+		fprintf(fp, "\n");	
 	}
 	//Scene
 	for (i=0; i<10; i++)
 	{
-		fprintf(fp, "SCENE[%d]\n{\n", i+1);
-		fprintf(fp, "\tSCENE[%d].SOURCE=%d\n", i+1, share_mem->config_info.scene[i].scene_source);
-		fprintf(fp, "\tSCENE[%d].MEMBER=%s\n", i+1, share_mem->config_info.scene[i].scene_member);
-		fprintf(fp, "\tSCENE[%d].ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
+		//fprintf(fp, "[SCENE%d]\n", i+1);
+		fprintf(fp, "SCENE%d.SOURCE=%d\n", i+1, share_mem->config_info.scene[i].scene_source);
+		fprintf(fp, "SCENE%d.MEMBER=%s\n", i+1, share_mem->config_info.scene[i].scene_member);
+		fprintf(fp, "SCENE%d.ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
 		//printf("SCENE[%d].ALIAS=%s\n", i+1, share_mem->config_info.scene[i].scene_alias);
 		//fprintf(fp, "SCENE[%d].SOURCE=%d\n",i+1, share_mem->config_info.scene[i].scene_source);
-		fprintf(fp, "}\n");
+		fprintf(fp, "\n");
 	}
 
-    fprintf(fp,"[END]\n");
+    fprintf(fp,"[END]");
 	fclose(fp);
 }
 
 int AppInitCfgInfoFromFile(int *fp)
 {	
 	int iRetCode = 0, i;
-	char strTemp[20];
-	char s[40];
+	char strItem[20], strIndex[10];
+	char strTemp[128];
 
     printf("open config file \n");
 	*fp = open(CONFIG_FILE, O_RDONLY);
@@ -187,11 +191,145 @@ int AppInitCfgInfoFromFile(int *fp)
 		printf("%s open failed\n",CONFIG_FILE);
 		return -1;
 	}
-	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_GATEWAY",share_mem->sm_eth_setting.strEthGateway);
+
+	 printf("open config file ok \n");
+	if (cfginfo.flag)
+		return 0;
 
 	memset(&cfginfo,0,sizeof(cfginfo));
 
     printf("get eth ip \n");
+
+	//TX config
+	for (i=0; i<24; i++)
+	{
+		sprintf(strItem,"TX%d.ALIAS", i+1);
+		iRetCode = GetConfigStringValue(*fp, "START", strItem, share_mem->config_info.TX_Alias[i]);
+		//printf("%s:%s \n", strItem, share_mem->config_info.TX_Alias[i]);
+
+		sprintf(strItem,"TX%d.HDMI_INPUT", i+1);
+		iRetCode = GetConfigStringValue(*fp, "START", strItem, strTemp);
+		share_mem->tx_info[i].is_hdmi_input = atoi( strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].is_hdmi_input);
+
+		sprintf(strItem,"TX%d.AUDIO_TYPE", i+1);
+		iRetCode = GetConfigStringValue(*fp, "START", strItem,strTemp);
+		share_mem->tx_info[i].audio_type = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].audio_type);
+
+		sprintf(strItem,"TX%d.AUDIO_SAMPLE", i+1);
+		iRetCode = GetConfigStringValue(*fp, "START", strItem,strTemp);
+		share_mem->tx_info[i].audio_sample = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].audio_sample);
+
+		sprintf(strItem,"TX%d.AUDIO_CH", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem,strTemp);
+		share_mem->tx_info[i].audio_ch = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].audio_ch);
+		
+		sprintf(strItem,"TX%d.VIDEO_FRAMRATE", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->tx_info[i].video_framrate = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].video_framrate);
+
+		sprintf(strItem,"TX%d.VIDEO_WIDTH", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->tx_info[i].video_width = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].video_width);
+
+		sprintf(strItem,"TX%d.VIDEO_HEIGHT", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->tx_info[i].video_height = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].video_height);
+
+		sprintf(strItem,"TX%d.FW_STATUS", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->tx_info[i].fw_status = atoi(strTemp);
+		//printf("%s:%d \n", strItem, share_mem->tx_info[i].fw_status);
+
+		sprintf(strItem,"TX%d.FW_VERSION", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->tx_info[i].fw_version);
+		//printf("%s:%s \n", strItem, share_mem->tx_info[i].fw_version);
+		//printf("version : %s \n", share_mem->tx_info[i].fw_version);
+	}
+
+	//RX config
+	for (i=0; i<128; i++)
+	{
+		
+		sprintf(strItem,"RX%d.VIDEO", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.RX_Alias[i]);
+		//iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		printf("%s:%s\n", strItem, share_mem->config_info.RX_Alias[i]);
+
+		sprintf(strItem,"RX%d.VIDEO_SOURCE", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].video_source = atoi(strTemp);
+		printf("%s:%d\n", strItem, share_mem->rx_info[i].video_source);
+
+		sprintf(strItem,"RX%d.ONLINE_COUNT", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].online_count = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.FW_STATUS", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].fw_status = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.FW_VWESION", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->rx_info[i].fw_version);
+		printf("VERSION:%s\n", share_mem->rx_info[i].fw_version);
+
+		sprintf(strItem,"RX%d.DATA_TYPE", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].data_type = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.BAUD_RATE", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].control_data.baud_rate = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.DATA_BIT", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].control_data.data_bit = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.DATA_FORMAT", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].control_data.data_format = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.PARITY_BIT", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].control_data.parity_bit = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.OFF_DATA", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->rx_info[i].control_data.off_data);
+		
+		sprintf(strItem,"RX%d.ON_DATA", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->rx_info[i].control_data.on_data);
+	}
+
+	//group
+	for (i=0; i<20; i++)
+	{
+		
+		
+		sprintf(strItem,"GROUP%d.MEMBER", i+1);	
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.group[i].group_member);
+		sprintf(strItem,"GROUP%d.ALIA", i+1);	
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.group[i].group_alias);
+
+	}
+	
+	//scene
+	for (i=0; i<10; i++)
+	{
+		
+		sprintf(strItem,"GROUP%d.ALIA", i+1);	
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.scene[i].scene_alias);
+		sprintf(strItem,"GROUP%d.MEMBER", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.scene[i].scene_member);
+		sprintf(strItem,"GROUP%d.SOURCE", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->config_info.scene[i].scene_source = atoi( strTemp);
+	}
 
 	
 	return 0;

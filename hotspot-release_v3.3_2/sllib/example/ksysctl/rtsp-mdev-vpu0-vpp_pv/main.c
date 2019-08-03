@@ -117,10 +117,8 @@ extern void * check_wr_thread(void * Args);
 
 char 	web_flag;
 
-#ifdef WEB_ENABLE
-
 static pthread_t ConfigHandle;
-#endif
+
 
 static pthread_t IP_switch_handle;
 
@@ -2217,6 +2215,23 @@ int main(int argc, char* argv[])
 	}
 #endif
 	InitShareMem();
+	AppInitCfgInfoDefault();	
+	ret = AppInitCfgInfoFromFile(&fd_config);
+	if (ret < 0)
+	{
+		if(NULL!=fd_config)
+            close(fd_config);
+        printf("build default config.conf \n");
+		AppWriteCfgInfotoFile();
+	}
+	else
+	{
+		printf("cfg get from file \n");
+        close(fd_config);
+	}
+	
+	
+
 #ifdef 	WEB_ENABLE
 	
 	AppInitCfgInfoDefault();
@@ -2251,6 +2266,15 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
+#if 1
+	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
+	if (ret) {
+		log_err("Failed to Create Config Handle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
 	sleep(1);
 #if 1
 	ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_ask, NULL);
@@ -2260,6 +2284,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif	
+
 	while (1) sleep(1);
 
 	osd_display_init();
@@ -2303,15 +2328,7 @@ int main(int argc, char* argv[])
 	
 #endif
 	
-#ifdef WEB_ENABLE
-	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create Config Handle Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
+
 	
 #if 0
 	memset(&client_param, 0x00, sizeof(client_param_t));

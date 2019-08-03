@@ -51,7 +51,7 @@ static void controlDataUpdate(void)
 {
 	//printf("recv video source %d \n", broadRecv_s.rx_info_s.video_source);
 	share_mem->sm_rx_info.video_source = broadRecv_s.rx_info_s.video_source;
-	//printf("share video source %d \n", share_mem->sm_rx_info.video_source);
+	printf("share video source %d \n", share_mem->sm_rx_info.video_source);
 	share_mem->sm_rx_info.data_type = broadRecv_s.rx_info_s.data_type;
 	share_mem->sm_rx_info.control_data.baud_rate = broadRecv_s.rx_info_s.control_data.baud_rate;
 	share_mem->sm_rx_info.control_data.data_bit = broadRecv_s.rx_info_s.control_data.data_bit;
@@ -64,6 +64,7 @@ static void controlDataUpdate(void)
 
 	broadSend_s.rx_info_s.video_source = share_mem->sm_rx_info.video_source;
 	//printf("send video source %d \n", broadSend_s.rx_info_s.video_source);
+	share_mem->ucUpdateFlag = ON;
 	printf("control data update \n");
 }
 
@@ -106,7 +107,7 @@ try_socket:
 	//set socket broadcast 
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
 	broadSend_s.uProbe = PROBE;
-	broadSend_s.uuid = random_number; //random number
+	broadSend_s.uuid = share_mem->uuid;//random_number; //random number
 	broadSend_s.ucCurrentState = START; 
 	broadSend_s.ucRepayType = RX;
 
@@ -129,7 +130,7 @@ try_socket:
 		//printf("ip address : %d \n", ip_add);
 		#endif
 		broadSend_s.ucIpAddress = 10;
-		printf("video source %d \n", broadSend_s.rx_info_s.video_source);
+		//printf("video source %d \n", broadSend_s.rx_info_s.video_source);
 		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 		if (len <= 0)
@@ -155,11 +156,11 @@ try_socket:
 				}
 				else
 				{
-					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
-					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
-					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
-					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
-					printf("uuid : %d \n", broadRecv_s.uuid);
+					printf("recv broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
+					printf("recv ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
+					printf("recv source : %d \n", broadRecv_s.rx_info_s.video_source);
+					printf("recv uProbe : 0x%x \n", broadRecv_s.uProbe);
+					printf("recv uuid : %d \n", broadRecv_s.uuid);
 					printf("RX device on-line number: %d \n", broadRecv_s.rx_info_s.online_count);
 
 					if (PROBE != broadRecv_s.uProbe)
