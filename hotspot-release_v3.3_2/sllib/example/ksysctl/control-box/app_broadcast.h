@@ -7,17 +7,7 @@
 #define PROBE		0xFEDCBA
 
 
-#if 0
-typedef struct
-{
-	unsigned char ucIpAddress;
-	unsigned char ucMultiAddress;
-	unsigned int uProbe;
-	unsigned int uuid;
-	unsigned char ucInfoDisplayFlag;
-	
-} REPORT_PACK_S;
-#endif
+
 
 typedef struct
 {
@@ -32,9 +22,12 @@ typedef struct
     char fw_version[20];
 } TX_INFORMATION_BROAD_S;
 
+
+typedef enum CONTROL_SIGNAL CONTROL_SIGNAL_E;
 typedef struct
 {
-	char OSD_state;
+    unsigned char osd_status;
+    unsigned char tv_status;
     unsigned char video_source;
     unsigned char online_count;
     char fw_version[20];
@@ -48,7 +41,7 @@ typedef struct
 	unsigned int ucProbe;
 	unsigned int uuid;
 	unsigned char ucRepayType;
-	unsigned char ucCurrentState;
+	unsigned char ucSignal;
 	unsigned char ucIpAddress;
 	TX_INFORMATION_BROAD_S tx_info_s;
 	RX_INFORMATION_BROAD_S rx_info_s;

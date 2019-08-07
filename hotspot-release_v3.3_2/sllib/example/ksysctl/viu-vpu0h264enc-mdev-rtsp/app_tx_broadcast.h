@@ -14,24 +14,12 @@
 #define OFF 		0
 
 
-#if 0
-typedef struct
-{
-	unsigned char ucIpAddress;
-	unsigned char ucMultiAddress;
-	unsigned int uProbe;
-	unsigned int uuid;
-	unsigned char ucInfoDisplayFlag;
-
-} REPORT_PACK_S;
-#endif
-
 typedef struct
 {
 	unsigned int uProbe;
 	unsigned int uuid;
 	unsigned char ucRepayType;
-	unsigned char ucCurrentState;
+	unsigned char ucSignal;
 	unsigned char ucIpAddress;
 	TX_INFORMATION_S tx_info_s;
 	RX_INFORMATION_S rx_info_s;

@@ -49,6 +49,8 @@ static int readable_timeo(int fd, int sec)
 
 static void controlDataUpdate(void)
 {
+	share_mem->sm_rx_info.tv_status = broadRecv_s.rx_info_s.tv_status;
+	share_mem->sm_rx_info.osd_status = broadRecv_s.rx_info_s.osd_status;
 	//printf("recv video source %d \n", broadRecv_s.rx_info_s.video_source);
 	share_mem->sm_rx_info.video_source = broadRecv_s.rx_info_s.video_source;
 	printf("share video source %d \n", share_mem->sm_rx_info.video_source);
@@ -63,6 +65,8 @@ static void controlDataUpdate(void)
 	strcpy(broadSend_s.rx_info_s.fw_version, share_mem->sm_rx_info.fw_version);
 
 	broadSend_s.rx_info_s.video_source = share_mem->sm_rx_info.video_source;
+	broadSend_s.rx_info_s.tv_status = share_mem->sm_rx_info.tv_status;
+	broadSend_s.rx_info_s.osd_status = share_mem->sm_rx_info.osd_status;
 	//printf("send video source %d \n", broadSend_s.rx_info_s.video_source);
 	share_mem->ucUpdateFlag = ON;
 	printf("control data update \n");
@@ -71,13 +75,12 @@ static void controlDataUpdate(void)
 void *IP_broadcast_ask(void)
 {
 	int sockfd = -1;
-	int display_count = 0;
 	int ret = -1;
 	int len = -1;
 
 	const int opt = -1;
 	unsigned int ip_add, mul_add;
-	int random_number = get_random();
+	//int random_number = get_random();
 	//int random_number = share_mem->uuid;
 	socklen_t servlen_addr_length;
 	struct sockaddr_in servaddr;
@@ -108,9 +111,9 @@ try_socket:
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
 	broadSend_s.uProbe = PROBE;
 	broadSend_s.uuid = share_mem->uuid;//random_number; //random number
-	broadSend_s.ucCurrentState = START; 
+	broadSend_s.ucSignal = START; 
 	broadSend_s.ucRepayType = RX;
-
+	printf("REPORT_PACK_S : %d \n", sizeof(REPORT_PACK_S));
 	while (1)
 	{
 		sleep(1);
@@ -119,17 +122,17 @@ try_socket:
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
 		mul_add = ntohl(mul_add); //host
 		mul_add &= 0xFF;
-		//broadSend_s.rx_info_s.video_source = mul_add; //multicast address
+		broadSend_s.rx_info_s.video_source = mul_add; //multicast address
 		//printf("multicast address : %d \n", mul_add);
 		
 		//get ip address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
 		ip_add = ntohl(ip_add); //host
 		ip_add &= 0xFF;
-		broadSend_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
+		broadSend_s.ucIpAddress = ip_add; //ip address, ip address is 1-128
 		//printf("ip address : %d \n", ip_add);
 		#endif
-		broadSend_s.ucIpAddress = 10;
+		
 		//printf("video source %d \n", broadSend_s.rx_info_s.video_source);
 		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
@@ -143,7 +146,7 @@ try_socket:
 		}
 		else
 		{
-			//printf("send is ok \n");
+			printf("RX sendto succeed, len: %d \n", len);
 			if (readable_timeo(sockfd, 2))
 			{
 				len = recvfrom(sockfd, &broadRecv_s, sizeof(broadRecv_s), \
@@ -161,6 +164,8 @@ try_socket:
 					printf("recv source : %d \n", broadRecv_s.rx_info_s.video_source);
 					printf("recv uProbe : 0x%x \n", broadRecv_s.uProbe);
 					printf("recv uuid : %d \n", broadRecv_s.uuid);
+					printf("recv osd status: %d \n", broadRecv_s.rx_info_s.osd_status);
+					printf("recv tv status: %d \n", broadRecv_s.rx_info_s.tv_status);
 					printf("RX device on-line number: %d \n", broadRecv_s.rx_info_s.online_count);
 
 					if (PROBE != broadRecv_s.uProbe)
@@ -189,19 +194,22 @@ try_socket:
 						printf("uuid is error \n");
 						continue;
 					}
-					switch (broadRecv_s.ucCurrentState)
+					switch (broadRecv_s.ucSignal)
 					{
 						case HEART:
-							broadSend_s.ucCurrentState = HEART;
+							broadSend_s.ucSignal = HEART;
 							break;
 						case START:
 							controlDataUpdate();
-							broadSend_s.ucCurrentState = RESPOND;
+							broadSend_s.ucSignal = RESPOND;
 							break;
 						case RESPOND:
-							broadSend_s.ucCurrentState = HEART;
-							
+							broadSend_s.ucSignal = HEART;
 							break;
+						default:
+							printf("\n *******signal error \n");
+							break;
+
 					}
 				}
 			}

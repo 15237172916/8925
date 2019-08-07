@@ -1,8 +1,8 @@
 #include "sharemem.h"
-
-extern char web_flag;
-extern char multicast[20];
-extern char serverip[20];
+#include <stdbool.h>
+extern bool g_multicastChangeFlag;
+extern char g_multicast[20];
+extern char g_serverip[20];
 
 int InitShareMem(void)
 {
@@ -46,15 +46,26 @@ SL_POINTER  sharemem_handle(SL_POINTER Args)
 	while(1)
 	{
 		//printf("ucUpdateFlag=%d\n",share_mem->ucUpdateFlag);
-		if(1==share_mem->ucUpdateFlag)
+		if (1==share_mem->ucUpdateFlag)
 		{
 			printf("web start \n");
 			AppWriteCfgInfotoFile();
 #if 0
-			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast); //get now multicast address
+			strcpy(g_multicast, share_mem->sm_eth_setting.strEthMulticast); //get now multicast address
 			//init_eth(); //set ip address
 #endif
-			web_flag = 1;
+			if (ON == share_mem->sm_rx_info.tv_status)
+			{
+				//send tv on signal
+
+			}
+			else
+			{
+				//send tv off signal
+
+			}
+			
+			g_multicastChangeFlag = true;
 			share_mem->ucUpdateFlag = 0;
 			printf("web end \n");
 		}

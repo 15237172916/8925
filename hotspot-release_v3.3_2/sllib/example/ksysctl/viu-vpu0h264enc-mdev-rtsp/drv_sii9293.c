@@ -1851,7 +1851,7 @@ int  audio_config(void)
 
 #if 1
 
-void *sii9293_handler(void *p)
+void *sii9293_handle(void *p)
 {
 	video_info_s *video_info;
 	audio_info_s *audio_info;
@@ -2005,7 +2005,13 @@ void *sii9293_handler(void *p)
 						share_mem->sm_tx_info.video_framrate = video_info->frameRate*(video_info->interlaceMode+1);
 						share_mem->sm_tx_info.audio_ch = audio_info->chns;
 						share_mem->sm_tx_info.audio_sample = audio_info->fs;
-
+						printf("share : %d , %d, %d, %d, %d \n", \
+							share_mem->sm_tx_info.video_height,
+							share_mem->sm_tx_info.video_width,
+							share_mem->sm_tx_info.video_framrate, 
+							share_mem->sm_tx_info.audio_ch, 
+							share_mem->sm_tx_info.audio_sample
+							);
 						//share_mem->sm_run_status.ucInputStatus = 1;
 						//share_mem->sm_run_status.usWidth = video_info->width;
 						//share_mem->sm_run_status.usHeight = video_info->height;

@@ -53,6 +53,15 @@ static void AVclean(void)
 
 static void AVupdate(void)
 {
+	broadSend_s.tx_info_s.is_hdmi_input = share_mem->sm_tx_info.is_hdmi_input;
+	broadSend_s.tx_info_s.audio_ch = share_mem->sm_tx_info.audio_ch;
+	broadSend_s.tx_info_s.audio_sample = share_mem->sm_tx_info.audio_sample;
+	broadSend_s.tx_info_s.audio_type = share_mem->sm_tx_info.audio_type;
+	broadSend_s.tx_info_s.video_framrate = share_mem->sm_tx_info.video_framrate;
+	broadSend_s.tx_info_s.video_height = share_mem->sm_tx_info.video_height;
+	broadSend_s.tx_info_s.video_width = share_mem->sm_tx_info.video_width;
+	strcpy(broadSend_s.tx_info_s.fw_version, share_mem->sm_tx_info.fw_version);
+
 	printf("AV update");
 }
 
@@ -64,8 +73,8 @@ void *IP_broadcast_ask()
 	
 	const int opt = -1;
 	unsigned int ip_add, mul_add;
-	int random_number = get_random();
-	//int random_number = share_mem->uuid;
+	//int random_number = get_random();
+	int random_number = share_mem->uuid;
 	socklen_t servlen_addr_length;
 	struct sockaddr_in servaddr;
 	char * s = malloc(20*sizeof(char));
@@ -96,9 +105,10 @@ try_socket:
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
 	broadSend_s.uProbe = PROBE;
 	broadSend_s.uuid = random_number; //random number
-	broadSend_s.ucCurrentState = START; 
+	broadSend_s.ucSignal = START; 
 	broadSend_s.ucRepayType = TX;
-	
+	printf("REPORT_PACK_S : %d \n", sizeof(REPORT_PACK_S));
+	AVupdate();
 	while (1)
 	{
 		sleep(1);
@@ -108,21 +118,21 @@ try_socket:
 		mul_add = ntohl(mul_add); //host
 		mul_add &= 0xFF;
 		broadSend_s.rx_info_s.video_source = mul_add; //multicast address
-		printf("multicast address : %d \n", mul_add);
+		//printf("multicast address : %d \n", mul_add);
 		
 		//get ip address
 		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
 		ip_add = ntohl(ip_add); //host
 		ip_add &= 0xFF;
-		broadSend_s.ucIpAddress = ip_add-1; //ip address, ip address is 1-128 but ucIpAddress is 0-127.
-		printf("ip address : %d \n", ip_add);
+		broadSend_s.ucIpAddress = ip_add; //ip address, ip address is 200-224
+		//printf("ip address : %d \n", ip_add);
 		
 		//printf("broadSend_s.ucIpAddress : %d \n", broadSend_s.ucIpAddress);
 		//printf("broadSend_s.ucMultiAddress : %d \n", broadSend_s.ucMultiAddress);
 		//printf("buffer 1 : %d \n", buffer_flag[1]);
-		broadSend_s.ucIpAddress = 205;	
-		broadSend_s.tx_info_s.is_hdmi_input = 1;
-		printf("broadSend_s.tx_info_s.is_hdmi_input: %d \n", broadSend_s.tx_info_s.is_hdmi_input);
+			
+		broadSend_s.tx_info_s.is_hdmi_input = share_mem->sm_tx_info.is_hdmi_input;
+		//printf("broadSend_s.tx_info_s.is_hdmi_input: %d \n", broadSend_s.tx_info_s.is_hdmi_input);
 		len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
 				0, (struct sockaddr *)&servaddr, sizeof(servaddr));
 		if (len <= 0)
@@ -135,6 +145,7 @@ try_socket:
 		}
 		else
 		{
+			printf("TX sendto succeed, len: %d \n", len);
 			if (readable_timeo(sockfd, 2))
 			{
 				len = recvfrom(sockfd, &broadRecv_s, sizeof(broadRecv_s), \
@@ -147,9 +158,8 @@ try_socket:
 				}
 				else
 				{
-					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);	
+					printf("broadRecv_s.ucRepayType: %d \n", broadRecv_s.ucRepayType);
 					printf("ucIpAddress : %d \n", broadRecv_s.ucIpAddress);
-					//printf("ucMultiAddress : %d \n", broadRecv_s.t);
 					printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
 					printf("uuid : %d \n", broadRecv_s.uuid);
 
@@ -174,58 +184,30 @@ try_socket:
 						printf("ip address is error \n");
 						continue;
 					}
-					switch (broadRecv_s.ucCurrentState)
+					switch (broadRecv_s.ucSignal)
 					{
 						case HEART:
-							//broadSend_s.ucCurrentState = HEART;
-							AVclean();
+							//broadSend_s.ucSignal = HEART;
+							//AVclean();
+							if (1 == share_mem->sm_tx_info.is_hdmi_input)
+							{
+								AVupdate();
+							}
+							else
+							{
+								AVclean();
+							}
+							
 							break;
 						case START:
 							AVupdate();
-							broadSend_s.ucCurrentState = START;
+							broadSend_s.ucSignal = START;
 							break;
 						case RESPOND:
-							broadSend_s.ucCurrentState = HEART;
+							broadSend_s.ucSignal = HEART;
 							AVclean();
 							break;
 					}
-
-					#if 0
-					if (PROBE != broadRecv_s.uProbe)
-					{
-						printf("probe error \n");
-						continue;
-					}
-					else
-					{
-						display_flag = broadRecv_s.ucInfoDisplayFlag;
-						//printf("ucInfoDisplayFlag: %d \n", broadRecv_s.ucInfoDisplayFlag);
-					}
-					if (broadSend_s.ucIpAddress != broadRecv_s.ucIpAddress)
-					{
-						printf("IP address is not same \n");
-						continue;
-					}
-					else if (broadSend_s.uuid != broadRecv_s.uuid)
-					{
-						printf("uuid is error \n");
-						continue;
-					}
-					else if (broadSend_s.ucMultiAddress == broadRecv_s.ucMultiAddress)
-					{
-						printf("Multicast address is same \n");
-						sprintf(s, "239.255.42.%d", broadRecv_s.ucMultiAddress);
-						printf(s);
-						continue;
-					}
-					else //change multicast address
-					{
-						sprintf(s, "239.255.42.%d", broadRecv_s.ucMultiAddress);
-						printf(s);
-						strcpy(share_mem->sm_eth_setting.strEthMulticast, s);
-						share_mem->ucUpdateFlag = 1;
-					}
-					#endif
 				}
 			}
 		}

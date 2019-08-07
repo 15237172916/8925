@@ -32,7 +32,7 @@
 #include <sl_rtsp.h>
 #include <linux/soundcard.h>
 #include <errno.h>
-//#include "drv_sii9293.h"
+#include <stdbool.h>
 #include "sl_watchdog.h"
 #include "list_handler.h"
 #include "audio_ioctl.h"
@@ -41,7 +41,6 @@
 #include "ring_buffer.h"
 #include <sys/time.h>
 #if 1
-//#include "drv_sii9293_register.h"
 #include "drv_sii9293.h"
 #endif
 #include "app_rtp_tx.h"
@@ -64,7 +63,7 @@
 //#define VIU_OUTPUT
 #define VIU_OUT_FRAMES 1
 //#define H264_OUTPUT
-//#define WEB_ENABLE
+#define WEB_ENABLE
 //#define APP_CODE
 //#define KVM_UART
 //#define DEBUG_OFF
@@ -94,15 +93,15 @@ typedef struct
 #include "app_tx_signal_ch.h"
 #include "app_tx_data_ch.h"
 
-//static pthread_t server_broadcast_handler;
-static pthread_t app_tx_handler;
-static pthread_t app_tx_light_ctl_handler;
+//static pthread_t server_broadcast_handle;
+static pthread_t app_tx_handle;
+static pthread_t app_tx_light_ctl_handle;
 
-static pthread_t app_tx_signal_ch_handler_a;
-static pthread_t app_tx_data_ch_handler_a;
+static pthread_t app_tx_signal_ch_handle_a;
+static pthread_t app_tx_data_ch_handle_a;
 
-static pthread_t app_tx_signal_ch_handler_b;
-static pthread_t app_tx_data_ch_handler_b;
+static pthread_t app_tx_signal_ch_handle_b;
+static pthread_t app_tx_data_ch_handle_b;
 
 char connect_state_a = 0;
 char connect_state_b = 0;
@@ -112,11 +111,11 @@ char connect_state_b = 0;
 #ifdef KVM_UART
 
 #include "app_tx_uart.h"
-static pthread_t app_tx_uart_handler;
+static pthread_t app_tx_uart_handle;
 
 #endif
-char 	web_flag;
-char multicast[20] = "239.255.42.1";
+bool 	g_multicastChangeFlag;
+char g_strMulticast[20] = "239.255.42.1";
 #ifdef WEB_ENABLE
 
 
@@ -142,22 +141,22 @@ extern int audio_configed;
 #define LIVE_TIME_SECONDS 20
 
 static pthread_t rtspserver;
-static pthread_t chip_handler;
+static pthread_t chip_handle;
 #ifdef ENABLE_GET_IR
-static pthread_t get_ir_handler;
+static pthread_t get_ir_handle;
 #endif
 static pthread_t noteLive_handle;
 static pthread_t  pushMdev2List_handle;
 static pthread_t  viu_output_handle;
 static pthread_t	watchdogHandle;
 static pthread_t	setBitrateHandle;
-static pthread_t 	PullFromList_handler;
+static pthread_t 	PullFromList_handle;
 
 static pthread_t controlHandle;
-static pthread_t uartWatchdogHandler;
+static pthread_t uartWatchdoghandle;
 
 #ifdef RINGBUFF
-static pthread_t audio_handler;
+static pthread_t audio_handle;
 #endif
 
 static chanVideoPara_s cvpIn;
@@ -2673,7 +2672,7 @@ static SL_POINTER  get_ir(SL_POINTER Args)
 #endif
 #endif
 
-#ifdef WEB_ENABLE
+#if 0
 static SL_POINTER  config_handle(SL_POINTER Args)//             for zhou 1.29
 {
 	while(1)
@@ -2711,9 +2710,9 @@ int main(int argc, char* argv[])
 #endif
 
 #if 0
-	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
+	ret = pthread_create(&uartWatchdoghandle, NULL, uart_watchdog, NULL);
 	if (ret) {
-		log_err("Failed to Create uartWatchdogHandler Thread\n");
+		log_err("Failed to Create uartWatchdoghandle Thread\n");
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
@@ -2723,8 +2722,7 @@ int main(int argc, char* argv[])
 #ifdef WEB_ENABLE
 
     InitShareMem();
-    AppInitCfgInfoDefault();
-    
+
     ret = AppInitCfgInfoFromFile(&fd_config);
     printf("*****\n\n ret = %d \n\n****",ret);
     if (ret<0)
@@ -2733,17 +2731,6 @@ int main(int argc, char* argv[])
             close(fd_config);
         printf("build default config.conf \n");
         AppWriteCfgInfotoFile();
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config0.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config1.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config2.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config3.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config4.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config5.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config6.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config7.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config8.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config9.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config10.conf");
     }
     else
     {
@@ -2754,13 +2741,10 @@ int main(int argc, char* argv[])
     
     printf("cfg init ok \n");
     
-    strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
-    //if(strcmp("192.168.1.3",share_mem->sm_eth_setting.strEthIp)!=0)
-		//init_eth();//   zhou
-		//sleep(1);
+    strcpy(g_strMulticast, share_mem->sm_eth_setting.strEthMulticast);
 #endif
 
-#if 0
+#if 1
 	Init_Multicast_and_IP(); //ip and multicast set
 	init_eth();
 	
@@ -2774,7 +2758,27 @@ int main(int argc, char* argv[])
 	ip_add &= 0xFF;
 	printf("ip address : %d \n", ip_add);
 #endif
-	InitShareMem();	
+	
+#ifdef WEB_ENABLE
+	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
+	if (ret) {
+		log_err("Failed to Create Config Handle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+	
+#if 1
+	ret = pthread_create(&chip_handle, NULL, sii9293_handle, NULL);
+	if (ret) {
+		log_err("Failed to Create chip hander Thread, %d\n", ret);
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
+	sleep(1);
 	ret = pthread_create(&controlHandle, NULL, IP_broadcast_ask, NULL);
 	if (ret) 
 	{
@@ -2783,21 +2787,8 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
-	while (1) sleep(1);
-#if 0	
-	if (201 == ip_add)
-	{
-		ret = pthread_create(&controlHandle, NULL, control_slave, NULL);
-		if (ret) 
-		{
-			log_err("Failed to Create controlHandle Thread\n");
-			log_err("%d reboot",__LINE__);
-			reboot1();
-			return ret;
-		}
-	}
-#endif
 
+	while (1) sleep(1);
 
 	SLOS_CreateMutex(&mutexlock);
 
@@ -2809,19 +2800,18 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef KVM_UART 
-	ret = pthread_create(&app_tx_uart_handler, NULL, app_tx_uart_main, NULL);
+	ret = pthread_create(&app_tx_uart_handle, NULL, app_tx_uart_main, NULL);
 	if (ret) {
-		log_err("Failed to Create app_tx_uart_handler Thread\n");
+		log_err("Failed to Create app_tx_uart_handle Thread\n");
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
 #endif
-	//while (1) sleep(9);
 
 #ifdef ENABLE_GET_IR
 	init_dsp_ir();
-	ret = pthread_create(&get_ir_handler, NULL, get_ir, NULL);
+	ret = pthread_create(&get_ir_handle, NULL, get_ir, NULL);
 	if (ret) {
 		log_err("Failed to Create get_ir Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
@@ -2830,28 +2820,9 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#ifdef WEB_ENABLE
-	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create Config Handle Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-	
-#endif
-
 #if 0
 
-#if 1
-	ret = pthread_create(&chip_handler, NULL, sii9293_handler, NULL);
-	if (ret) {
-		log_err("Failed to Create chip hander Thread, %d\n", ret);
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
+
 
 #if 1
 	ret = pthread_create(&pushMdev2List_handle, NULL, pushMdev2List, NULL);
@@ -2864,7 +2835,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef RINGBUFF
-	ret = pthread_create(&audio_handler, NULL, audio_transfer, NULL);
+	ret = pthread_create(&audio_handle, NULL, audio_transfer, NULL);
 	if (ret) {
 		log_err("Failed to Create audio_transfer Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
@@ -2885,7 +2856,7 @@ int main(int argc, char* argv[])
 	sleep(3);
 #ifdef APP_RTP
     printf("pull from list start \n");
-	ret = pthread_create(&PullFromList_handler, NULL, PullFromList, NULL);
+	ret = pthread_create(&PullFromList_handle, NULL, PullFromList, NULL);
 	if (ret) {
 		log_err("Failed to Create rtsp Thread, %d\n", ret);
 		return ret;
@@ -2893,9 +2864,7 @@ int main(int argc, char* argv[])
 #endif
 
 #endif
-
 	
-
 #if 0//def RTSP_ENABLE
 
 	char static_ip[20] = "10.10.1.1";
@@ -2961,36 +2930,36 @@ int main(int argc, char* argv[])
 	int signal_ch_a = 8000;
     int data_port_a = 8001;
 #if 1
-	ret = pthread_create(&app_tx_handler, NULL, app_tx_main, NULL);
+	ret = pthread_create(&app_tx_handle, NULL, app_tx_main, NULL);
 	if (ret) {
 		log_err("Failed to Create app_tx_main Thread\n");
 		return ret;
 	}
 #endif
 #ifdef APP_IO
-	ret = pthread_create(&app_tx_light_ctl_handler, NULL, app_tx_light_ctl_main, NULL);
+	ret = pthread_create(&app_tx_light_ctl_handle, NULL, app_tx_light_ctl_main, NULL);
 	if (ret) {
 		log_err("Failed to Create data ch thread Thread\n");
 		return ret;
 	}
 #endif
 #if 1
-	printf("app_tx_signal_ch_handler_a \n");
-	ret = pthread_create(&app_tx_signal_ch_handler_a, NULL, app_tx_signal_ch_main, &signal_ch_a);
+	printf("app_tx_signal_ch_handle_a \n");
+	ret = pthread_create(&app_tx_signal_ch_handle_a, NULL, app_tx_signal_ch_main, &signal_ch_a);
 	if (ret) {
 		log_err("Failed to Create signal ch Thread\n");
 		return ret;
 	}
 #endif
 #if 1
-	ret = pthread_create(&app_tx_data_ch_handler_a, NULL, app_tx_data_ch_main, &data_port_a);
+	ret = pthread_create(&app_tx_data_ch_handle_a, NULL, app_tx_data_ch_main, &data_port_a);
 	if (ret) {
 		log_err("Failed to Create data ch thread Thread\n");
 		return ret;
 	}
 #endif
 #endif
-	//while(1) sleep(1);
+	
 #ifdef DEBUG_OFF
 #if 1
 	//signal(SIGINT, signalHandle);

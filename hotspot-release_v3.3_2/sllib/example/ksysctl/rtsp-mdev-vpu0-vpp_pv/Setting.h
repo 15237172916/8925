@@ -23,21 +23,6 @@
 #define DISABLE 0
 #define ENABLE 1
 
-typedef struct{
-    unsigned char ucInputStatus; //0:none 1:HDMI 2:SDI
-    unsigned short usWidth;
-    unsigned short usHeight;
-    unsigned short ucFrameRate;
-    unsigned short usAudioSampleRate;
-    unsigned char ucRTSPStatus;
-    unsigned char ucRTPStatus;
-    unsigned char ucRTMPStatus;
-    unsigned char ucWiFiStatus;
-    char strHardwareVer[20];
-    char strSoftwareVer[20]
-}RUN_STATUS;
-
-RUN_STATUS run_status;
 
 typedef struct{
     char strEthIp[20];
@@ -46,46 +31,6 @@ typedef struct{
     char strEthMulticast[20];
 }ETH_SETTING;
 ETH_SETTING eth_setting;
-
-typedef struct{
-    char strWlanIp[20];
-    char strWlanMask[20];
-    char strWlanGateway[20];
-    char strWlanSSID[30];
-    char strWlanPSK[100];
-    unsigned char ucWlanEyp;
-    unsigned char ucWlanDHCPSwitch;  
-    unsigned char ucWlanEnable; 
-}WLAN_SETTING;
-WLAN_SETTING wlan_setting;
-
-typedef struct{
-    unsigned short usEncRate;
-    unsigned char ucInterval;
-    unsigned char ucFrameRate;
-    unsigned char ucIQP;
-    unsigned char ucPQP;
-}ENCODER_SETTING;
-ENCODER_SETTING encoder_setting;
-
-typedef struct{
-    unsigned char ucRTMPSwitch;    
-    char strRTMPUrl[200];
-    unsigned short usRTMPPort;
-    unsigned char ucRTMPInterface;
-}RTMP_SETTING;
-RTMP_SETTING rtmp_setting;
-
-typedef struct{
-    unsigned char ucRTSPSwitch;  
-    char strRTPBroadcastIp[20];
-    char strRTSPUrl[100];
-    unsigned short usRTPPort;
-    unsigned short usRTSPPort;  
-    unsigned char ucRTSPInterface;
-}RTSP_SETTING;
-RTSP_SETTING rtsp_setting;
-
 
 /*
 **
@@ -110,10 +55,10 @@ enum BAUD_RATE
 };
 typedef enum BAUD_RATE BAUD_RATE_E;
 
+
 typedef struct
 {
     char is_hdmi_input;
-    //char video_resolution;
     unsigned short video_width;
     unsigned short video_height;
     unsigned char video_framrate;
@@ -136,7 +81,8 @@ typedef struct
 
 typedef struct
 {
-    char OSD_state;
+    unsigned char osd_status;
+    unsigned char tv_status;
     unsigned char video_source;
     unsigned char online_count;
     char fw_version[20];

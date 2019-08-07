@@ -25,7 +25,7 @@ extern int audio_config(SL_U32 fs, SL_U32 audio_bits, SL_U32 chns);
 extern void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize);
 extern int process_osd_text_solid(int x, int y, const char *text);
 extern int process_osd_disable(void);
-extern char multicast[20];
+extern char g_multicast[20];
 extern char report_succeed;
 
 char idr_flag = 0;
@@ -352,7 +352,7 @@ ReSocket:
 	//set multicast address 
 	struct ip_mreq mreq;
 	//mreq.imr_multiaddr.s_addr = inet_addr(MCAST_ADDR);       
-	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
+	mreq.imr_multiaddr.s_addr = inet_addr(g_multicast);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);     
 	
 	//add multicast group

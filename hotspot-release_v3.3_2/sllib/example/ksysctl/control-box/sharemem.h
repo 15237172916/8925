@@ -24,6 +24,7 @@ typedef struct{
 }SHARE_MEM;
 #endif
 typedef struct{
+	unsigned char ucUpdateFlag; //1:updated
 	TX_INFORMATION_S tx_info[24];
 	RX_INFORMATION_S rx_info[128];
 	CONFIG_INFO_S config_info;
@@ -32,6 +33,6 @@ typedef struct{
 SHARE_MEM *share_mem;
 
 int InitShareMem(void);
-SL_POINTER  sharemem_handle(SL_POINTER Args);
+SL_POINTER  sharemem_main(SL_POINTER Args);
 
 #endif

@@ -167,6 +167,8 @@ typedef struct
 typedef struct
 {
     unsigned int uuid;
+    unsigned char osd_status;
+    unsigned char tv_status;
     unsigned char video_source;
     unsigned char heart_count;
     unsigned char online_count;

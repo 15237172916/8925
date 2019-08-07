@@ -34,8 +34,8 @@ extern LIST_BUFFER_S *list;
 extern int flushMdev(void);
 extern bool videoIsOkFlag;
 
-extern char web_flag;
-extern char multicast[20];
+extern bool g_multicastChangeFlag;
+extern char g_strMulticast[20];
 
 DATAHEAD DataHead;
 
@@ -97,13 +97,13 @@ SL_POINTER PullFromList(SL_POINTER p)
     servlen_addr_length = sizeof(server_addr);
     
 ReSocket:
-	web_flag = 0;
+	g_multicastChangeFlag = 0;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(RTP_PORT);
 	//server_addr.sin_addr.s_addr=htonl(INADDR_BROADCAST); //UDP broadcast address 
 	//server_addr.sin_addr.s_addr=inet_addr(MCAST_ADDR); //UDP multicast address
-	server_addr.sin_addr.s_addr=inet_addr(multicast); //multicast 
+	server_addr.sin_addr.s_addr=inet_addr(g_strMulticast); //multicast 
 
     sock_cli = socket(AF_INET,SOCK_DGRAM, 0); //UDP
     if (sock_cli < 0)
@@ -169,8 +169,8 @@ ReSocket:
 	//packet is UDP packet, frame is 264 frame;
 	while (1) //continue get packet
 	{
-		//printf("web flag: %d \n", web_flag);
-		if (1 == web_flag) //multicast switch 
+		//printf("web flag: %d \n", g_multicastChangeFlag);
+		if (1 == g_multicastChangeFlag) //multicast switch 
 		{
 			sleep(1);
 			close(sock_cli);

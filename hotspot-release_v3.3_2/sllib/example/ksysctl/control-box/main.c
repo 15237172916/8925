@@ -29,9 +29,10 @@
 #include "sharemem.h"
 #include "app_broadcast.h"
 
-static pthread_t uartWatchdogHandler;
-static pthread_t watchdogHandler;
-static pthread_t controlHandler;
+static pthread_t uartWatchdogHandle;
+static pthread_t watchdogHandle;
+static pthread_t controlHandle;
+static pthread_t sharememHandle;
 static SL_U32 need_feed_dog = 1;
 
 void *mutexlock;
@@ -123,7 +124,7 @@ int main(int argc, char* argv[])
 	System_running();
 #if 0
 	//watch dog thread	
-	ret = pthread_create(&watchdogHandler, NULL, watchdog_handle, NULL);
+	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandler Thread\n");
 		log_err("%d reboot",__LINE__);
@@ -132,7 +133,7 @@ int main(int argc, char* argv[])
 	}
 
 	//uart watch dog thread
-	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
+	ret = pthread_create(&uartWatchdogHandle, NULL, uart_watchdog, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
 		log_err("%d reboot",__LINE__);
@@ -140,10 +141,9 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	//share memory thread
+	
 	InitShareMem();
-	AppInitCfgInfoDefault();
-	//AppWriteCfgInfotoFile();
+	
 	ret = AppInitCfgInfoFromFile(&fd_config);
 	if (ret < 0)
 	{
@@ -158,13 +158,23 @@ int main(int argc, char* argv[])
 		printf("cfg get from file \n");
         close(fd_config);
 	}
-	
+
+	//share memory thread
+#if 1
+	ret = pthread_create(&sharememHandle, NULL, sharemem_main, NULL);
+	if (ret) {
+		log_err("Failed to Create Config Handle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif
 
 	//API thread
 
 
 	//broadcast thread
-	ret = pthread_create(&controlHandler, NULL, control_respond, NULL);
+	ret = pthread_create(&controlHandle, NULL, control_respond, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
 		log_err("%d reboot",__LINE__);

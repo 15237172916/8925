@@ -63,6 +63,8 @@ int AppInitCfgInfoDefault(void)
 		//sprintf(s,"");
 		strcpy(share_mem->config_info.RX_Alias[i], "RX");
 		share_mem->rx_info[i].uuid = 0;
+		share_mem->rx_info[i].osd_status = OFF;
+		share_mem->rx_info[i].tv_status = ON;
 		share_mem->rx_info[i].video_source = 1;
 		share_mem->rx_info[i].heart_count = 0;
 		share_mem->rx_info[i].data_type = 0;
@@ -138,7 +140,9 @@ int AppWriteCfgInfotoFile(void)
 	for (i=0; i<128; i++)
 	{
 		//fprintf(fp, "[RX%d]\n", i+1);
-		fprintf(fp, "RX%d.ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);	
+		fprintf(fp, "RX%d.ALIAS=%s\n", i+1, share_mem->config_info.RX_Alias[i]);
+		fprintf(fp, "RX%d.TV_STATUS=%d\n", i+1, share_mem->rx_info[i].tv_status);
+		fprintf(fp, "RX%d.OSD_STATUS=%d\n", i+1, share_mem->rx_info[i].osd_status);
 		fprintf(fp, "RX%d.VIDEO_SOURCE=%d\n", i+1, share_mem->rx_info[i].video_source);
 		fprintf(fp, "RX%d.ONLINE_COUNT=%d\n", i+1, share_mem->rx_info[i].heart_count);
 		fprintf(fp, "RX%d.FW_STATUS=%d\n", i+1, share_mem->rx_info[i].fw_status);
@@ -156,7 +160,6 @@ int AppWriteCfgInfotoFile(void)
 	for (i=0; i<20; i++)
 	{
 		//fprintf(fp, "[GROUP%d]\n", i+1);
-
 		fprintf(fp, "GROUP%d.MEMBER=%s\n", i+1, share_mem->config_info.group[i].group_member);
 		fprintf(fp, "GROUP%d.ALIA=%s\n", i+1, share_mem->config_info.group[i].group_alias);
 		fprintf(fp, "\n");	
@@ -262,6 +265,14 @@ int AppInitCfgInfoFromFile(int *fp)
 		//iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
 		printf("%s:%s\n", strItem, share_mem->config_info.RX_Alias[i]);
 
+		sprintf(strItem,"RX%d.TV_STATUS", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].tv_status = atoi(strTemp);
+
+		sprintf(strItem,"RX%d.OSD_STATUS", i+1);
+		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
+		share_mem->rx_info[i].osd_status = atoi(strTemp);
+
 		sprintf(strItem,"RX%d.VIDEO_SOURCE", i+1);
 		iRetCode = GetConfigStringValue(*fp,"START", strItem, strTemp);
 		share_mem->rx_info[i].video_source = atoi(strTemp);
@@ -309,19 +320,15 @@ int AppInitCfgInfoFromFile(int *fp)
 	//group
 	for (i=0; i<20; i++)
 	{
-		
-		
 		sprintf(strItem,"GROUP%d.MEMBER", i+1);	
 		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.group[i].group_member);
 		sprintf(strItem,"GROUP%d.ALIA", i+1);	
 		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.group[i].group_alias);
-
 	}
 	
 	//scene
 	for (i=0; i<10; i++)
 	{
-		
 		sprintf(strItem,"GROUP%d.ALIA", i+1);	
 		iRetCode = GetConfigStringValue(*fp,"START", strItem, share_mem->config_info.scene[i].scene_alias);
 		sprintf(strItem,"GROUP%d.MEMBER", i+1);

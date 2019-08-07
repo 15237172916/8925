@@ -60,7 +60,8 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_rx_info.video_source = 1;
     share_mem->uuid = get_random();
     share_mem->sm_rx_info.data_type = UART;
-    share_mem->sm_rx_info.OSD_state = OFF;
+    share_mem->sm_rx_info.tv_status = ON;
+    share_mem->sm_rx_info.osd_status = OFF;
     share_mem->sm_rx_info.online_count = 0;
     share_mem->sm_rx_info.control_data.baud_rate = BAUD_9600;
     share_mem->sm_rx_info.control_data.data_bit = 8;
@@ -113,6 +114,12 @@ int AppInitCfgInfoFromFile(int *fp)
     iRetCode = GetConfigStringValue(*fp, "START", "UUID", strTemp); 
     share_mem->uuid = atoi(strTemp);
  
+    iRetCode = GetConfigStringValue(*fp, "START", "TV_STATUS", strTemp); 
+    share_mem->sm_rx_info.tv_status = atoi(strTemp); 
+
+    iRetCode = GetConfigStringValue(*fp, "START", "OSD_STATUS", strTemp); 
+    share_mem->sm_rx_info.osd_status = atoi(strTemp);
+
     iRetCode = GetConfigStringValue(*fp, "START", "VIDEO_SOURCE", strTemp);
     share_mem->sm_rx_info.video_source = atoi(strTemp);
 
@@ -173,6 +180,8 @@ int AppWriteCfgInfotoFile(void)
     //fprintf(fp,"=%s\n",share_mem->);
     printf("CONTROL \n");
     fprintf(fp,"UUID=%d\n",share_mem->uuid);
+    fprintf(fp,"TV_STATUS=%d\n",share_mem->sm_rx_info.tv_status);
+    fprintf(fp,"OSD_STATUS=%d\n",share_mem->sm_rx_info.osd_status);
     fprintf(fp,"VIDEO_SOURCE=%d\n",share_mem->sm_rx_info.video_source);
     fprintf(fp,"DATA_TYPE=%d\n",share_mem->sm_rx_info.data_type);
     fprintf(fp,"BAUD_RATE=%d\n",share_mem->sm_rx_info.control_data.baud_rate);

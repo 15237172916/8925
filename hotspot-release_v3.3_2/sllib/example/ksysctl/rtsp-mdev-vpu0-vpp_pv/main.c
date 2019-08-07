@@ -38,6 +38,7 @@
 #include <vpp/sl_api_pv.h>
 #include <vpp/sl_param_osd.h>
 #include <vpp/sl_api_osd.h>
+#include <stdbool.h>
 #include "list_handler.h"
 #include "sl_watchdog.h" 
 #include "display.h" 
@@ -62,8 +63,8 @@
 //#define APP_CODE
 //#define WEB_ENABLE
 //#define KVM_UART
-//#define APP_IO
-//#define APP_RTP
+#define APP_IO
+#define APP_RTP
 
 
 #define AUDIO_SUPPORT
@@ -115,7 +116,7 @@ static pthread_t audio_handle;
 static pthread_t  checkWr_handler;
 extern void * check_wr_thread(void * Args);
 
-char 	web_flag;
+bool g_multicastChangeFlag = false;
 
 static pthread_t ConfigHandle;
 
@@ -236,7 +237,7 @@ const char * hdmi_pullout = "Check TX's input signal";
 #endif
 
 char serverip[20] = "192.168.1.3";
-char multicast[20] = "239.255.42.1";
+char g_multicast[20] = "239.255.42.1";
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
 
@@ -2214,6 +2215,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
+
 	InitShareMem();
 	AppInitCfgInfoDefault();	
 	ret = AppInitCfgInfoFromFile(&fd_config);
@@ -2230,27 +2232,8 @@ int main(int argc, char* argv[])
         close(fd_config);
 	}
 	
-	
-
 #ifdef 	WEB_ENABLE
-	
-	AppInitCfgInfoDefault();
-    printf("cfg init ok \n");
-    ret = AppInitCfgInfoFromFile(&fd_config);
-	AppWriteCfgInfotoFile();
-    printf("ret = %d\n",ret);
-    if(ret<0)
-    {
-        if(NULL!=fd_config)
-            close(fd_config);
-        printf("build default config.conf \n");
-        AppWriteCfgInfotoFile();
-    }
-    else
-    {
-        printf("cfg get from file \n");
-        close(fd_config);
-    }
+
     strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
     //if(strcmp("192.168.1.5",share_mem->sm_eth_setting.strEthIp)!=0)
     
@@ -2258,7 +2241,7 @@ int main(int argc, char* argv[])
 	
 #endif
 
-#if 0
+#ifdef APP_IO
 	ret = pthread_create(&IP_switch_handle, NULL, IP_switch, NULL);
 	if (ret) {
 		log_err("Failed to Create IP_switch Thread\n");
@@ -2324,11 +2307,9 @@ int main(int argc, char* argv[])
 
 	//while (1) sleep(1);
 	sleep(1); //wait IO init ok
-	signal_light_flash();
+	//signal_light_flash();
 	
 #endif
-	
-
 	
 #if 0
 	memset(&client_param, 0x00, sizeof(client_param_t));
@@ -2548,8 +2529,8 @@ int main(int argc, char* argv[])
 				HDMI_light_off();
 #else
 #ifdef WEB_ENABLE
-		if(timeoutCnt >= MAX_RTSP_TIMEOUT || 1 == web_flag){
-			web_flag = 0;
+		if(timeoutCnt >= MAX_RTSP_TIMEOUT || 1 == g_multicastChangeFlag){
+			g_multicastChangeFlag = 0;
 			//sleep(1);
 #else
 		if(timeoutCnt >= MAX_RTSP_TIMEOUT){

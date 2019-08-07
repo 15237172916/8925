@@ -7,11 +7,11 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
+#include <stdbool.h>
 #include "app_igmp.h"
 
-extern char multicast[20];
-extern char web_flag;
+extern char g_multicast[20];
+extern bool g_multicastChangeFlag;
 char report_succeed = 1;
 
 static unsigned short csum(unsigned short *buf, int nwords)
@@ -47,11 +47,11 @@ int IGMP_config(const char type)
 	{
 		IGMP_Packet.ucType = type; //report packet
 		IGMP_Packet.ucMaxRspCode = 0; //tmieout
-		IGMP_Packet.uiAddGroup = inet_addr(multicast); //report address
+		IGMP_Packet.uiAddGroup = inet_addr(g_multicast); //report address
 		IGMP_Packet.usChecksum = 0;
 		IGMP_Packet.usChecksum = csum(&IGMP_Packet, sizeof(IGMP_V2));
 		printf("usChecksum : 0x%x \n", IGMP_Packet.usChecksum);
-		multicast_tmp = inet_addr(multicast);
+		multicast_tmp = inet_addr(g_multicast);
 	}
 }
 
@@ -71,12 +71,12 @@ void *app_igmp_report()
     memset(&server_addr, 0, sizeof(server_addr));
     
 ReSocket:
-    web_flag = 0;
+    g_multicastChangeFlag = false;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(IGMP_PORT);
 	//server_addr.sin_addr.s_addr=htonl(INADDR_BROADCAST); //UDP broadcast address 
 	//server_addr.sin_addr.s_addr=inet_addr(MCAST_ADDR); //UDP multicast address
-	server_addr.sin_addr.s_addr=inet_addr(multicast); //UDP multicast address
+	server_addr.sin_addr.s_addr=inet_addr(g_multicast); //UDP multicast address
 	
     //sock_cli = socket(AF_INET,SOCK_DGRAM, 0); //UDP
     sock_cli = socket(AF_INET, SOCK_RAW, IPPROTO_IGMP); //IGMP
@@ -151,8 +151,8 @@ ReSocket:
 Resend:	
 		//IGMP_config(IGMP_REPORT);
 		//printf("report succeed : %d \n", report_succeed);
-		//printf("web_flag = %d \n", web_flag);
-		if (1 == web_flag)
+		//printf("g_multicastChangeFlag = %d \n", g_multicastChangeFlag);
+		if (true == g_multicastChangeFlag)
 		{
 			report_succeed = 0;
 			server_addr.sin_addr.s_addr=inet_addr(LEAVE_ADDR);

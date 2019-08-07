@@ -64,7 +64,10 @@ static void AVclean(unsigned char order)
 
 static void controlDataUpdate(unsigned char order)
 {
-
+	//update osd status
+	broadSend_s.rx_info_s.osd_status = share_mem->rx_info[order].osd_status;
+	//update tv status
+	broadSend_s.rx_info_s.tv_status = share_mem->rx_info[order].tv_status;
 	//printf("rx %d share video %d \n", order, share_mem->rx_info[order].video_source);
 	broadSend_s.rx_info_s.data_type = share_mem->rx_info[order].data_type;
 	//update video source
@@ -95,13 +98,13 @@ void updateOffLineDeviceNumbers(int sig)
 
 	if (SIGALRM == sig)
 	{
-		printf("update off-line device's numbers \n");
+		printf("update off-line device numbers \n");
 		//Check off-line RX's devices
 		for (i=0; i<128; i++)
 		{
 			if (share_mem->rx_info[i].heart_count==0)
 			{
-				printf("RX[%d] is off-line \n", i+1);
+				//printf("RX[%d] is off-line \n", i+1);
 			}
 			else
 			{
@@ -115,7 +118,7 @@ void updateOffLineDeviceNumbers(int sig)
 		{
 			if (share_mem->tx_info[i].heart_count == 0)
 			{
-				printf("TX[%d] is off-line \n", i+1);	
+				//printf("TX[%d] is off-line \n", i+1);	
 			}
 			else
 			{
@@ -140,7 +143,7 @@ void *control_respond()
 	struct sockaddr_in servaddr;
 	
 	const int opt = -1;
-	broadSend_s.ucCurrentState = START;	
+	broadSend_s.ucSignal = START;	
 	memset(&servaddr, 0, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(SERV_UDP_PORT);
@@ -176,7 +179,7 @@ try_socket:
 	setsockopt(sockfd, SOL_SOCKET,SO_SNDTIMEO, &timeout, sizeof(timeout));
 	signal(SIGALRM, updateOffLineDeviceNumbers);
 	alarm(20);
-	
+	printf("REPORT_PACK_S : %d \n", sizeof(REPORT_PACK_S));
 	while (1)
 	{
 		//refresh_count++;
@@ -196,10 +199,10 @@ Recv:
 			else
 			{
 				printf("ucIpAddress: %d \n", broadRecv_s.ucIpAddress);
-				printf("ucRepayType:%d \n", broadRecv_s.ucRepayType);
-				printf("ucCurrentState:%d \n", broadRecv_s.ucCurrentState);
-				printf("ucProbe:%d \n", broadRecv_s.ucProbe);
-				printf("uuid:%d \n", broadRecv_s.uuid);
+				//printf("ucRepayType:%d \n", broadRecv_s.ucRepayType);
+				//printf("ucSignal:%d \n", broadRecv_s.ucSignal);
+				//printf("ucProbe:%d \n", broadRecv_s.ucProbe);
+				//printf("uuid:%d \n", broadRecv_s.uuid);
 				
 				//printf("", broadRecv_s.tx_info_s);
 				if (PROBE != broadRecv_s.ucProbe)
@@ -211,13 +214,13 @@ Recv:
 				switch (broadRecv_s.ucRepayType)
 				{
 					case TX:
-						printf("repay type is TX \n");
-						printf("audio_ch:%d \n", broadRecv_s.tx_info_s.audio_ch);
-						printf("audio_sample:%d \n", broadRecv_s.tx_info_s.audio_sample);
-						printf("is_hdmi_input:%d \n", broadRecv_s.tx_info_s.is_hdmi_input);
-						printf("video_framrate:%d \n", broadRecv_s.tx_info_s.video_framrate);
-						printf("video_height:%d \n", broadRecv_s.tx_info_s.video_height);
-						printf("video_width:%d \n", broadRecv_s.tx_info_s.video_width);
+						printf("repay type is TX , receive len : %d \n", len);
+						//printf("audio_ch:%d \n", broadRecv_s.tx_info_s.audio_ch);
+						//printf("audio_sample:%d \n", broadRecv_s.tx_info_s.audio_sample);
+						//printf("is_hdmi_input:%d \n", broadRecv_s.tx_info_s.is_hdmi_input);
+						//printf("video_framrate:%d \n", broadRecv_s.tx_info_s.video_framrate);
+						//printf("video_height:%d \n", broadRecv_s.tx_info_s.video_height);
+						//printf("video_width:%d \n", broadRecv_s.tx_info_s.video_width);
 						
 						broadSend_s.ucRepayType = TX;
 						//printf("broadSend_s.ucRepayType : %d \n", broadSend_s.ucRepayType);
@@ -229,12 +232,12 @@ Recv:
 							continue;
 						}
 						broadSend_s.ucIpAddress = TX_ID;
-						switch (broadRecv_s.ucCurrentState)
+						switch (broadRecv_s.ucSignal)
 						{
 							case HEART:
 								share_mem->tx_info[order].heart_count++;
-								printf("heart count: %d \n", share_mem->tx_info[order].heart_count);
-								broadSend_s.ucCurrentState = HEART;
+								//printf("heart count: %d \n", share_mem->tx_info[order].heart_count);
+								broadSend_s.ucSignal = HEART;
 								continue;
 								break;
 							case START:
@@ -247,22 +250,23 @@ Recv:
 								if (OFF == broadRecv_s.tx_info_s.is_hdmi_input)
 								{
 									AVclean(order);
-									broadSend_s.ucCurrentState = START;
+									broadSend_s.ucSignal = START;
 									printf("HDMI not input \n");
 									goto Send;
 								}
 								AVupdate(order);
-								broadSend_s.ucCurrentState = RESPOND;
+								broadSend_s.ucSignal = RESPOND;
 								break;
 							case RESPOND:
-								broadSend_s.ucCurrentState = HEART;
+								broadSend_s.ucSignal = HEART;
 								
 								break;
 						}
 						break;
 					case RX:
 						//printf("rx recv video source %d \n", broadRecv_s.rx_info_s.video_source);
-						printf("repay type is RX \n");
+						printf("repay type is RX , receive len : %d\n", len);
+						broadSend_s.ucRepayType = RX;
 						//printf("rx send video source : %d \n", broadSend_s.rx_info_s.video_source);	
 						RX_ID = broadRecv_s.ucIpAddress;
 						order = RX_ID;
@@ -286,24 +290,37 @@ Recv:
 							}
 						}
 						broadSend_s.uuid = broadRecv_s.uuid;
-						switch (broadRecv_s.ucCurrentState)
+						switch (broadRecv_s.ucSignal)
 						{
 							case HEART:
 								share_mem->rx_info[order].heart_count++;
-								printf("heart count: %d \n", share_mem->rx_info[order].heart_count);
-								//broadSend_s.ucCurrentState = HEART;
-								if (START == broadSend_s.ucCurrentState)
+								//printf("heart count: %d \n", share_mem->rx_info[order].heart_count);
+								//broadSend_s.ucSignal = HEART;
+								if (START == broadSend_s.ucSignal)
 								{
 									goto Send;
 								}
-								//printf("-----recv video source %d \n", broadRecv_s.rx_info_s.video_source);
-								//printf("-----share rx %d video source %d \n",order, share_mem->rx_info[order].video_source);
+								//printf();
+								//source is chenged or tv status is changed or osd status is changed 
 								if (broadRecv_s.rx_info_s.video_source != share_mem->rx_info[order].video_source)
 								{
-									broadSend_s.ucCurrentState = START;
-									printf("order : %d \n", order);
+									broadSend_s.ucSignal = START;
 									controlDataUpdate(order);
-									printf("rx[%d] video sourve is changed \n");
+									printf("RX[%d] video sourve is changed \n");
+									goto Send;
+								}
+								if (broadRecv_s.rx_info_s.tv_status != share_mem->rx_info[order].tv_status)
+								{
+									broadSend_s.ucSignal = START;
+									controlDataUpdate(order);
+									printf("RX[%d] tv status is changed \n");
+									goto Send;
+								}
+								if (broadRecv_s.rx_info_s.osd_status != share_mem->rx_info[order].osd_status)
+								{
+									broadSend_s.ucSignal = START;
+									controlDataUpdate(order);
+									printf("RX[%d] osd status is changed \n");
 									goto Send;
 								}
 								continue;
@@ -313,21 +330,22 @@ Recv:
 								
 								controlDataUpdate(order);
 								
-								broadSend_s.ucCurrentState = START;
+								broadSend_s.ucSignal = START;
 								break;
 							case RESPOND:
-								broadSend_s.ucCurrentState = HEART;
+								broadSend_s.ucSignal = HEART;
 								controlDataClean(order);
-
 								break;
+							default:
+								printf("\n******signal error \n");
+								break;
+
 						}
 						break;
 					default:
 						printf("repay type is error \n");
 						continue;
-						
 				}
-				
 			}
 Send:
 			len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
