@@ -358,88 +358,8 @@ Send:
 			}
 			else
 			{
-
+				printf("sendto succeed \n");
 			}
-
-			#if 0
-			len = recvfrom(sockfd, &broadRecv_s, sizeof(broadRecv_s), \
-				0, (struct sockaddr_in *) &servaddr, &servlen_addr_length);
-			if (len <= 0)
-			{
-				perror("recvfrom");
-				printf("recv len = %d \n", len);
-				printf("server_broadcast recvfrom error \n");
-			}
-			else
-			{
-				usleep(1000);
-				//printf("recv len = %d \n", len);
-				//printf("Ip : %d \n", broadRecv_s.ucIpAddress);
-				//printf("Multicast : %d \n", broadRecv_s.ucMultiAddress);
-				//printf("uProbe : 0x%x \n", broadRecv_s.uProbe);
-				//printf("uuid : %d \n", broadRecv_s.uuid);
-				//printf("uuid : %d \n", broadRecv_s.uuid);
-				if (PROBE == broadRecv_s.uProbe) //probe
-				{
-					//printf("share_mem->ucInfoDisplayFlag: %d\n",share_mem->ucInfoDisplayFlag);
-					if (1 == share_mem->ucInfoDisplayFlag)
-					{
-						broadSend_s.ucInfoDisplayFlag = 1;
-						goto INFO;
-					}
-					else
-					{
-						broadSend_s.ucInfoDisplayFlag = 0;
-					}
-					if (broadRecv_s.ucIpAddress <= 128) //ip
-					{
-						broadSend_s.ucIpAddress = broadRecv_s.ucIpAddress;
-						broadSend_s.ucMultiAddress = broadRecv_s.ucMultiAddress;
-						broadSend_s.uProbe = broadRecv_s.uProbe;
-						broadSend_s.uuid = broadRecv_s.uuid;
-					}
-					else
-					{
-						printf("Slave ip address is error\n");
-						continue;
-					}
-				}
-				if (share_mem->sm_group_pack.uuid[broadSend_s.ucIpAddress] == broadSend_s.uuid) //uuid
-				{
-					if (share_mem->sm_group_pack.ucMultiAddress[broadSend_s.ucIpAddress] == broadSend_s.ucMultiAddress)
-					{
-						//printf("Multicast is the same \n");
-						continue;
-					}
-					else
-					{
-						broadSend_s.ucMultiAddress = share_mem->sm_group_pack.ucMultiAddress[broadSend_s.ucIpAddress];
-						//broadSend_s.uuid = share_mem->sm_group_pack.uuid[broadSend_s.ucIpAddress];
-					}
-				}
-				else
-				{
-					share_mem->sm_group_pack.uuid[broadSend_s.ucIpAddress] = broadSend_s.uuid;
-					//share_mem->sm_group_pack.ucMultiAddress[broadSend_s.ucIpAddress] = broadSend_s.ucMultiAddress;
-					share_mem->ucUpdateFlag = 1;
-				}
-#if 1
-INFO:
-				len = sendto(sockfd, &broadSend_s, sizeof(broadSend_s), \
-					0, (struct sockaddr *)&servaddr, sizeof(servaddr));
-				if (len <= 0)
-				{
-					perror("sendto");
-					printf("send len = %d \n", len);
-					printf("server_broadcast sendto error \n");
-				}
-				else
-				{
-					//printf("sendto success \n");
-				}
-#endif
-			}
-			#endif
 		}
 	}
 	return 0;

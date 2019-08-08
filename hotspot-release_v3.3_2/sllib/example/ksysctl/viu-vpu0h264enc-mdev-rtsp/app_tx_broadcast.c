@@ -98,8 +98,7 @@ try_socket:
 		printf("client broadcast socket error \n");
 		goto try_socket;
 	}
-	else
-		printf("creat socket success \n");
+	printf("creat socket success \n");
 		
 	//set socket broadcast 
 	ret = setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,(char*)&opt,sizeof(opt)); 
