@@ -37,7 +37,7 @@
 #include "list_handler.h"
 #include "audio_ioctl.h"
 #include "cfginfo.h"
-#include "wifi_ap.h"
+//#include "wifi_ap.h"
 #include "ring_buffer.h"
 #include <sys/time.h>
 #if 1
@@ -64,14 +64,12 @@
 #define VIU_OUT_FRAMES 1
 //#define H264_OUTPUT
 #define WEB_ENABLE
-//#define APP_CODE
 //#define KVM_UART
-//#define DEBUG_OFF
+#define DEBUG_OFF
 //#define APP_IO
-//#define APP_RTP
-//#define SWIT_MULTICAST
+#define APP_RTP
 
-//#define RINGBUFF //audio buffer
+#define RINGBUFF //audio buffer
 
 #ifdef ENABLE_GET_IR
 #define IR_SERVER_PORT    7998
@@ -88,25 +86,6 @@ typedef struct
 #define HEIGHT 1080
 
 #include "app_tx_io_ctl.h"
-
-#ifdef APP_CODE
-#include "app_tx_signal_ch.h"
-#include "app_tx_data_ch.h"
-
-//static pthread_t server_broadcast_handle;
-static pthread_t app_tx_handle;
-static pthread_t app_tx_light_ctl_handle;
-
-static pthread_t app_tx_signal_ch_handle_a;
-static pthread_t app_tx_data_ch_handle_a;
-
-static pthread_t app_tx_signal_ch_handle_b;
-static pthread_t app_tx_data_ch_handle_b;
-
-char connect_state_a = 0;
-char connect_state_b = 0;
-
-#endif
 
 #ifdef KVM_UART
 
@@ -2694,7 +2673,7 @@ int main(int argc, char* argv[])
 {
 	SL_S32 ret = -1;
 	
-	printf("********************RX system starting***************************\n");
+	printf("********************TX system starting***************************\n");
 	printf(PRINT_VERSION);
 	System_running();
 	
@@ -2709,7 +2688,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 0
+#if 1
 	ret = pthread_create(&uartWatchdoghandle, NULL, uart_watchdog, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdoghandle Thread\n");
@@ -2788,7 +2767,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 
-	while (1) sleep(1);
+	//while (1) sleep(1);
 
 	SLOS_CreateMutex(&mutexlock);
 
@@ -2819,9 +2798,6 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-
-#if 0
-
 
 
 #if 1
@@ -2863,58 +2839,6 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#endif
-	
-#if 0//def RTSP_ENABLE
-
-	char static_ip[20] = "10.10.1.1";
-	memset((void *)&server_param, 0x00,  sizeof(server_param_t));
-	
-#if 1
-	interface = INTERFACE_ETH0;
-#else
-	interface = INTERFACE_WLAN0;
-#endif
-	if(interface == INTERFACE_WLAN0)
-	{
-		sleep(2);//wait 8192du detected completely
-		wifi_ap_start_hostapd();
-		sleep(1);
-		wifi_ap_set_static_ip(static_ip);
-		//sleep(1);
-		wifi_ap_start_udhcpd();
-		sleep(1);
-	}
-
-	server_param.interface = interface;
-
-	server_param.multicast = 0;//0; //1:UDP 0:TCP
-#if 1
-	char const *destinationAddressStr = "239.255.42.44";
-	char const *destinationAddressStrAudio = "239.255.42.45";
-#else
-	char const *destinationAddressStr = "239.250.42.44";
-	char const *destinationAddressStrAudio = "239.250.42.45";
-#endif
-
-	if(server_param.multicast)
-	{
-		strcpy(server_param.ipMulticastAddr, destinationAddressStr);	
-		strcpy(server_param.ipMulticastAddrAudio, destinationAddressStrAudio);	
-	}
-
-#if 1
-	ret = pthread_create(&rtspserver, NULL, StartRtsp, (void *)&server_param);
-	if (ret) {
-		log_err("Failed to Create rtsp Thread, %d\n", ret);
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-
-#endif
-
 #if 0
 	ret = pthread_create(&setBitrateHandle, NULL, setBitrate_handle, NULL);
 	if (ret) {
@@ -2925,41 +2849,6 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#ifdef APP_CODE
-
-	int signal_ch_a = 8000;
-    int data_port_a = 8001;
-#if 1
-	ret = pthread_create(&app_tx_handle, NULL, app_tx_main, NULL);
-	if (ret) {
-		log_err("Failed to Create app_tx_main Thread\n");
-		return ret;
-	}
-#endif
-#ifdef APP_IO
-	ret = pthread_create(&app_tx_light_ctl_handle, NULL, app_tx_light_ctl_main, NULL);
-	if (ret) {
-		log_err("Failed to Create data ch thread Thread\n");
-		return ret;
-	}
-#endif
-#if 1
-	printf("app_tx_signal_ch_handle_a \n");
-	ret = pthread_create(&app_tx_signal_ch_handle_a, NULL, app_tx_signal_ch_main, &signal_ch_a);
-	if (ret) {
-		log_err("Failed to Create signal ch Thread\n");
-		return ret;
-	}
-#endif
-#if 1
-	ret = pthread_create(&app_tx_data_ch_handle_a, NULL, app_tx_data_ch_main, &data_port_a);
-	if (ret) {
-		log_err("Failed to Create data ch thread Thread\n");
-		return ret;
-	}
-#endif
-#endif
-	
 #ifdef DEBUG_OFF
 #if 1
 	//signal(SIGINT, signalHandle);

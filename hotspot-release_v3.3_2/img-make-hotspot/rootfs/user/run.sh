@@ -143,7 +143,7 @@ fi
 
 #bin
 #./tmp/configs/ip.conf
-cd /tmp/&&./rtsp-mdev-vpu0-vpp_pv &
+cd /tmp/&&./control-box &
 cd /tmp/&&./UpGradeClient &
 
 #mount -o nolock 192.168.1.253:/home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/bin /mnt

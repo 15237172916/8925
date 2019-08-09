@@ -55,22 +55,10 @@ sleep 1;
 cat /dev/silan-cm0
 /user/word.csky 0xbfba903c 0xffffffff
 
-str="1"
 
-if [ $str="1" ]; then
-
-if [ -f /tmp/update/ko/insmod-server.sh ]; then
-	echo "/tmp/update/ko ok"
-	cd /tmp/update/ko/&&./insmod-server.sh
-else
-	echo "user/update/ko ok"
-	cd /user/update/ko/&&./insmod-server.sh
-fi
-
-
-else
-
+#cd /user/update/ko/&&./insmod-server.sh
 #insmod ko
+
 #insmod slcommon.ko log_levels=1
 if [ -f /tmp/update/ko/slcommon.ko ]; then
     echo "/tmp/update/ko/slcommon.ko OK"
@@ -117,22 +105,13 @@ else
 fi
 
 #insmod slviu.ko
-if [ -f /tmp/update/ko/slviu.ko ]; then
-    echo "/tmp/update/ko/slviu.ko OK"
-    insmod /tmp/update/ko/slviu.ko
-else
-    echo "/user/update/ko/slviu.ko OK"
-    insmod /user/update/ko/slviu.ko
-fi
-
-#insmod slvpre.ko
-if [ -f /tmp/update/ko/slvpre.ko ]; then
-    echo "/tmp/update/ko/slvpre.ko OK"
-    insmod /tmp/update/ko/slvpre.ko
-else
-    echo "/user/update/ko/slvpre.ko OK"
-    insmod /user/update/ko/slvpre.ko
-fi
+#if [ -f /tmp/update/ko/slviu.ko ]; then
+#    echo "/tmp/update/ko/slviu.ko OK"
+#    insmod /tmp/update/ko/slviu.ko
+#else
+#    echo "/user/update/ko/slviu.ko OK"
+#    insmod /user/update/ko/slviu.ko
+#fi
 
 #insmod slaudio.ko
 if [ -f /tmp/update/ko/slaudio.ko ]; then
@@ -151,7 +130,7 @@ else
     echo "/user/update/ko/sldsp-ir.ko OK"
     insmod /user/update/ko/sldsp-ir.ko
 fi
-fi
+
 
 #boa
 if [ -f /tmp/update/web/boa ]; then
@@ -163,12 +142,12 @@ else
 fi
 
 #bin
-cd /tmp/
-./viu-vpu0h264enc-mdev-rtsp &
-./UpGradeClient &
+#./tmp/configs/ip.conf
+cd /tmp/&&./control-box &
+cd /tmp/&&./UpGradeClient &
 
 #mount -o nolock 192.168.1.253:/home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/bin /mnt
 #mount -o nolock 192.168.1.2:/home/y/work/8925Docs/8925_test/Baseline_8925/900/test/hotspot-release_v1.7_3/sllib/bin/ /mnt
 #cd /mnt/&&./viu-vpu0h264enc-mdev-rtsp &
-#cd /mnt/web&&./boa
+#cd /mnt/web/&&./boa
 

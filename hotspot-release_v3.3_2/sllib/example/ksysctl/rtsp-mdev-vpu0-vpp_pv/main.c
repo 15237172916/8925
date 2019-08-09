@@ -1558,9 +1558,9 @@ int process_osd_text_solid(int x, int y, const char *text)
 		g_osd_need_reconfig = 0;
 	}
 
-tryAgain:	
+tryAgain:
 	ret = SLMDEV_mallocBlockWrite(im_devman_osd, &buf, OSD_WIDTH*OSD_HEIGHT*4);
-	if (SL_NO_ERROR != ret) {		
+	if (SL_NO_ERROR != ret) {
 		log_note("osd SLMDEV_mallocBlockWrite failed");
 		usleep(100000); //FIXME
 		goto tryAgain;
@@ -2177,18 +2177,14 @@ int main(int argc, char* argv[])
 {
 	SL_S32 ret = -1, i;
 	SL_S32 dd = -1;
-	RTSP_STATE_e state;
-	char str_tmp[50];
-	char configs[128];
+	
 	//AppWriteCfgInfotoFile();
 	printf(PRINT_VERSION);
-#if 0
+#if 1
 	ret = SLSYSCTL_openSysCtlLib();
 	if (SL_NO_ERROR != ret)
 		return 0;
 #endif
-	//printf("rtspURL_video:%s\n",rtspURL_video);
-	//printf("rtspURL_audio:%s\n",rtspURL_audio);
 
 	list = list_init();
 	if(!list)
@@ -2197,7 +2193,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	
-#if 0
+#if 1
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
@@ -2206,7 +2202,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-#if 0
+#if 1
 	ret = pthread_create(&uartWatchdogHandler, NULL, uart_watchdog, NULL);
 	if (ret) {
 		log_err("Failed to Create uartWatchdogHandler Thread\n");
@@ -2268,11 +2264,9 @@ int main(int argc, char* argv[])
 	}
 #endif	
 
-	while (1) sleep(1);
+	//while (1) sleep(1);
 
-	osd_display_init();
-	osd_sysctl_config();
-	process_osd_text_solid(10, 10, OSD_VERSION);
+	
 	//process_osd_text_solid(10, 10, "V4.0 System Starting");
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
@@ -2304,72 +2298,13 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-
+	osd_display_init();
+	osd_sysctl_config();
+	process_osd_text_solid(10, 10, OSD_VERSION);
 	//while (1) sleep(1);
 	sleep(1); //wait IO init ok
 	//signal_light_flash();
 	
-#endif
-	
-#if 0
-	memset(&client_param, 0x00, sizeof(client_param_t));
-#if 1
-	netInterface = INTERFACE_ETH0; 
-#else
-	netInterface = INTERFACE_WLAN0; 
-#endif
-	client_param.interface = netInterface;
-	client_param.overTCP = 1;//0;//1; //0:UDP 1:TCP
-
-	if(netInterface == INTERFACE_WLAN0) //wifi
-	{
-		sleep(4);	//wait 8192 detected completely
-		wifi_sta_start();
-	}
-	
-	if (INTERFACE_ETH0 == netInterface) //net
-	{
-		
-#ifdef WEB_ENABLE
-		strcpy(serverip, share_mem->sm_eth_setting.strEthGateway);
-		sprintf(rtspURL_video_eth0,"rtsp://%s:8554/ch0",serverip);
-        sprintf(rtspURL_audio_eth0,"rtsp://%s:8559/testStream",serverip);
-#endif
-	}
-	
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		ret = pthread_create(&wifiHandle, NULL, wifi_handle, NULL);
-		if (ret) {
-			log_err("Failed to Create wifiHandle Thread\n");
-			reboot1();
-			return ret;
-		}
-	}
-#endif
-
-#ifdef APP_CODE
-#if 1
-	ret = pthread_create(&app_rx_handler, NULL, app_rx_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
-#if 1
-	ret = pthread_create(&app_rx_signal_ch_handler, NULL, app_rx_signal_ch_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
-#if 1
-	ret = pthread_create(&app_rx_data_ch_handler, NULL, app_rx_data_ch_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
 #endif
 
 #ifdef ENABLE_IR_SEND
@@ -2424,309 +2359,17 @@ int main(int argc, char* argv[])
 #endif
 	//osd_display_init();
 	//osd_sysctl_config();
-#if 0
-#ifdef APP_CODE
-	sleep(1); //wait signal state update
-	if (1 == signal_connect_state)
-	{
-#endif
-	//printf_log("open rtsp");
-#ifdef VIDEO_SUPPORT
-	ret = pthread_create(&rtspHandle_video, NULL, rtspOpen_video, argv[0]);
-	if (ret) {
-		log_err("Failed to Create video rtspOpen Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-#ifdef AUDIO_SUPPORT
-	ret = pthread_create(&rtspHandle_audio, NULL, rtspOpen_audio, argv[0]);
-	if (ret) {
-		log_err("Failed to Create audio rtspOpen Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-#ifdef APP_CODE
-	}
-#endif
-
-#endif
 
 #if 0
 	signal(SIGINT, signalHandle);
 	signal(SIGTERM, signalHandle);
 	signal(SIGIO, signalioHandle);
 #endif
-	//trigger();
-	char tmp = 0;
 	
 	while (1)
 	{
 		sleep(1);
-		//printf("tmp:%d \n", tmp);
-		//printf("display_flag: %d\n", display_flag);
-#if 0
-		if (key_display || display_flag)
-		{
-			if (0==tmp)
-			{
-				sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
-				process_osd_text_solid(10, 20, str_tmp);
-			}
-			tmp = 1;
-			if (1 == key_display)
-			{
-				sleep(5);
-				key_display = 0;
-				//process_osd_disable();
-			}
-		}
-		else
-		{
-			if (1==tmp)
-			{
-				process_osd_disable();
-				tmp = 0;
-			}
-		}
-#endif
-#if 0
-		//add for wang in 20181219
-		ret = SLSYSCTL_getTimeoutDev(&dd);
-		if (dd == vpu_dev)
-		{
-			log_err("SLSYSCTL_getTimeoutDev need reboot\n");
-			reboot1();
-			break;
-		}
-		printf("ret: %d \n", ret);
-		printf("dd: %d \n", dd);
-		printf("vpu_dev: %d \n", vpu_dev);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthMulticast);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthIp);
-#endif
 	}
-	
-#if 0
-	while(1)
-	{
-		sleep(1);
-		timeoutCnt++;
-		printf("timeoutCnt = %d \n", timeoutCnt);
-		//printf("MAX_RTSP_TIMEOUT : %d \n", MAX_RTSP_TIMEOUT);
-#ifdef APP_CODE
-		gbBandwidthDetectMode = SL_TRUE;
-		//printf("signal_connect_state = %d \n", signal_connect_state);
-		//printf("rtspHandle_video = %d \n", rtspHandle_video);
-		//printf("rtspHandle_audio = %d \n", rtspHandle_audio);
-		//printf("argv[0] = %d \n", argv[0]);
-		
-		if(1 == signal_connect_state) //signal is connect
-		{
-			if(timeoutCnt >= MAX_RTSP_TIMEOUT){
-			//if(timeoutCnt >= 8){
-				HDMI_light_off();
-#else
-#ifdef WEB_ENABLE
-		if(timeoutCnt >= MAX_RTSP_TIMEOUT || 1 == g_multicastChangeFlag){
-			g_multicastChangeFlag = 0;
-			//sleep(1);
-#else
-		if(timeoutCnt >= MAX_RTSP_TIMEOUT){
-#endif
-#endif
-			//wpa_need_restart = 1;
-			printf("timeoutCnt:%d\n",timeoutCnt);
-
-#if 0
-			state = rtsp_getState();
-			switch(state)
-			{
-				case SERVER_NOT_CONNECT: 
-					//process_osd_text_solid(10, 10, server_running);
-					process_osd_text_solid(10, 10, server_not_connect);
-					g_server_connect = 0;
-					printf("SERVER_NOT_CONNECT\n");
-					break;
-
-				case SERVER_CONNECT: 
-					//process_osd_text_solid(10, 10, server_connect);
-					printf("SERVER_CONNECT\n");
-					//reboot1();
-					break;
-
-				case SERVER_NOT_RUNNING: 
-					process_osd_text_solid(10, 10, server_not_running);
-					printf("SERVER_NOT_RUNNING\n");
-					//reboot1();
-					break;
-
-				case SERVER_RUNNING: 
-					printf("SERVER_RUNNING\n");
-					g_server_connect = 1;
-					process_osd_text_solid(10, 10, server_running);
-
-					break;
-
-				default:
-					printf("unkonwn server state");
-					process_osd_text_solid(10, 10, server_not_connect);
-					break;
-			}
-#endif
-			//Timeout is occur, so need to setup link again.
-
-		
-#ifdef VIDEO_SUPPORT
-			//printf_log("rtsp_close");
-			if (rtspHandle_video > 0){
-				printf("rtspHandle_video : %d \n", rtspHandle_video);
-			rtsp_close();
-			}
-#endif
-#ifdef AUDIO_SUPPORT
-			if (rtspHandle_audio > 0){
-				printf("rtspHandle_audio : %d \n", rtspHandle_audio);
-			rtsp_audio_close();
-			}
-#endif
-			need_feed_dog = 0;
-#if 1
-#ifdef VIDEO_SUPPORT
-			if (rtspHandle_video > 0){
-			pthread_join(rtspHandle_video, &join_ret); //FIXME
-			rtspHandle_video = 0;
-			printf("rtspHandle_video : %d \n", rtspHandle_video);
-			}
-#endif
-
-#ifdef AUDIO_SUPPORT
-			if (rtspHandle_audio > 0){
-			pthread_join(rtspHandle_audio, &join_ret1); //FIXME
-			rtspHandle_audio = 0;
-			printf("rtspHandle_audio : %d \n", rtspHandle_audio);
-			}
-#endif
-#else
-			ret = pthread_kill(rtspHandle,SIGQUIT);
-			if(ret == ESRCH)
-				printf("thread non-exsistent or has been killed\n");
-			else if(ret == EINVAL)
-				printf("signal is invalid\n");
-			else
-				printf("thread exsist\n");
-#endif
-			need_feed_dog = 1;
-			printf("need_feed_dog : %d \n", need_feed_dog);
-#if 1
-#ifndef HANG_PAI
-			if(netInterface == INTERFACE_WLAN0)
-			{
-				wifi_sta_stop_wpa();
-				wifi_sta_stop_udhcpc();
-				sleep(2);
-				ret = wifi_sta_start_wpa();
-				if(ret)
-					printf("failed to start_wpa\n");
-				ret = wifi_sta_start_udhcpc();
-				if(ret)
-					printf("failed to start_udhcpc\n");
-				sleep(11);
-			} else {
-				sleep(13);
-				//sleep(2);
-			}
-#endif
-#endif
-
-#if 0
-			state = SERVER_NOT_CONNECT;
-			rtsp_setState(state);
-#endif
-
-#ifdef VIDEO_SUPPORT
-			if (0 == rtspHandle_video){
-			ret = pthread_create(&rtspHandle_video, NULL, rtspOpen_video, argv[0]);
-			if (ret) {
-				log_err("Failed to Create video rtspOpen Thread\n");
-				reboot1();
-				return ret;
-			}
-			}
-#endif
-#ifdef AUDIO_SUPPORT
-			if (0 == rtspHandle_audio){
-			ret = pthread_create(&rtspHandle_audio, NULL, rtspOpen_audio, argv[0]);
-			if (ret) {
-				log_err("Failed to Create audio rtspOpen Thread\n");
-				reboot1();
-				return ret;
-			}
-			}
-#endif
-			//printf_log("open rtsp");
-#if 1
-			sleep(3); //must sleep here TODO when server not inserted hdmi signal
-			g_cnt = 0;
-			if(timeoutCnt < MAX_RTSP_TIMEOUT)
-				continue;
-			state = rtsp_getState();
-			switch(state)
-			{
-				case SERVER_NOT_CONNECT: 
-					//process_osd_text_solid(10, 10, server_running);
-					process_osd_text_solid(10, 10, server_not_connect);
-					g_server_connect = 0;
-					printf("SERVER_NOT_CONNECT\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					break;
-
-				case SERVER_CONNECT: 
-					//process_osd_text_solid(10, 10, server_connect);
-					printf("SERVER_CONNECT\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					//reboot1();
-					break;
-
-				case SERVER_NOT_RUNNING: 
-					process_osd_text_solid(10, 10, server_not_running);
-					printf("SERVER_NOT_RUNNING\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					//reboot1();
-					break;
-
-				case SERVER_RUNNING: 
-					printf("SERVER_RUNNING\n");
-					g_server_connect = 1;
-					timeoutCnt = 0;
-					process_osd_text_solid(10, 10, server_running);
-					break;
-
-				default:
-					printf("unkonwn server state");
-					process_osd_text_solid(10, 10, server_not_connect);
-					break;
-			}
-#endif
-			g_cnt = 0;
-			//timeoutCnt = 0;
-		}
-#ifdef APP_CODE
-		}
-		else //signal not connect
-		{
-			signal_light_flash();
-			HDMI_light_off();
-			g_server_connect = 0;
-			printf("server not connect \n");
-			process_osd_text_solid(10, 10, server_not_connect);
-			//process_osd_text_overlay(10, 10, server_not_connect);
-			//sleep(1);
-		}
-#endif
-	}
-#endif
 
 	return 0;
 }
