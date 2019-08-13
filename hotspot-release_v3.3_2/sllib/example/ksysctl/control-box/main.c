@@ -29,10 +29,13 @@
 #include "sharemem.h"
 #include "app_broadcast.h"
 
+#include "API_socket.h"
+
 static pthread_t uartWatchdogHandle;
 static pthread_t watchdogHandle;
 static pthread_t controlHandle;
 static pthread_t sharememHandle;
+static pthread_t APIHandle;
 static SL_U32 need_feed_dog = 1;
 
 void *mutexlock;
@@ -171,7 +174,15 @@ int main(int argc, char* argv[])
 #endif
 
 	//API thread
-
+#if 1
+	ret = pthread_create(&APIHandle, NULL, API_server, NULL);
+	if (ret) {
+		log_err("Failed to Create Config Handle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif	
 
 	//broadcast thread
 	ret = pthread_create(&controlHandle, NULL, control_respond, NULL);

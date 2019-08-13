@@ -44,7 +44,7 @@ int AppInitCfgInfoDefault(void)
 	for (i=0; i<24; i++)
 	{
 		strcpy(share_mem->config_info.TX_Alias[i], "TX");
-		share_mem->tx_info[i].uuid = 0;
+		//share_mem->tx_info[i].uuid = 0;
 		share_mem->tx_info[i].audio_ch = 0;
 		share_mem->tx_info[i].audio_sample = 0;
 		share_mem->tx_info[i].audio_type = 0;
@@ -62,7 +62,7 @@ int AppInitCfgInfoDefault(void)
 	{
 		//sprintf(s,"");
 		strcpy(share_mem->config_info.RX_Alias[i], "RX");
-		share_mem->rx_info[i].uuid = 0;
+		share_mem->rx_info[i].uuid = NULL;
 		share_mem->rx_info[i].osd_status = OFF;
 		share_mem->rx_info[i].tv_status = ON;
 		share_mem->rx_info[i].video_source = 1;

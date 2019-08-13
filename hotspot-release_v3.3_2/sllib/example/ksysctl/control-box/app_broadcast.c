@@ -14,6 +14,7 @@
 
 #include "app_broadcast.h"
 #include "sharemem.h"
+#include "linked_list.h"
 //#include "init.h"
 
 static REPORT_PACK_S broadRecv_s;
@@ -102,6 +103,7 @@ void updateOffLineDeviceNumbers(int sig)
 		//Check off-line RX's devices
 		for (i=0; i<128; i++)
 		{
+			cleanAllNode(share_mem->rx_info[i].uuid);
 			if (share_mem->rx_info[i].heart_count==0)
 			{
 				//printf("RX[%d] is off-line \n", i+1);
@@ -277,18 +279,31 @@ Recv:
 						}
 						broadSend_s.ucIpAddress = RX_ID;
 						//judge rx's device repeat number
-						if (broadRecv_s.uuid != share_mem->rx_info[order].uuid)
+						if (NULL == share_mem->rx_info[order].uuid) //
 						{
-							share_mem->rx_info[order].uuid = broadRecv_s.uuid;
-							share_mem->rx_info[order].online_count++;
-							printf("RX[%d]'s number is %d \n", order, share_mem->rx_info[order].online_count);
-							broadSend_s.rx_info_s.online_count = share_mem->rx_info[order].online_count;
-							if (broadSend_s.rx_info_s.online_count >= 2)
-							{
-								printf("RX[%d] device number more than 2, please check \n", order);
-								goto Send;
-							}
+							share_mem->rx_info[order].uuid = createHeadNode();
 						}
+						
+						if(1 != (ifSameData(share_mem->rx_info[order].uuid, broadRecv_s.uuid)))
+						{
+							//printf("uuid: %d \n", broadRecv_s.uuid);
+							if (0 != broadRecv_s.uuid)
+							{
+								insertNewNodeByBack(share_mem->rx_info[order].uuid, broadRecv_s.uuid);
+							}
+							
+							broadSend_s.rx_info_s.online_count = findAllNodeNumber(share_mem->rx_info[order].uuid);
+						}
+						//printf("findAllNodeNumber(share_mem->rx_info[order].uuid) : %d \n", findAllNodeNumber(share_mem->rx_info[order].uuid));
+
+						if (broadSend_s.rx_info_s.online_count >= 2)
+						{
+							//printf("uuid 1 : %d \n", findNodeData(share_mem->rx_info[order].uuid, 1));
+							//printf("uuid 2 : %d \n", findNodeData(share_mem->rx_info[order].uuid, 2));
+							printf("RX[%d]: %d device number more than 2, please check \n", order, share_mem->rx_info[order].uuid->data);
+							goto Send;
+						}
+
 						broadSend_s.uuid = broadRecv_s.uuid;
 						switch (broadRecv_s.ucSignal)
 						{

@@ -5,6 +5,7 @@
         "app_tx_broadcast.h": "c",
         "sharemem.h": "c",
         "cfginfo.h": "c",
-        "version.h": "c"
+        "version.h": "c",
+        "app_rx_io_ctl.h": "c"
     }
 }

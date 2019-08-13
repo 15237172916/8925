@@ -1,6 +1,7 @@
 #ifndef _SETTING_H_
 #define _SETTING_H_
 #include "../version.h"
+#include "linked_list.h"
 
 #define HD_VERSION "HW11.2"
 #define SW_VERSION WEB_VERSION //version number is smaller than 20 byte
@@ -166,7 +167,8 @@ typedef struct
 
 typedef struct
 {
-    unsigned int uuid;
+    //unsigned int uuid;
+    pNODE_S uuid;
     unsigned char osd_status;
     unsigned char tv_status;
     unsigned char video_source;
