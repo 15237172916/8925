@@ -84,8 +84,7 @@ ReAccept:
 	buf = (unsigned char*)malloc(sizeof(unsigned char)*BUFFER_SIZE);
 	
     while(1)
-    {		
-
+    {
         len = recv(new_server_socket, buf, BUFFER_SIZE,0);
         if (len <= 0)
         {
@@ -98,7 +97,7 @@ ReAccept:
         }
 
         len = send(new_server_socket, buf, BUFFER_SIZE,0);
-        if(len <= 0)
+        if (len <= 0)
         {
             printf("Send data len <= 0 len= %d \n",len);
             perror("send");
