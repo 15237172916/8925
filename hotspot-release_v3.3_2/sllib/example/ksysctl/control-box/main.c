@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	
+#if 0
 	InitShareMem();
 	
 	ret = AppInitCfgInfoFromFile(&fd_config);
@@ -161,9 +161,9 @@ int main(int argc, char* argv[])
 		printf("cfg get from file \n");
         close(fd_config);
 	}
-
+#endif
 	//share memory thread
-#if 1
+#if 0
 	ret = pthread_create(&sharememHandle, NULL, sharemem_main, NULL);
 	if (ret) {
 		log_err("Failed to Create Config Handle Thread\n");
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif	
-
+#if 0
 	//broadcast thread
 	ret = pthread_create(&controlHandle, NULL, control_respond, NULL);
 	if (ret) {
@@ -192,6 +192,7 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}	
+#endif
 	while(1) sleep(1);
 	
 	//
