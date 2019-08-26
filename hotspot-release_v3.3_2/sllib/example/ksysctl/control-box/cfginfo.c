@@ -40,6 +40,9 @@ int AppInitCfgInfoDefault(void)
 	int i, j;
 	char s[40];
 
+	strcpy(share_mem->password, "admin");
+	share_mem->ucAliasModeFlag = OFF;
+
 	//TX information init
 	for (i=0; i<24; i++)
 	{
@@ -119,6 +122,9 @@ int AppWriteCfgInfotoFile(void)
     fp = fopen(CONFIG_FILE, "w");
     printf("start write conf file \n");
 	fprintf(fp, "[START]\n");
+	
+	fprintf(fp, "PSAAWORD=%s\n", share_mem->password);
+	fprintf(fp, "ALIAS_MODE=%d\n", share_mem->ucAliasModeFlag);
 
 	//TX information
 	for (i=0; i<24; i++)
@@ -202,6 +208,10 @@ int AppInitCfgInfoFromFile(int *fp)
 	memset(&cfginfo,0,sizeof(cfginfo));
 
     printf("get eth ip \n");
+
+	iRetCode = GetConfigStringValue(*fp, "START", "PASSWOED", share_mem->password);
+	iRetCode = GetConfigStringValue(*fp, "START", "ALIAS_MODE", strTemp);
+	share_mem->ucAliasModeFlag = atoi(strTemp);
 
 	//TX config
 	for (i=0; i<24; i++)

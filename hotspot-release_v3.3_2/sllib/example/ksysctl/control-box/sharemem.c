@@ -34,12 +34,12 @@ SL_POINTER  sharemem_main(SL_POINTER Args)
 	while(1)
 	{
 		//printf("ucUpdateFlag=%d\n",share_mem->ucUpdateFlag);
-		if(ON == share_mem->ucUpdateFlag)
+		if (ON == share_mem->ucUpdateFlag)
 		{
 			printf("\n\n--------web start -------\n");
 			AppWriteCfgInfotoFile();  
 
-			share_mem->ucUpdateFlag = 0;
+			share_mem->ucUpdateFlag = OFF;
 		}
 		sleep(1);
 	}

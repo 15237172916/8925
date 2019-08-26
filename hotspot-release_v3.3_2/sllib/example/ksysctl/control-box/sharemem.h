@@ -24,6 +24,8 @@ typedef struct{
 }SHARE_MEM;
 #endif
 typedef struct{
+	char password[20];
+	unsigned char ucAliasModeFlag;
 	unsigned char ucUpdateFlag; //1:updated
 	TX_INFORMATION_S tx_info[24];
 	RX_INFORMATION_S rx_info[128];

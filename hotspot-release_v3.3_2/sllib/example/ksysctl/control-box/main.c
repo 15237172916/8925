@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-#if 0
+#if 1
 	InitShareMem();
 	
 	ret = AppInitCfgInfoFromFile(&fd_config);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 	}
 #endif
 	//share memory thread
-#if 0
+#if 1
 	ret = pthread_create(&sharememHandle, NULL, sharemem_main, NULL);
 	if (ret) {
 		log_err("Failed to Create Config Handle Thread\n");

@@ -6,6 +6,7 @@
         "sharemem.h": "c",
         "cfginfo.h": "c",
         "version.h": "c",
-        "app_rx_io_ctl.h": "c"
+        "app_rx_io_ctl.h": "c",
+        "setting.h": "c"
     }
 }
