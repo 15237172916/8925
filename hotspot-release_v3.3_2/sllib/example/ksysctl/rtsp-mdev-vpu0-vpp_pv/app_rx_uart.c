@@ -41,7 +41,6 @@
 pthread_mutex_t lock_kvm; 
 static SL_U32 fd;  			//fd is uart descriptor
 char RX_IP[30];
-extern char serverip[128];
 extern char multicast[20];
 extern char report_succeed;
 extern char web_flag;
@@ -587,6 +586,7 @@ int Judge_OSD_CHOOSE(SL_U8 buff[1],STATE osd_state)
 			else if(buff[0]==0x44)									//alt + F11  	display menu
 			{
 				flag_osd_choose=1;
+				flag_osd=1;
 				osd_menu_show();
 				osd_state=STATE6;
 			}
@@ -674,29 +674,6 @@ ReSocket:
 	}
 #endif
 
-#if 0
-	//set multicast address
-	struct ip_mreq mreq;
-	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
-	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-
-	//add multicast group
-	ret = setsockopt(sock_client, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
-	if(ret < 0)
-	{
-		printf("kvm set multicast error \n");
-		perror("setsockopt");
-	}
-#endif
-#if 0
-	int reuse = 1;
-	ret = setsockopt(sock_client, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse));
-	if(ret < 0)
-	{
-		printf("kvm set multicast reuse error \n");
-		perror("setsockopt");
-	}
-#endif
 
 #if 1
     struct timeval timeout;
@@ -718,19 +695,19 @@ ReSocket:
 	printf("start while\n");
 	STATE cur_state=STATE0;
 	STATE osd_state=STATE0;
+	
 	int num;
 	SL_U8 package[2]; 
 	strncpy(RX_IP, share_mem->sm_eth_setting.strEthIp+10,3);
 	num=atoi(RX_IP);
 	package[0]=num;
-	
+	int ban;
 	while (1)
     {
 		usleep(1000);
 ReRecv:
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
-		//printf("**%d***\n",rtp_switch_flag);
 		if (1 == rtp_switch_flag)
 		{
 			printf("\n\n ******************KVM start socket ***********************\n\n");
@@ -741,15 +718,22 @@ ReRecv:
 			close(sock_client);				//if use kvm,must be closed first this sock
 			goto ReSocket;
 		}
-		//printf("**********1\n");
+
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));
 		if (errCode != 0)
 		{
 			printf("SLUART_Read error\n");
 		}
 		package[1]=rbuff[0];
+		//~ if(rbuff[0]==0x57)
+			//~ ban=12;
+		//~ if(ban>1)
+		//~ {
+			//~ ban--;
+			//~ printf("rbuff[0]=0x%x\n",rbuff[0]);
+		//~ }
 		//printf("====0x%x, 0x%x===\n",package[0],package[1]);
-
+		
 		cur_state = Judge_MK_Value(&rbuff[0],cur_state);
 		osd_state = Judge_OSD_CHOOSE(&rbuff[0],osd_state);
 
@@ -765,7 +749,7 @@ ReRecv:
 			if (recvfrom(sock_client, wbuff, sizeof(wbuff), \
 				0, (struct sockaddr *)&server_addr, &clielen_addr_length) <= 0)
 			{
-				perror("recvfrom");
+				//perror("recvfrom");
 				//printf("kvm uart revfrom failed \n");
 				//usleep(1000);
 				goto ReRecv;
@@ -780,7 +764,7 @@ ReRecv:
 		//Redisplay the menu when clearing the broken tx
 		if(flag_dm==1 && flag_osd==1)
 		{
-			printf("************3\n");
+			printf("***Redisplay the menu***\n");
 			sleep(1);
 			osd_menu_show();
 			flag_dm=0;
@@ -894,13 +878,13 @@ ReSocket:
 void *serch_tx_multicast_main(void)
 {
 	printf("==========serch_tx_multicast_main==========\n");
-	//init_sigcation();
-	//init_time();
+	init_sigcation();
+	init_time();
 	pthread_mutex_init(&lock_kvm,NULL);
 	char substr[20];
 	int sock_listen;
 	int addrLen = sizeof(struct sockaddr_in);
-	char dest[3] = {""};
+	char dest[3];
 
 	OSD_MSG *head=malloc(sizeof(struct osd_msg));
 	lhead=head;
@@ -935,33 +919,36 @@ BRDRecv:
 		printf("bind fail\n");
 		return -1;
 	}
-
+	
+	sleep(2);
 	while(1)
 	{
-		memset(dest, '\0', sizeof(dest));
 		memset(substr, 0, sizeof(substr));
+		memset(dest, '\0', sizeof(dest));
 		if (recvfrom(sock_listen, substr, sizeof(substr), \
 				0, (struct sockaddr *)&recvAddr, &addrLen) <= 0)
 		{
-				perror("recvfrom");
-				printf("multicast revfrom failed \n");
+				//perror("recvfrom");
+				//printf("multicast revfrom failed \n");
 				//goto BRDRecv;		
 		}
-		//printf("****%s*****\n",substr);
+		//printf("\n****%s*****\n",substr);
 		strncpy(dest, substr+11,3);
 		
 /* Clear the flag every second, 
  * After ten seconds, if there is a flag or 0, remove the multicast.
  * */
-		if(find_multicast(dest)==0)
-		{
-			add_multicast(dest);
-		}
-		else
-		{
-			sleep(1);
-			clear_flag();
-		}
+		//printf("**dest==%s*****\n",dest);
+			if(find_multicast(&dest)==0)
+			{
+				add_multicast(&dest);
+			}
+			//~ else
+			//~ {
+				//~ sleep(1);
+				//~ clear_flag();
+			//~ }
+			usleep(1000);
 	}
 	close(sock_listen);
 	return 0;
@@ -981,7 +968,7 @@ void osd_menu_show()
 	int mul_x=160;
 	int page=1;
 	page_c=1;
-	x=160,y=80,flag_osd=1;
+	x=160,y=80;
 	strncpy(dest, multicast+11,3);
 	process_osd_text_solid(320,55,"OSD");
 	osd_choose_show(96,68,ICON_MENU);
@@ -990,12 +977,12 @@ void osd_menu_show()
 		
 		if(mul_y<222)
 		{
-			if(mul_x<450)
+			if(mul_x<440)
 			{
 				if(page==1)
 				{
 					sprintf(buff,"TX:%s",p->osd_multicast);
-					//printf("***osd show %s******\n",p->osd_multicast);
+					printf("osd_multicast=%s\n",p->osd_multicast);
 					process_osd_text(mul_x,mul_y,buff);
 				}
 				p->page=page;
@@ -1045,9 +1032,13 @@ void osd_menu_show()
  * */
 int find_multicast(char *mul)
 {
+	/*Sometimes mul is null, 
+	 * and the null value will be placed in the linked list, 
+	 * causing the osd signal source to be incomplete.
+	 * */
 	if(strlen(mul)==0)						
 		return 1;
-	OSD_MSG *p=lhead;
+	OSD_MSG *p=lhead->next;
 	while(p!=NULL)
 	{
 		if(strcmp(p->osd_multicast,mul)==0)
@@ -1055,9 +1046,8 @@ int find_multicast(char *mul)
 			p->flag=1;
 			return 1;
 		}
-		p->flag=1;
 		p=p->next;
-		//printf("===add %s=====\n",p->osd_multicast);
+		
 	}
 	return 0;
 }
@@ -1067,6 +1057,7 @@ int find_multicast(char *mul)
  * */
 void add_multicast(char *mul)
 {
+	//printf("\n****multicast=%s****\n",mul);
 	OSD_MSG *p=lhead;
 	OSD_MSG *tmp=malloc(sizeof(struct osd_msg));
 
@@ -1078,6 +1069,7 @@ void add_multicast(char *mul)
 	strcpy(tmp->osd_multicast,mul);
 	tmp->flag=1;
 	tmp->next=NULL;
+	//printf("\n****add multicast=%s****\n",tmp->osd_multicast);
 }
 
 /*Function name	:del_multicast
@@ -1086,6 +1078,7 @@ void add_multicast(char *mul)
 int del_multicast()
 {
 	pthread_mutex_lock(&lock_kvm);
+	printf("*****delete multicast******\n");
 	OSD_MSG *p,*q,*s;
 	p=lhead->next;
 	q=lhead->next->next;
@@ -1102,6 +1095,9 @@ int del_multicast()
 		}
 		else
 		{
+			printf("q->flag1=%d\n",q->flag);
+			q->flag=0;
+			printf("q->flag=%d\n",q->flag);
 			p=p->next;
 			q=q->next;
 		}
@@ -1150,7 +1146,7 @@ int clear_flag(void)
 	OSD_MSG *p=lhead->next;
 	while(p!=NULL)
 	{
-		p->flag=0;
+		p->flag=1;
 		p=p->next;
 	}
 	pthread_mutex_unlock(&lock_kvm);
@@ -1188,7 +1184,6 @@ void sort_multicast()
 /*Function name	:init_sigcation
  * func					:Set the timing, execute the del_multicast() function every 10 seconds.
  * */
- /*
 void init_sigcation()
 {
 	struct sigaction act;				//设置处理信号的函数
@@ -1200,14 +1195,14 @@ void init_sigcation()
 
 void init_time()
 {
-	struct itimerval val;		//1秒后启用定时器
-	val.it_value.tv_sec = 1;
+	struct itimerval val;		//10秒后启用定时器
+	val.it_value.tv_sec = 10;
 	val.it_value.tv_usec = 0;
-	val.it_interval.tv_sec = 30; 		//定时器间隔为30s
+	val.it_interval.tv_sec = 20; 		//定时器间隔为20s
 	val.it_interval.tv_usec = 0;
 	setitimer(ITIMER_PROF, &val, NULL);
 }
-*/
+
 
 
 

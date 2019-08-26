@@ -125,6 +125,8 @@ static pthread_t ConfigHandle;
 int key=0;
 LIST_BUFFER_S *list;
 
+#include "app_igmp.h"
+static pthread_t app_igmp_report_handler;
 
 extern CFG_INFO_S cfginfo;
 static volatile int liveTimeCount = 0;
@@ -2835,6 +2837,15 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef APP_RTP
+
+
+#if 1
+	ret = pthread_create(&app_igmp_report_handler, NULL, app_igmp_report, NULL);
+	if (ret) {
+		log_err("Failed to Create rtspOpen Thread\n");
+		return ret;
+		}	
+#endif
     printf("pull from list start \n");
 	ret = pthread_create(&PullFromList_handler, NULL, PullFromList, NULL);
 	if (ret) {

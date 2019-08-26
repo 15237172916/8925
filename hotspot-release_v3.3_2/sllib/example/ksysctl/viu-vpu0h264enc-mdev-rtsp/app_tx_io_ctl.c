@@ -483,6 +483,7 @@ void HDMI_HotPlug(void)
 }
 
 
+
 void System_running(void)
 {
 	//system running state led
@@ -542,14 +543,14 @@ void Init_Multicast(void)
 	{
 	tmp1 = 0x00;
 	
-	GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
-	tmp1 |= value; //0x01
-	//printf("value: %d \n", value);
-	tmp1 = tmp1 << 1; //0x02
-	GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
-	tmp1 = tmp1 | value; //0x03
-	//printf("value: %d \n", value);
-	tmp1 = tmp1 << 1;
+	//~ GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
+	//~ tmp1 |= value; //0x01
+	//~ //printf("value: %d \n", value);
+	//~ tmp1 = tmp1 << 1; //0x02
+	//~ GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
+	//~ tmp1 = tmp1 | value; //0x03
+	//~ //printf("value: %d \n", value);
+	//~ tmp1 = tmp1 << 1;
 	GPIO_getValue(MULTICAST_SWITCH_3, &value);
 	tmp1 |= value;
 	tmp1 = tmp1 << 1;

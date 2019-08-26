@@ -1403,7 +1403,7 @@ tryAgain:
 	}
 
 	set_osd_buf(buf);
-
+	//color_fg =COLOR_WHITE_SOLID;
 	color_fg = COLOR_BLACK_SOLID;
 	color_bk = GRAY;
 
@@ -1490,73 +1490,7 @@ tryAgain:
 	return 0;
 
 }
-#if 0
-int process_osd_bmp(int x, int y, int width, int height)
-{
-	int color;
-	color=COLOR_BLUE_SOLID;
-	
-	bmp_show(x, y, width, height,color);
-	return 0;
 
-}
-#endif
-
-#if 0
-static int process_osd_image(int icon_id)
-{
-	SL_U8 *imageData;
-	SL_S32 ret;
-	void *buf;
-	SL_S32 i;
-	char *dst, *src;
-
-	if(g_osd_need_reconfig)
-	{
-		setOsdCfg(&osd_cfg);
-		ret = SLVPP_OSD_config(osd_dev, &osd_cfg);
-		if (SL_NO_ERROR != ret)
-		{
-			log_err("SLVPP_OSD_config");
-			return -1;
-		}
-		g_osd_need_reconfig = 0;
-	}
-
-	imageData = osd_display_icon_data(icon_id);
-	if(!imageData)
-		return -1;
-tryAgain:	
-	ret = SLMDEV_mallocBlockWrite(im_devman_osd, &buf, 1280*720*4);
-	if (SL_NO_ERROR != ret) {		
-		log_note("osd SLMDEV_mallocBlockWrite failed");
-		usleep(100000); //FIXME
-		goto tryAgain;
-	}
-	printf("osd mdev malloc\n");
-	memcpy(buf, imageData, OSD_WIDTH*OSD_HEIGHT*4);
-	
-	// let vpp use the ddr 
-	dst = buf;
-	src = imageData;
-	for(i=0; i<OSD_HEIGHT*4; i++)
-	{
-		memcpy(dst, src, OSD_WIDTH);
-		dst += OSD_WIDTH;
-		src += OSD_WIDTH;
-		usleep(1000);
-	}
-	
-	if(pv_dev)
-		SLSYSCTL_stopProcess(pv_dev);
-
-	SLMDEV_freeBlockWrite(im_devman_osd, buf);
-	printf("osd mdev free\n");
-
-	return 0;
-
-}
-#endif
 
 int process_osd_disable(void)
 {
@@ -2149,14 +2083,18 @@ int main(int argc, char* argv[])
         printf("cfg get from file \n");
         close(fd_config);
     }
+    Init_Ip();
     strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
     //if(strcmp("192.168.1.5",share_mem->sm_eth_setting.strEthIp)!=0)
 	init_eth();//   zhou
-	
+	printf("*****************************\n");
+	printf("*******IP:%s*******\n",share_mem->sm_eth_setting.strEthIp);
+	printf("*****************************\n");
 #endif
 	osd_display_init();
 	osd_sysctl_config();
 	process_osd_text_solid(10, 10, OSD_VERSION);
+	process_osd_text(10,30,"712");
 	sleep(2);
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
@@ -2397,15 +2335,15 @@ int main(int argc, char* argv[])
 		*/
 		//printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
 		//printf("kvm_switch_flag=%d\n",kvm_switch_flag);
-		strcpy(share_mem->sm_eth_setting.strEthMulticast, multicast);
-		if(osd_display_flag==1)
-		{
-			process_osd_text_solid(10, 20,share_mem->sm_eth_setting.strEthMulticast);
-			//printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
-			sleep(3);
-			process_osd_disable();
-			osd_display_flag=0;
-		}
+		//~ strcpy(share_mem->sm_eth_setting.strEthMulticast, multicast);
+		//~ if(osd_display_flag==1)
+		//~ {
+			//~ process_osd_text_solid(10, 20,share_mem->sm_eth_setting.strEthMulticast);
+			//~ //printf("Multicast=%s\n",share_mem->sm_eth_setting.strEthMulticast);
+			//~ sleep(3);
+			//~ process_osd_disable();
+			//~ osd_display_flag=0;
+		//~ }
 		usleep(10);
 	}
 	

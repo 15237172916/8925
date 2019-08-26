@@ -8,6 +8,7 @@
 *   HSV592    | KVM control + more one    | 2.1.x
 *   HSV701    | WEB control + distribute  | 1.0.x
 *   HSV761    | WEB control + centralize  | 1.1.x
+*	HSV712	  | KVM control + more to more | 2.2.x
 *   HSV900/922  
 *************************************************************
 *   current state |  abridge
@@ -22,16 +23,16 @@
 #ifndef _VERSION_H_
 #define _VERSION_H_
 
-#define PRODUCT_NAME   "HSV592"     //product name
+#define PRODUCT_NAME   "HSV712"     //product name
 #define VER_ID1      "2"          //major version id 
-#define VER_ID2      "1"          //minor version id 
-#define VER_ID3      "3"             //sbuversion id 
-#define BUILDING      "20190629"        //date
+#define VER_ID2      "2"          //minor version id 
+#define VER_ID3      "1"             //subversion id 
+#define BUILDING      "20190816"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV592 V2.1.3.190629_R"
-#define WEB_VERSION      "V2.1.3.190629"
-#define OSD_VERSION      "V2.1.3"
+#define PRINT_VERSION    "HSV712 V2.2.1.190816_R"
+#define WEB_VERSION      "V2.2.1.190816"
+#define OSD_VERSION      "V2.2.1"
 
 
 

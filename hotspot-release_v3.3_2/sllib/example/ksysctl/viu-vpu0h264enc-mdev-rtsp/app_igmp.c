@@ -12,7 +12,6 @@
 
 extern char multicast[20];
 extern char web_flag;
-extern char kvm_switch_flag;
 char report_succeed = 0;
 
 unsigned short csum(unsigned short *buf, int nwords)
@@ -59,6 +58,9 @@ int IGMP_config(const char type)
 //void main(void)
 void *app_igmp_report()
 {
+	printf("\n*************************\n");
+	printf("*******http_rx_main*******\n");
+	printf("*************************\n");
 	//printf("igmp : %d \n", sizeof(IGMP_V2));
 	//printf("unsigned long int : %ld \n", sizeof(unsigned long int));
 	int len, ret;
@@ -149,12 +151,14 @@ ReSocket:
 	IGMP_config(IGMP_REPORT);
 	//unsigned long int test = 0x17020802e00000fb;
 	//unsigned long int test = 0xfb0000e002080217;
+	printf("multicast=%s\n",multicast);
 	while (1)
 	{
 Resend:	
 		//IGMP_config(IGMP_REPORT);
 		//printf("report succeed : %d \n", report_succeed);
 		//printf("web_flag = %d \n", web_flag);
+#if 0
 		if (1 == kvm_switch_flag || 1 == web_flag)
 		{
 			printf("\n IGMP start socket*********** \n\n");
@@ -168,7 +172,7 @@ Resend:
 			close(sock_cli);
 			goto ReSocket;
 		}
-		
+#endif	
 		len = sendto(sock_cli, &IGMP_Packet, sizeof(IGMP_V2), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 		//len = sendto(sock_cli, &test, sizeof(test), 0, (struct sockaddr *)&server_addr, sizeof(server_addr));
 		if (len < 0)
@@ -180,7 +184,7 @@ Resend:
 		}
 		
 		//printf("send igmp len : %d \n", len);
-		usleep(500000); //0.1s
+		sleep(1); //0.1s
 	}
 }
 

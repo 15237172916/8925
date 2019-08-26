@@ -13,6 +13,8 @@
 
 #include "app_rx_io_ctl.h"
 #include "display.h" 
+#include "cfginfo.h" 
+#include "sharemem.h"
 
 
 
@@ -550,6 +552,7 @@ void  *app_rx_io_ctl_main(void)
 			if(0 == get_key_value())
 			{
 				process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthMulticast);
+				process_osd_text(10,40,share_mem->sm_eth_setting.strEthIp);
 				sleep(3);
 				process_osd_disable();
 			}
@@ -636,3 +639,90 @@ SL_U32 get_key_value(void)
 	
 	return value;
 }
+
+#if 1
+void Init_Ip(void)
+{
+	#if 1 //
+	GPIO_openFd(IP_SWITCH_1);
+	GPIO_export(IP_SWITCH_1);	   			
+	GPIO_setDir(IP_SWITCH_1, GPIO_INPUT);
+   
+
+	GPIO_openFd(IP_SWITCH_2);
+	GPIO_export(IP_SWITCH_2);	   			
+	GPIO_setDir(IP_SWITCH_2, GPIO_INPUT);
+	
+
+	GPIO_openFd(IP_SWITCH_3);
+	GPIO_export(IP_SWITCH_3);	   			
+	GPIO_setDir(IP_SWITCH_3, GPIO_INPUT);
+
+
+	GPIO_openFd(IP_SWITCH_4);
+	GPIO_export(IP_SWITCH_4);
+	GPIO_setDir(IP_SWITCH_4, GPIO_INPUT);
+	
+	
+	GPIO_openFd(IP_SWITCH_5);
+	GPIO_export(IP_SWITCH_5);	
+	GPIO_setDir(IP_SWITCH_5, GPIO_INPUT);
+
+	GPIO_openFd(IP_SWITCH_6);
+	GPIO_export(IP_SWITCH_6);
+	GPIO_setDir(IP_SWITCH_6, GPIO_INPUT);
+	
+	
+	GPIO_openFd(IP_SWITCH_7);
+	GPIO_export(IP_SWITCH_7);	
+	GPIO_setDir(IP_SWITCH_7, GPIO_INPUT);
+#endif
+
+	SL_U32 value = 0, tmp1, tmp2, i = 10;
+	char str[50] = {0};
+	
+	printf("-----------IP switch-----------\n");
+	sleep(2);
+	//while(1)
+	{
+	tmp1 = 0x00;
+	
+	GPIO_getValue(IP_SWITCH_1, &value); //1
+	tmp1 |= value; //0x01
+	//printf("value: %d \n", value);
+	tmp1 = tmp1 << 1; //0x02
+	GPIO_getValue(IP_SWITCH_2, &value); //1
+	tmp1 = tmp1 | value; //0x03
+	//printf("value: %d \n", value);
+	tmp1 = tmp1 << 1;
+	GPIO_getValue(IP_SWITCH_3, &value);
+	tmp1 |= value;
+	tmp1 = tmp1 << 1;
+	GPIO_getValue(IP_SWITCH_4, &value);
+	tmp1 |= value;
+	tmp1 = tmp1 << 1;
+	GPIO_getValue(IP_SWITCH_5, &value);
+	tmp1 |= value;
+
+	tmp1 = tmp1 << 1;
+	GPIO_getValue(IP_SWITCH_6, &value);
+	tmp1 |= value;
+	tmp1 = tmp1 << 1;
+	GPIO_getValue(IP_SWITCH_7, &value);
+	tmp1 |= value;
+	
+	
+	printf("tmp1 = 0x%x \n", tmp1);
+	tmp1+=1; //701 need open 
+	sprintf(str, "192.168.1.%d", tmp1); //ip address 
+	strcpy(share_mem->sm_eth_setting.strEthIp, str);
+	printf(str);
+	AppWriteCfgInfotoFile();
+	init_eth();
+	//tmp2 = tmp1;
+	
+	usleep(10000);
+	}
+}
+#endif
+

@@ -1928,7 +1928,7 @@ void *sii9293_handler(void *p)
 				printf("WaitSync \n");
 				//sleep(3);
 				timeoutWaitSync++;
-				if(timeoutWaitSync>15)
+				if(timeoutWaitSync>10)
 				{
 					/*Win10 first boot, unable to plot, re-plug*/
 					HDMI_HotPlug();

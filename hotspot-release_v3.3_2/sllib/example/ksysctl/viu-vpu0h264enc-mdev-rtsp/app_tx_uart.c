@@ -17,6 +17,10 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <time.h>
+#include <sys/time.h>
+#include <signal.h>
+#include "app_tx_uart.h"
+
 
 //#define UART_DEVICE_NAME    "/dev/ttyAMA0"
 #define UART_DEVICE_NAME    "/dev/ttyAMA1"
@@ -27,11 +31,13 @@
 #define UDP_UART   
 //#define TCP_UART          //Jason add
 
+pthread_mutex_t lock_packip; 
 static SL_U32 fd;
 extern char serverip[128];
 extern char multicast[20];
 extern char web_flag;
 SL_U8 package[2]; 
+
 
 typedef enum
 {
@@ -237,24 +243,21 @@ SL_ErrorCode_t SLUART_Read(SL_U8 *ReadBuffer, SL_U32 ReadLength)
 	return SL_NO_ERROR;
 }
 
+
 SL_ErrorCode_t SLUART_Write(SL_U8 *WriteBuffer, SL_U32 WriteLength)
 {
-	int x;
+
     if (WriteBuffer == NULL || WriteLength < 0)
     {
         return SL_ERROR_BAD_PARAMETER;
     }
-    x=write(fd, WriteBuffer, WriteLength);
-    if (x < 0)
+    if ((write(fd, WriteBuffer, WriteLength)) < 0)
     {
 		return SL_ERROR_GENERIC_IO;
     }
-    if(*WriteBuffer > 0)
-    {
-      //printf("pcBuffer=0x%x\n",*WriteBuffer);
-    }
     return SL_NO_ERROR;
 }
+
 /*
  *func:send ctrl value to TX,solve key value incomplete problem
  * 		
@@ -358,6 +361,8 @@ void SLUART_Write_Kvmend(void)
 		b++;
 	}
 }
+
+
 void uart_init(void)
 {
 	
@@ -496,7 +501,6 @@ Rerecv:
 #endif
 
 
-
 #if 1
 /*
  * func:Determine the release of the mouse and keyboard
@@ -551,14 +555,13 @@ int Judge_MK_Value(SL_U8 buff[1],STATE cur_state)
 
 
 
-
-
 /*
  * func: control mouse and key by tcp or udp 
  * author: Jason chen, 2018/8/29
  */
 void *app_tx_uart_main(void)
 {
+	printf("========app_tx_uart_main=============\n");
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
 	//uart set
@@ -572,6 +575,7 @@ void *app_tx_uart_main(void)
 	SL_U8 wbuff[1];
 	char SLUART_Write_Kvmend_end;
 	char SLUART_Write_Kvmend_start;
+	
     //open uart 
     errCode = SLUART_Open(nOpenParam);
 	if(errCode != 0)
@@ -664,7 +668,8 @@ ReSocket:
     {
 		printf("time out setting failed\n");
 	}
-	
+	int flag_712=0;
+	int i=0;
 	STATE cur_state=STATE0;
 	while (1)
     {
@@ -676,7 +681,6 @@ ReSocket:
 		{
 			perror("recvfrom");
 			printf("uart revfrom failed \n");
-			//SLUART_Write_Kvmend_start=0;
 			SLUART_Write_Kvmend_end++;
 			if(SLUART_Write_Kvmend_end==1)
 			{
@@ -695,24 +699,50 @@ ReSocket:
 		{
 			SLUART_Write_Kvmend_end=0;
 	    }
-
+		
 		//printf("====0x%x, 0x%x===\n",package[0],package[1]);
-		wbuff[0]=package[1];
-		cur_state = Judge_MK_Value(&wbuff[0],cur_state);
-		errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		if(errCode != 0)
+		if(flag_712==0 && package[1]!=0)
 		{
-			printf("SLUART_Write error\n");
-			//return -1;
+			printf("*****1\n");
+			SLUART_Write_Kvmend();
+			flag_712=package[0];
 		}
 		
+		if(flag_712==package[0])
+		{
+			wbuff[0]=package[1];
+			
+			//printf("====0x%x, 0x%x===\n",package[0],package[1]);
+			//~ if(wbuff[0]!=0)
+			//~ {
+				//~ printf("wbuff=0x%x\n",wbuff[0]);
+			//~ }
+			//printf("wbuff=0x%x\n",wbuff[0]);
+			cur_state = Judge_MK_Value(&wbuff[0],cur_state);
+			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+			if(errCode != 0)
+			{
+				printf("SLUART_Write error\n");
+				//return -1;
+			}		
+		}
+		
+		if(package[1]==0)
+			i++;
+		else
+			i=0;
+		if(i>1500)
+		{
+			flag_712=0;
+			i=0;
+		}
 
 		errCode = SLUART_Read(rbuff, sizeof(rbuff));
 		if (errCode != 0)
 		{
 			printf("SLUART_Read error\n");
 		}
-			
+		//printf("****rbuff=0x%x*****\n",rbuff[0]);	
 		if (sendto(sock_server, rbuff, sizeof(rbuff), \
 			0, (struct sockaddr *)&servaddr, sizeof(servaddr)) <= 0)
 		{
@@ -851,4 +881,11 @@ void *send_tx_multicast_main(void)
 	close(brd_sock);
 	return 0;
 }
+
+
+
+
+
+
+
 

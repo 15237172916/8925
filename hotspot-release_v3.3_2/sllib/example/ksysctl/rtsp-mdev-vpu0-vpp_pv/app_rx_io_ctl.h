@@ -70,6 +70,18 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define GPIO_HIG_STA	1	//gpio output mode is high 
 #define GPIO_LOW_STA	0	//gpio output mode is low
 
+#if 1 //
+//Multicast address switch io port
+#define IP_SWITCH_1		34 	//GPIO02_02
+#define IP_SWITCH_2		36	//GPIO02_04
+
+#define IP_SWITCH_3		4	//GPIO01_04
+#define IP_SWITCH_4		7	//GPIO01_07
+#define IP_SWITCH_5		6	//GPIO01_06
+#define IP_SWITCH_6		5	//GPIO01_05
+#define IP_SWITCH_7		30	//GPIO01_30
+#endif
+
 
 
 void signal_light_all_off(void);
@@ -83,4 +95,5 @@ void HDMI_light_off(void);
 void HDMI_light_on(void);
 SL_U32 get_key_value(void);
 void KVM_REST(void);
+void Init_Ip(void);
 #endif
