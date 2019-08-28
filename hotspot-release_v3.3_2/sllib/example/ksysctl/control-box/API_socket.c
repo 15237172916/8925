@@ -229,8 +229,15 @@ static int get_tx_matrix_from_rx(const int rx_index)
 
     int index = rx_index - 1;
     int video_source = share_mem->rx_info[index].video_source;
-
-    sprintf(buf, "matrix get RX %s #%d \r\n", cmd[3], video_source);
+    if (OFF == share_mem->ucAliasModeFlag)
+    {
+        sprintf(buf, "matrix get RX %s #%d \r\n", cmd[3], video_source);
+    }
+    else
+    {
+        sprintf(buf, "matrix get RX %s %s \r\n", cmd[3], share_mem->config_info.TX_Alias[video_source]);
+    }
+    
     
     return 0;
 }
@@ -589,16 +596,36 @@ static int set_sink_power(const int power_state, const int cmd_count)
 
 static int all_reboot(void)
 {
-    int i;
-    for (i=0; i<128; i++)
-    {
-        
-    }
+    printf("all device reboot \n");
+    share_mem->ucAllRebootFlag = ON;
+    return 0; 
 }
 
 static int set_notify_state(const int state)
 {
-    //TODO
+    while (ON == share_mem->ucUpdateFlag)
+    {
+        usleep(10000);
+    }
+    if (OFF == state)
+    {
+        printf("set notify state off \n");
+        share_mem->ucAliasModeFlag = OFF;
+    }
+    else if (ON == state)
+    {
+        printf("set notify state on \n");
+        share_mem->ucAliasModeFlag = ON;
+    }
+    else
+    {
+        printf("set notify is error \n");
+        return -1;
+    }
+
+    share_mem->ucUpdateFlag = ON;
+
+    return 0;
 }
 
 static void cmd_parser(char *str)
