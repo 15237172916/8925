@@ -25,14 +25,20 @@
 #define PRODUCT_NAME   "HSV562"     //product name
 #define VER_ID1      "2"          //major version id 
 #define VER_ID2      "0"          //minor version id 
-#define VER_ID3      "1"             //sbuversion id 
-#define BUILDING      "20190430"        //date
+#define VER_ID3      "2"             //sbuversion id 
+#define BUILDING      "20190903"        //date
 #define CURRTNE_STATE "" 
 
-#define PRINT_VERSION    "HSV562 V2.0.1.190430_R"
-#define WEB_VERSION      "V2.0.1.190430"
-#define OSD_VERSION      "V2.0.1"
+#define PRINT_VERSION    "HSV562 V2.0.2.190903_ALPHA"
+#define WEB_VERSION      "V2.0.2.190903"
+#define OSD_VERSION      "V2.0.2"
 
+/*
+ * V2.0.1 : baseline version
+ * V2.0.2 : debug TX audio 32khz issue, add RX reboot when display jam.
+ *
+ *
+*/
 
 
 #endif
