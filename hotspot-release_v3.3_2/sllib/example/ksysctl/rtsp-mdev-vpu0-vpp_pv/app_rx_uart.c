@@ -257,8 +257,9 @@ void *app_rx_uart_main(void)
     SLUART_OpenParams_t *nOpenParam;
     SL_ErrorCode_t errCode;
 	SL_U32 speed_flg;
-	SL_U8 rbuff[1] = {0};
-    SL_U8 wbuff[1] = {0};
+	SL_U8 rbuff[3] = {0};
+    SL_U8 wbuff[3] = {0};
+     SL_U8 wbuff1[1] = {0};
     int fd_uart = -1;
     int len = 0;
    // SL_ErrorCode_t fd_uart;   //jason
@@ -313,7 +314,7 @@ speed_flg=share_mem->sm_eth_setting.ucspeed;
         case 14:
                nOpenParam->speed = 3500000;
             break;
-                 case 15:
+         case 15:
               nOpenParam->speed = 4000000;
               break;
         default:
@@ -355,7 +356,7 @@ ReOpen:
     servaddr.sin_port = htons(UART_PORT);
     //servaddr.sin_addr.s_addr = inet_addr(serverip);
     //servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-    servaddr.sin_addr.s_addr = inet_addr("192.168.1.200");   //TCP
+    servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");   //TCP
     
 #ifdef UDP_UART 
     
@@ -389,21 +390,6 @@ ReSocket:
 
 	while (1)
     {
-#if 0
-		//struct timeval timeout = {3, 0}; 						// select 等待 3 秒，3 秒轮询， 要非阻塞就置 0			
-		FD_ZERO(&select_set);
-		FD_SET(5, &select_set);
-					
-		maxfd = sock_client > fd ? sock_client +1 : fd +1;   		//fd is uart descriptor
-
-		if(-1 == select(maxfd, &select_set, NULL, NULL,NULL))       //select for uart
-		{
-			perror("select");
-		}
-		
-		if(FD_ISSET(fd, &select_set))   							//Blocking events
-#endif		
-		//else if ((fds.revents & POLLIN) == POLLIN)
 		{
 			errCode = SLUART_Read(rbuff, sizeof(rbuff));
 			if (errCode != 0)
@@ -498,105 +484,69 @@ ReSocket:
         else
         {
             usleep(100000);
-            printf("uart is not connecting \n");
+           // printf("uart is not connecting \n");
         }
     }
 	while (1)
 	{
 Rerecv:
-        usleep(10000);
+        	usleep(10000);
 		memset(rbuff, 0, sizeof(rbuff));
 		memset(wbuff, 0, sizeof(wbuff));
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));	
+		//printf("uart read \n");
+		errCode = SLUART_Read(rbuff, 1);	
 		if (errCode == SL_NO_ERROR)
 		{
-			if(rbuff[0]==0)
-		    {
-                rbuff[0]=0xab;
-            }
-			//goto Rerecv;
+			//rbuff[0]=0xab;			//goto Rerecv;
+			rbuff[1]= 0xab;
+			rbuff[2]=0xac;
+			//printf("%x  ", rbuff[0]);
 		}
-		
-		if (0 != rbuff[0])
-			printf("%x ", rbuff[0]);
-		
+		//printf("-----------------uart read : %s----------------\n",rbuff);
+		//printf("send \n");
 		len = send(sock_client, rbuff, sizeof(rbuff),0);  
 		if(len <= 0)
 		{
 			perror(send);
-			printf("Send data len <= 0 len= %d \n",len);
-            close(sock_client);
-            goto ReSocket;
+			//printf("Send data len <= 0 len= %d \n",len);
+			//printf("Server Recieve Data Failed!\n");		
+			goto Rerecv;
 		}
+		
 #if 1
+		//printf("revc \n");
 		len = recv(sock_client, wbuff, sizeof(wbuff), 0);
 		if (len <= 0)
 		{
 			perror(recv);
+			//printf("========recv error ==========\n");
 			//printf("Server Recieve Data Failed!\n");		
 			goto Rerecv;
 		}
-		if (0 != wbuff[0])
+		//printf("************** revc: %s ******************\n", wbuff);
+		if (wbuff[1]==0xab&&wbuff[2]==0xac)
 		{
-			if (wbuff[0] == 0xab)
-            {
-                wbuff[0] = 0;
-            }
-            if (wbuff[0] == 0xaa)
-            {
-                printf("server exit connect \n");
-                sleep(1);
-                close(sock_client);
-                goto ReSocket;
-            }
-            printf(" %x", wbuff[0]);
-			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+
+			// printf(" %x", wbuff[0]);
+			errCode = SLUART_Write(wbuff, 1);
 			if(errCode != 0)
 			{
 				printf("SLUART_Write error\n");
 				//return -1;
 			}
+			
+		}
+		if(wbuff[1]==0xcc&&wbuff[2]==0xdd)
+		{
+			//printf("server exit connect \n");
+			printf("lo\n");
+			sleep(1);
+			close(sock_client);
+			goto ReSocket;
 		}
 #endif
 
-		//******************************************
-#if 0
-        memset(rbuff, 0, sizeof(rbuff));
-		memset(wbuff, 0, sizeof(wbuff));
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));
-		if (errCode != 0)
-		{
-			printf("SLUART_Read error\n");
-			goto ReSocket;
-		}
-		printf("%x\n", rbuff[0]);
-		len = send(sock_client, rbuff, sizeof(rbuff),0);  
-		if(len <= 0)
-		{
-			perror(send);
-			printf("uart tcp Send data len <= 0 len= %d \n",len);
-			close(sock_client);	
-			sleep(1);
-			goto ReSocket;
-		} 
-#endif
-#if 0
-		len = recv(sock_client, wbuff, sizeof(wbuff), 0);
-		if (len < 0)
-		{
-			perror(recv);
-			printf("uart tcp Recieve Data Failed!\n");
-			close(sock_client);
-            		sleep(1);
-            		goto ReSocket;
-		}
-		errCode = SLUART_Write(wbuff, sizeof(wbuff));
-		if(errCode != 0)
-		{
-			printf("SLUART_Write error\n");
-			//return -1;
-		}
-#endif
+
 	}
 
 #endif

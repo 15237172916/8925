@@ -72,7 +72,8 @@ int ir_init_info(struct ir_info_s *info)
         printf("ir_init_info failed, info NULL\n");
         return -1;
     }
-
+	//printf("ir_recv_info:%x\n",ir_recv_info);	
+	//printf("ir_send_info:%x\n",ir_send_info);
     if (info == ir_recv_info)
         info->buf_ck = ir_recv_data_buf_addr;
     else if (info == ir_send_info)
@@ -155,7 +156,8 @@ SL_POINTER get_ir(SL_POINTER Args)
 	
     if (ir_init())
         reboot1();
-
+    if (ir_init())
+        reboot1();
     printf ("%s started.\n", __func__);
     printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid));
 
@@ -239,7 +241,13 @@ SL_POINTER get_ir(SL_POINTER Args)
 
         tx_buf = ir_recv_buf;
         tx_len = *(tx_buf + IR_DATA_LEN_OFFSET);
-        ir_init_info(rx_info);
+       len= ir_init_info(rx_info);
+       	 if (len < 0)
+        {     
+        printf("9999999999999999999999999\n");
+
+        }
+       
         tx_info->data_max = tx_len;
         tx_info->data_cnt = 0;
         tx_info->wave_cnt = 0;
@@ -269,11 +277,13 @@ SL_POINTER send_ir(SL_POINTER Args)
 
     if (ir_init())
         reboot1();
+            if (ir_init())
+        reboot1();
 
 try_again:
     sock_cli = socket(PF_INET,SOCK_DGRAM, 0); // create Udp socket
 
-	int optval = 1;//这个值一定要设置，否则可能导致sendto()失败
+	int optval = 5;//这个值一定要设置，否则可能导致sendto()失败
 	setsockopt(sock_cli, SOL_SOCKET, SO_BROADCAST | SO_REUSEADDR, &optval, sizeof(int));
 
 
@@ -302,7 +312,7 @@ try_again:
     }
     printf("\n*** connect ok**\n");
 #endif
-    
+lolo:
     tx_info = ir_send_info;
     rx_info = ir_recv_info;
     pbuf = rx_info->buf_ck;
@@ -310,21 +320,27 @@ try_again:
     {
         if (rx_info->state != STATE_RECV_DONE)
         {
-            usleep(10000);
-            continue;
+		usleep(10000);
+		goto lolo;
         }
 
+	//printf("\n&&&&%d&&&&&",rx_info->state);
         memset((char *)ir_send_buf, 0, IR_DATA_LEN*4);
         memcpy((char *)ir_send_buf, (char *)rx_info->buf_ck, 4*rx_info->data_max);
         *(ir_send_buf + FREQ_OFFSET) = *(pbuf + FREQ_OFFSET);
         *(ir_send_buf + IR_DATA_LEN_OFFSET) = rx_info->data_max;
-        ir_init_info(rx_info);
-
+        //printf("\n*rx_info***%x\n",rx_info);
+        len=ir_init_info(rx_info);
+	if (len < 0)
+	{     
+		goto lolo;
+	}
         printf("ir send start\n");
         //len = send(sock_cli, ir_send_buf, IR_DATA_LEN*4, 0);  //tcp send data
         len=sendto(sock_cli,ir_send_buf,IR_DATA_LEN*4,0,(struct sockaddr*)&servaddr,sizeof(servaddr));  //udp send data
         if (len <= 0)
         {
+            printf("len:%d\n",len);
             perror("ERRPR");
             printf("re-connect!\n");
             close(sock_cli);
@@ -332,10 +348,10 @@ try_again:
             goto try_again;
         }
         printf("ir send over\n");
-        if (len != IR_DATA_LEN*4)
-        {
-           printf("actual send len:%d\n", len);
-	   }
+	if (len != IR_DATA_LEN*4)
+	{
+		printf("actual send len:%d\n", len);
+	}
         usleep(10000);
     }
 	

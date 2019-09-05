@@ -1,3 +1,4 @@
+#!/bin/bash
 csky-abiv2-linux-gcc -o get_status.cgi get_status.c
 csky-abiv2-linux-gcc -o get_net.cgi get_net.c
 csky-abiv2-linux-gcc -o set_net.cgi set_net.c

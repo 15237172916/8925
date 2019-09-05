@@ -41,8 +41,8 @@ cp ./ko/ ../img-make-hotspot/user-client/update/ -rf
 cp ./ko/ ../img-make-hotspot/user-server/update/ -rf
 
 cd ./bin/
-cp ./rtsp-mdev-vpu0-vpp_pv /mnt/nfs
-cp ./viu-vpu0h264enc-mdev-rtsp /mnt/nfs
+#cp ./rtsp-mdev-vpu0-vpp_pv /mnt/nfs
+#cp ./viu-vpu0h264enc-mdev-rtsp /mnt/nfs
 
 
 echo OK 

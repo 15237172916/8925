@@ -314,8 +314,8 @@ void handlermsg(int *sfd)
 	val = setsockopt(*sfd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
 #endif
 	SL_ErrorCode_t errCode;
-	SL_U8 rbuff[1] = {0};
-	SL_U8 wbuff[1] = {0};
+	SL_U8 rbuff[3] = {0};
+	SL_U8 wbuff[3] = {0};
 	printf("handlermsg\n");
 	
 	while(1)
@@ -326,30 +326,27 @@ Rerecv:
 		memset(wbuff, 0, sizeof(wbuff));
 		//printf("*");
 		fflush(stdout);
-		len = recv(*sfd, wbuff, sizeof(wbuff), 0);
+		len = recv(*sfd, wbuff, 3, 0);
 		if (len < 0)
 		{
-			printf("************************************");
+			//printf("************************************");
 			printf("recv data len <= 0 len= %d \n",len);
 			perror(recv);
 			
 			tcp_flg1=2;
 			tcp_flg = 0;
 			sleep(1);
-			close(*sfd);
-			exit(-1);
+			goto Rerecv;
+			//close(*sfd);
+			//return 0;
 			//pthread_mutex_unlock(&lock_kvm);
 			//printf("Server Recieve Data Failed!\n");
 			//goto Rerecv;
 		}
-		if (0 != wbuff[0])
+		if (wbuff[1]==0xab&&wbuff[2]==0xac)
 		{
-			if (wbuff[0] == 0xab)
-			{
-				wbuff[0] = 0;
-			} 
-			printf(" %x", wbuff[0]);
-			errCode = SLUART_Write(wbuff, sizeof(wbuff));
+			//printf(" %x", wbuff[0]);
+			errCode = SLUART_Write(&wbuff[0], 1);
 			if(errCode != 0)
 			{
 				printf("SLUART_Write error\n");
@@ -358,19 +355,17 @@ Rerecv:
 		}
 #if 1
 #if 1
-		errCode = SLUART_Read(rbuff, sizeof(rbuff));	
+		errCode = SLUART_Read(rbuff, 1);	
 		if (errCode == SL_NO_ERROR)
 		{
-			if(rbuff[0]==0)
-			rbuff[0]=0xab;			//goto Rerecv;
-		}
-		
-		if (0 != rbuff[0])
-		{
-			printf("%x  ", rbuff[0]);
+			//rbuff[0]=0xab;			//goto Rerecv;
+			rbuff[1]= 0xab;
+			rbuff[2]=0xac;
+			//printf("%x  ", rbuff[0]);
 		}
 #endif
 		
+		//printf("&&&&&&&&&&&&&&&&&&&&%d&&&&&&&&&&&&&&&&&&&&&&&&&",sizeof(rbuff));
 		len=send(*sfd, rbuff, sizeof(rbuff),0);
 		if(len < 0)
 		{
@@ -379,8 +374,7 @@ Rerecv:
 			perror(send);
 			printf("Send data len <= 0 len= %d \n",len);
 			sleep(1);
-			close(*sfd);
-			exit(-1);
+			goto Rerecv;
 		}
 #endif
 #if 1
@@ -390,12 +384,17 @@ Rerecv:
 			{
 				tcp_flg1=2;
 				tcp_flg = 0;
-				rbuff[0]=0xaa;
+				rbuff[1]==0xcc;
+				rbuff[2]==0xdd;
 				len=send(*sfd, rbuff, sizeof(rbuff),0);
-				if (len <= 0)
+				if(len < 0)
 				{
-					perror(send);
-					printf("Send data len <= 0 len= %d \n",len);
+					tcp_flg1 = 2;
+					tcp_flg = 0;
+					//perror(send);
+					//printf("Send data len <= 0 len= %d \n",len);
+					sleep(1);
+					goto Rerecv;
 				}
 				printf("exit\n");
 				sleep(1);
@@ -497,7 +496,7 @@ void *app_tx_uart_main(void)
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(UART_PORT);
     //servaddr.sin_addr.s_addr = inet_addr(INADDR_ANY);
-    servaddr.sin_addr.s_addr = inet_addr("192.168.1.200");
+    servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
      
     
     //open uart 
@@ -683,4 +682,5 @@ ReSocket:
 	}
 
 }
+
 
