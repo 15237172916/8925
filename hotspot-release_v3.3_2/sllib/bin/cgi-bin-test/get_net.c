@@ -34,14 +34,13 @@ void main(void)
     
     //printf("init share memary \n");
     InitShareMem();
+
     strcpy(str,"<set>");
     strcat(str,"<rtmp_type>");
     sprintf(strTemp,"%d",share_mem->sm_rtmp_setting.ucRTMPInterface);
     strcat(str,strTemp);
     strcat(str,"</rtmp_type>");
-    
 	
-    
     strcat(str,"<rtsp_type>");
     sprintf(strTemp,"%d",share_mem->sm_rtsp_setting.ucRTSPInterface);
     strcat(str,strTemp);
@@ -102,16 +101,6 @@ void main(void)
     sprintf(strTemp, "%d",share_mem->sm_wlan_setting.ucWlanEnable);
     strcat(str,strTemp);    
     strcat(str,"</wifi_enable>");
-
-    strcat(str,"<uart_state>");
-    sprintf(strTemp, "%d",share_mem->sm_eth_setting.ucUartState);
-    strcat(str,strTemp);    
-    strcat(str,"</uart_state>"); 
-    
-     strcat(str,"<speed>");
-    sprintf(strTemp, "%d",share_mem->sm_eth_setting.ucspeed);
-    strcat(str,strTemp);    
-    strcat(str,"</speed>"); 
 
     strcat(str,"</set>");
     

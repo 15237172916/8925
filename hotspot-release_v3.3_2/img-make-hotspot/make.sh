@@ -34,5 +34,5 @@ rm execute-client.jffs2
 rm rootfs-server.sfs
 rm rootfs-client.sfs
 
-cp client.img /tftpboot/
-cp server.img /tftpboot/
+cp client.img /mnt/nfs
+cp server.img /mnt/nfs

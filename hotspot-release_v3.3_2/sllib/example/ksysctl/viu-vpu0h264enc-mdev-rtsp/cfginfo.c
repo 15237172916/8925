@@ -76,6 +76,7 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_rtmp_setting.usRTMPPort = 1935;
     
     //RTSP
+    share_mem->sm_eth_setting.ucspeed = 4;
     share_mem->sm_rtsp_setting.ucRTSPSwitch = RTSP_DISABLE;
     share_mem->sm_rtsp_setting.usRTSPPort = 554;
     share_mem->sm_rtsp_setting.usRTPPort = 1234;

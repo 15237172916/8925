@@ -1,4 +1,3 @@
-#!/bin/bash
 csky-abiv2-linux-gcc -o get_status.cgi get_status.c
 csky-abiv2-linux-gcc -o get_net.cgi get_net.c
 csky-abiv2-linux-gcc -o set_net.cgi set_net.c
@@ -48,8 +47,8 @@ csky-abiv2-linux-gcc -o upload_ko.cgi upload_ko.c
 #csky-abiv2-linux-gcc -o changeMulticast.cgi changeMulticast.c
 #csky-abiv2-linux-gcc -o modeStateNow.cgi modeStateNow.c
 #csky-abiv2-linux-gcc -o saveCurrentMode.cgi saveCurrentMode.c
-#cp *.cgi ../web/cgi-bin
-cp *.cgi ../web_client/cgi-bin
 cp *.cgi ../web/cgi-bin
+cp *.cgi ../web_client/cgi-bin
+
 #cp upload_web.cgi ../tmp/web/noup/cgi-bin -rf
 #cp *.cgi /home/eric/work/sllib/bin/9001html/htmlarm/cgi-bin
