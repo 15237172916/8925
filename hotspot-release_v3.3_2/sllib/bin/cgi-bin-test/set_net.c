@@ -36,6 +36,8 @@ void main(void)
     char strWiFiDHCP[10];
     char strWiFiType[10];
     char strWiFiEnable[10];
+    char strUartState[10];
+    char strUartState1[10];
     char *data;
     char strTemp[10];
     FILE *fp;
@@ -54,8 +56,14 @@ void main(void)
     
 	//sscanf(data,"rtmp_type=%[^&]&rtsp_type=%[^&]&ip=%[^&]&mask=%[^&]&gateway=%[^&]&wifi_dhcp=%[^&]&wifi_ip=%[^&]&wifi_mask=%[^&]&wifi_gateway=%[^&]&wifi_type=%[^&]&wifi_essid=%[^&]&wifi_psk=%[^&]&wifi_enable=%[^&]",strRTMPType,strRTSPType,share_mem->sm_eth_setting.strEthIp,share_mem->sm_eth_setting.strEthMask,share_mem->sm_eth_setting.strEthGateway,strWiFiDHCP,share_mem->sm_wlan_setting.strWlanIp,share_mem->sm_wlan_setting.strWlanMask,share_mem->sm_wlan_setting.strWlanGateway,strWiFiType,share_mem->sm_wlan_setting.strWlanSSID,share_mem->sm_wlan_setting.strWlanPSK,strWiFiEnable);
     //sscanf(data,"rtmp_type=%[^&]&rtsp_type=%[^&]&ip=%[^&]&mask=%[^&]&gateway=%[^&]&wifi_dhcp=%[^&]&wifi_ip=%[^&]&wifi_mask=%[^&]&wifi_gateway=%[^&]&wifi_type=%[^&]&wifi_essid=%[^&]&wifi_psk=%[^&]&wifi_enable=%[^&]",strRTMPType,strRTSPType,share_mem->sm_eth_setting.strEthIp,share_mem->sm_eth_setting.strEthMask,share_mem->sm_eth_setting.strEthGateway,strWiFiDHCP,strTemp,strTemp,strTemp,strWiFiType,share_mem->sm_wlan_setting.strWlanSSID,share_mem->sm_wlan_setting.strWlanPSK,strWiFiEnable);
-    sscanf(data,"rtmp_type=%[^&]&rtsp_type=%[^&]&ip=%[^&]&mask=%[^&]&gateway=%[^&]&multicast=%[^&]&wifi_dhcp=%[^&]&wifi_ip=%[^&]&wifi_mask=%[^&]&wifi_gateway=%[^&]&wifi_type=%[^&]&wifi_essid=%[^&]&wifi_psk=%[^&]&wifi_enable=%[^&]",strRTMPType,strRTSPType,share_mem->sm_eth_setting.strEthIp,share_mem->sm_eth_setting.strEthMask,share_mem->sm_eth_setting.strEthGateway,share_mem->sm_eth_setting.strEthMulticast,strWiFiDHCP,strTemp,strTemp,strTemp,strWiFiType,share_mem->sm_wlan_setting.strWlanSSID,share_mem->sm_wlan_setting.strWlanPSK,strWiFiEnable);
-	
+    sscanf(data," speed=%[^&]&uart_state=%[^&]&rtsp_type=%[^&]&ip=%[^&]&mask=%[^&]&gateway=%[^&]&multicast=%[^&]&wifi_dhcp=%[^&]&wifi_ip=%[^&]&wifi_mask=%[^&]&wifi_gateway=%[^&]&wifi_type=%[^&]&wifi_essid=%[^&]&wifi_psk=%[^&]&wifi_enable=%[^&]",strUartState1,strUartState,strRTSPType,share_mem->sm_eth_setting.strEthIp,share_mem->sm_eth_setting.strEthMask,share_mem->sm_eth_setting.strEthGateway,share_mem->sm_eth_setting.strEthMulticast,strWiFiDHCP,strTemp,strTemp,strTemp,strWiFiType,share_mem->sm_wlan_setting.strWlanSSID,share_mem->sm_wlan_setting.strWlanPSK,strWiFiEnable);
+    //sscanf("&uart_state=111&rtmp_type=111&rtsp_type=111&ip=192.168.1.7&mask=255.255.255.0&gateway=192.168.1.3&multicast=239.255.42.44&wifi_dhcp=1&wifi_ip=-%20&wifi_mask=-%20&wifi_gateway=-%20&wifi_type=1&wifi_essid=a-hotspot&wifi_psk=&wifi_enable=0&_=1557108714371","uart_state=%[^&]&rtmp_type=%[^&]&rtsp_type=%[^&]&ip=%[^&]&mask=%[^&]&gateway=%[^&]&multicast=%[^&]&wifi_dhcp=%[^&]&wifi_ip=%[^&]&wifi_mask=%[^&]&wifi_gateway=%[^&]&wifi_type=%[^&]&wifi_essid=%[^&]&wifi_psk=%[^&]&wifi_enable=%[^&]",&strUartState,&strRTMPType,&strRTSPType,share_mem->sm_eth_setting.strEthIp,share_mem->sm_eth_setting.strEthMask,share_mem->sm_eth_setting.strEthGateway,share_mem->sm_eth_setting.strEthMulticast,strWiFiDHCP,strTemp,strTemp,strTemp,strWiFiType,share_mem->sm_wlan_setting.strWlanSSID,share_mem->sm_wlan_setting.strWlanPSK,strWiFiEnable); 
+    //printf("%s", data);
+    //printf("%s", strUartState);
+    //printf("%s", share_mem->sm_eth_setting.strEthGateway);
+    //printf("%s", share_mem->sm_eth_setting.strEthIp);
+    share_mem->sm_eth_setting.ucUartState=atoi(strUartState);
+     share_mem->sm_eth_setting.ucspeed=atoi(strUartState1);
 #if 0
     share_mem->sm_rtmp_setting.ucRTMPInterface= atoi(strRTMPType);
     share_mem->sm_rtsp_setting.ucRTSPInterface= atoi(strRTSPType);
@@ -100,6 +108,7 @@ void main(void)
 
 	share_mem->ucUpdateFlag = 1;
 	usleep(1000);
+    //printf("%d \n", share_mem->sm_eth_setting.ucUartState);
 	printf("succeed");
 }
 

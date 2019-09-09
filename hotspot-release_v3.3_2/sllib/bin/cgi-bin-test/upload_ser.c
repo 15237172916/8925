@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "sl_watchdog.h"
+#include <errno.h>
 #if 1
 #include "sharemem.h"
 
@@ -328,6 +329,7 @@ int main(void)
 	if(chmod("/tmp/rtsp-mdev-vpu0-vpp_pv", S_IRUSR|S_IXUSR|S_IWUSR|S_IXOTH|S_IROTH|S_IWOTH|S_IRGRP|S_IWGRP|S_IXGRP)!=0)
 #endif
 	{
+		perror("chmod");
 		 printf("\ncm fail");
 		 return 0;
 	}
