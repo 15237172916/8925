@@ -631,7 +631,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	SL_S32 interval;
 	SL_U32 total_frame;
 	float interval_second;
-	
+	static int i=1;
 	size = uiSize;
 
     //printf("wac Get a Frame size = %d \n",size);
@@ -664,7 +664,14 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 				//printf("interval_second:%f\n",interval_second);
 				g_discard_frame = g_frameRate - (SL_S32)(total_frame/interval_second); 
 				if(g_discard_frame > 5)
-					printf("g_discard_frame:%d\n",g_discard_frame);
+				{
+					printf("===g_discard_frame:%d\n",g_discard_frame);
+					if(i==1)
+					{
+						i=0;
+						HDMI_HotPlug();
+					}
+				}
 				frameCount = 0;
 			}
 		}
@@ -679,6 +686,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 		//printf("data : %d \n", *data);
 		if (0x67 == *data)
 		{
+
 		    /*Removed debug info for speed up
 		    printf(" \n idr frame size = %d \n",size);
 		    
@@ -739,6 +747,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 				//sysctl_config();
 				tmp_fs = g_fs;
 			}
+			
 #endif
 		
 step:
@@ -786,6 +795,7 @@ step:
 			discard_p_frame = 0;
 			//printf("*****************idr*****************");
 			idr_flag = 0;
+
 		}
 		else
 		{
@@ -913,6 +923,7 @@ static int wacPushFrameToMDev(unsigned char *pframe, int  size)
 	data = (unsigned char *)pframe + 4;
 	if( 0x67 == *data)
 	{
+		
 #if 0
 		append_info = (H264_APPEND_INFO_s *)(pframe + size - sizeof(H264_APPEND_INFO_s));
 		if ((192000 == g_fs || 44100 == g_fs || 48000 == g_fs) && \
@@ -950,6 +961,7 @@ static int wacPushFrameToMDev(unsigned char *pframe, int  size)
 				printf("abnomal g_fs:%d\n",g_fs);
 				goto step;
 		}
+		
 		printf("g_fs = %d \n", g_fs);
 		printf("g_audio_bits = %d \n", g_audio_bits);
 		printf("g_chns = %d \n", g_chns);
@@ -1868,7 +1880,7 @@ int main(int argc, char* argv[])
 	
 	ret = pthread_create(&iHandle, NULL, MDEV_Input_ThreadFunc, (void *)im_devman);
 	if (ret) {
-		log_err("Failed to MDEV_Input_ThreadFunc Thread\n");
+		log_err("Failed to MDEV_Input_ThreadFunc Thread\n"); 
 		reboot1();
 		return ret;
 	}
@@ -1944,7 +1956,8 @@ int main(int argc, char* argv[])
 	signal(SIGTERM, signalHandle);
 	signal(SIGIO, signalioHandle);
 #endif
-	
+	//~ sleep(4);
+	//~ HDMI_HotPlug();
 	while (1)
 	{
 		static unsigned int timeOutReset = 0;

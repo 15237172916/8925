@@ -612,6 +612,17 @@ void Key_Init(void)
 	GPIO_setDir(KEY_IO, GPIO_INPUT); //set the gpio1_8 direction is input 
 }
 
+/*895/896  After the program runs hotplug*/
+void HDMI_HotPlug(void)
+{
+	printf("\r\n======HDMI_HotPlug======\r\n");
+	GPIO_export(HDMI_Plug);
+	GPIO_setDir(HDMI_Plug, GPIO_OUTPUT);
+	GPIO_setValue(HDMI_Plug, GPIO_HIG_STA);
+	usleep(500000);
+	GPIO_setValue(HDMI_Plug, GPIO_LOW_STA);
+}
+
 SL_U32 get_key_value(void)
 {
 	SL_U32 value;
