@@ -274,6 +274,7 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 //UDP
 void *app_rtp_main()
 {
+	
 	int ret, len, timeOut = 0;
 #if 0
 	if(!outfile)
