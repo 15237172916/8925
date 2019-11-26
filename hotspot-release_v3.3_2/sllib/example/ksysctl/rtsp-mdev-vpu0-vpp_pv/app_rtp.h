@@ -18,13 +18,20 @@
 
 #define CHECK_SUM_COUNT 1024*50
 
+typedef struct 
+{
+	unsigned long int sec;
+	unsigned long int usec;
+}TIMESTAMP;
+
 typedef struct
 {
     unsigned int iProbe;
     unsigned char uPayloadType;
 	unsigned char uSeq:8;
 	unsigned int  iLen:24;
-	unsigned int iTimeStamp;
+	//unsigned long int iTimeStamp;
+    TIMESTAMP iTimeStamp;
 	unsigned short int usChecksum :16;
 }DATAHEAD;
 

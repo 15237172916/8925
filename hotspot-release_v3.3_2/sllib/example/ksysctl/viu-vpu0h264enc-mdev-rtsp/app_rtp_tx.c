@@ -164,7 +164,6 @@ ReSocket:
 
 	DataHead.iProbe = 0x1A1B1C1D;
     DataHead.uSeq = 0;
-    DataHead.iTimeStamp = 0;
     
 	//packet is UDP packet, frame is 264 frame;
 	while (1) //continue get packet
@@ -215,11 +214,12 @@ ReSocket:
 				printf("printf_log gettimeofday error \n");
 				perror("gettimeofday");
 			}
+			DataHead.iTimeStamp.sec = tv1.tv_sec;
+			DataHead.iTimeStamp.usec = tv1.tv_usec;	
 			#endif
 			
 			DataHead.uPayloadType = H264;
 			DataHead.uSeq += 1;
-			DataHead.iTimeStamp = tv1.tv_sec-144221050;
 			//printf("tv1.tv_sec : %ld \n", DataHead.iTimeStamp);
 			//printf("tv1.tv_sec : %ld \n", tv1.tv_usec);
 			//printf("uSeq : %d \n", DataHead.uSeq);
@@ -396,13 +396,16 @@ ReSocket:
 #if 1
 		if (RingGetByteStreamMemoryBufferCnt() > FETCH_COUNT)
 		{
+			#if 1
 			ret = gettimeofday(&tv1,&tz);
 			if (ret < 0){
 				printf("printf_log gettimeofday error \n");
 				perror("gettimeofday");
 			}
+			DataHead.iTimeStamp.sec = tv1.tv_sec;
+			DataHead.iTimeStamp.usec = tv1.tv_usec;	
+			#endif
 			DataHead.uPayloadType = WAV;
-			DataHead.iTimeStamp = tv1.tv_sec-144221050;
 			DataHead.iLen = FETCH_COUNT;
 			
 			//printf("\n*****************************************************\n");

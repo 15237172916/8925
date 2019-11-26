@@ -638,6 +638,16 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 		}
 #endif
 		static char push_fail_count = 0;
+#if 1 //timestemp
+		struct timezone tz;
+		static struct timeval tv1, tv2;
+		ret = gettimeofday(&tv1,&tz);
+		if (ret < 0){
+			printf("printf_log gettimeofday error \n");
+			perror("gettimeofday");
+		}
+		//printf("list : %ld.%ld \n", tv1.tv_sec, tv1.tv_usec);
+#endif
 		ret = list_push_data(list, buf);
 		if(ret > 0)
 		{
@@ -1972,7 +1982,9 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 #endif
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	
+	struct timezone tz;
+	static struct timeval tv1, tv2;
+	int ret;
 	while(1)
 	{
 		if(audio_configed > 0)
@@ -2116,6 +2128,15 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 					//printf("push buff failed\n");
 				}
 #endif
+#if 1 //timestemp
+				
+				ret = gettimeofday(&tv1,&tz);
+				if (ret < 0){
+					printf("printf_log gettimeofday error \n");
+					perror("gettimeofday");
+				}
+				//printf("Ring : %ld.%ld \n", tv1.tv_sec, tv1.tv_usec);
+#endif
 #if 1
 				//gettimeofday(&start, NULL);
 				if (0 > RingPCMPush(src1, valid_size))
@@ -2244,6 +2265,14 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 				}
 #endif
 				//gettimeofday(&start, NULL);
+#if 1
+				ret = gettimeofday(&tv1,&tz);
+				if (ret < 0){
+					printf("printf_log gettimeofday error \n");
+					perror("gettimeofday");
+				}
+				//printf("Ring : %ld.%ld \n", tv1.tv_sec, tv1.tv_usec);
+#endif
 #if 1
 				if (0 > RingPCMPush(src1, valid_size_1))
 				{

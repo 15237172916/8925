@@ -312,6 +312,16 @@ void  *app_rx_main(void)
 }
 
 #endif
+struct cust_pv_cfg_s
+{
+    SL_U32 init;
+    SL_U32 width;
+    SL_U32 height;
+    SL_U32 startx;
+    SL_U32 starty;
+};
+struct cust_pv_cfg_s cust_pv_cfg;
+
 /***********************************************************/
 #if 1
 int printf_log(const char *log)
@@ -419,16 +429,23 @@ static SL_S32 SLVDEC_setCfg(SLVDEC_Cfg_s *cfg)
 
 static void  setPvCfg(SLVPP_PV_Cfg_s *cfg)
 {
+	printf("----------------------------------------------------------------------");
+	printf("Height = %d \n", g_height);
+	printf("Width = %d \n", g_width);
 	cfg->sampleMode = VPPSamplingMode_420;
 	cfg->colorMode = VPPColorMode_VideoNonInterlace;
 	cfg->picWidth = g_width;
 	cfg->picHeight = (g_height + 15)&(~15);
+	printf("Height = %d \n", cfg->picHeight);
+
 	//cfg->picHeight = g_height;
 	cfg->blkWindowMode = VPPWindowValueMode_Fixed;
 	cfg->blkStartX = 0;
 	cfg->blkStartY = 0;
 	cfg->blkWidth = g_width;
 
+	cfg->interlace = g_interlace;
+	
 	cfg->src_picWidth = cfg->picWidth;
 	cfg->src_picHeight = cfg->picHeight;
 
@@ -473,6 +490,7 @@ static void  setPvCfg(SLVPP_PV_Cfg_s *cfg)
 		cfg->outWidth = 1392; //FIXME
 	cfg->outHeight = g_height;
 #else
+	
 	if(544 == g_height)
 		cfg->blkHeight = 536;
 	else if(480 == g_height)
@@ -480,7 +498,8 @@ static void  setPvCfg(SLVPP_PV_Cfg_s *cfg)
 	else if(720 == g_height)
 		cfg->blkHeight = 720;
 	else
-		cfg->blkHeight = 1080;//1072;
+	
+		cfg->blkHeight = 1072;
 		//cfg->blkHeight = g_height ;
 		//cfg->blkHeight = 1072;//1080;
 	printf("cfg->blkHeight = %d \n", cfg->blkHeight);
@@ -502,6 +521,16 @@ static void  setPvCfg(SLVPP_PV_Cfg_s *cfg)
 
 	cfg->refreshRate = g_refreshRate;
 	cfg->interlace = g_interlace;
+
+	if (cust_pv_cfg.init == 1)
+    {
+        cfg->blkStartX = cust_pv_cfg.startx;
+        cfg->blkStartY = cust_pv_cfg.starty;
+        cfg->blkWidth = cust_pv_cfg.width;
+        cfg->blkHeight = cust_pv_cfg.height;
+        printf("cust setPvCfg pw:%d ph:%d bw:%d bh:%d\n", cfg->picWidth, cfg->picHeight, cfg->blkWidth, cfg->blkHeight);
+    }
+
 
 #if 0
 	//default
@@ -643,6 +672,42 @@ static SL_S32 trigger(SL_S32 first_time)
 static char outfilename[128] = "./test.264";
 char save_264file_flag = 0;
 #endif
+
+int cust_set_pv_config(int startx, int starty, int width, int height)
+{
+    SL_S32 ret;
+
+    if (!g_width)
+    {
+        printf("cust_set_pv_config failed, g_width 0\n");
+        return -1;
+    }
+
+    if (startx < 0 || startx > g_width 
+            || starty < 0 || starty > g_height
+            || startx + width < 0 || startx + width > g_width
+            || starty + height < 0 || starty + height > g_height)
+    {
+        printf("cust_set_pv_config failed, startx %d, starty %d, width %d, height %d, g_width %d, g_height %d\n", startx, starty, width, height, g_width, g_height);
+        return -1;
+    }
+    
+    printf("cust_set_pv_config startx %d, starty %d, width %d, height %d, g_width %d, g_height %d\n", startx, starty, width, height, g_width, g_height);
+    cust_pv_cfg.startx = startx;
+    cust_pv_cfg.starty = starty;
+    cust_pv_cfg.width = width;
+    cust_pv_cfg.height = height;
+    cust_pv_cfg.init = 1;
+	
+    setPvCfg(&pv_cfg);
+    ret = SLVPP_PV_config(pv_dev, &pv_cfg);
+    if (SL_NO_ERROR != ret)
+        printf("cust_set_pv_config failed, SLVPP_PV_config failed\n");
+
+    printf("cust_set_pv_config end\n");
+
+    return 0;
+}
 //pthread
 //static SL_POINTER wacPushFrameToMDev(SL_POINTER Args)
 void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
@@ -784,7 +849,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 		//printf("wac working, g_framerate= %d\n",g_frameRate);
 		//sleep(1);
 
-		if(g_frameRate > 0)
+		if (g_frameRate > 0)
 		{
 			total_frame = TIME_CHECK_SECONDS * g_frameRate;
 			if(!frameCount)
@@ -821,6 +886,42 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 				//return 0;
 			}
 		}
+
+
+#if 0
+    static int test_num = 0;
+
+	//printf("g_width: %d , g_height: %d \n", g_width, g_height);
+    test_num++;
+    if (test_num == 100)
+    {
+        cust_set_pv_config(0, 0, 1920, 1080);
+        usleep(2000);
+        return;
+    }
+	#if 0
+    if (test_num == 200)
+    {
+        cust_set_pv_config(g_width/2, 0, g_width/2, g_height/2);
+        usleep(2000);
+        return;
+    }
+    if (test_num == 300)
+    {
+        cust_set_pv_config(0, g_height/2, g_width/2, g_height/2);
+        usleep(2000);
+        return;
+    }
+    if (test_num == 400)
+    {
+        test_num = 0;
+        cust_set_pv_config(g_width/2, g_height/2, g_width/2, g_height/2);
+        usleep(2000);
+        return;
+    }
+	#endif
+    printf("test_num %d\n", test_num);
+#endif
 
         /*Removed debug info for speed up
         int i;
@@ -1237,6 +1338,7 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 	SL_S32 ret;
 	SL_U32 dd;
 	static SL_S32 cnt = 0;
+	
 	//static struct timeval time_begin = {0};
 	//static struct timeval time_end = {0};
 	
@@ -1251,7 +1353,7 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 			cnt = 0;
 			continue;
 		}
-
+		
 		ret = list_fetch_data(list, &buf);
 		if(ret)
 		{
@@ -2182,6 +2284,7 @@ int main(int argc, char* argv[])
 	char configs[128];
 	//AppWriteCfgInfotoFile();
 	printf(PRINT_VERSION);
+	memset(&cust_pv_cfg, 0, sizeof(struct cust_pv_cfg_s));
 #if 0
 	ret = InitCfgInfo(&fd_config);
 	if(!ret) {
@@ -2484,6 +2587,12 @@ int main(int argc, char* argv[])
 	while (1)
 	{
 		sleep(1);
+		/*
+		if (1 == g_interlace) //I 
+		{
+			system("/user/word.csky 0xbfa45804 0x8000c0c");
+			system("/user/word.csky 0xbfa45800 1");
+		}*/
 		//printf("tmp:%d \n", tmp);
 		//printf("display_flag: %d\n", display_flag);
 		if (key_display || display_flag)

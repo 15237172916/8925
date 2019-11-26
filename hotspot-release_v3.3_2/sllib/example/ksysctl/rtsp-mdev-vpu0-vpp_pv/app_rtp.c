@@ -33,7 +33,7 @@ char outfilename[128] = "./test2.264";
 
 unsigned short int usAudioChecksum;
 unsigned short int usVideoChecksum;
-
+TIMESTAMP TimeStamp_s;
 
 static unsigned short csum(unsigned char *buf, int nwords)
 {
@@ -55,11 +55,27 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
         return -1;
     }
 	
-    //printf("Find probe \n");
-    //printf("Find len = %d \n",pDataHead->iLen);
 	uNowPayloadType = pDataHead->uPayloadType;
 	DataFrameLen = pDataHead->iLen;
 	iPacketLeftLen = len;
+	if (pDataHead->iTimeStamp.sec > TimeStamp_s.sec)
+	{
+		TimeStamp_s.sec = pDataHead->iTimeStamp.sec;
+		TimeStamp_s.usec = pDataHead->iTimeStamp.usec;
+	}
+	else if (pDataHead->iTimeStamp.usec > TimeStamp_s.usec)
+	{
+		//printf("1 TimeStamp_s : %d.%d \n", TimeStamp_s.sec, TimeStamp_s.usec);
+		//printf("2 TimeStamp_s : %d.%d \n", pDataHead->iTimeStamp.sec, pDataHead->iTimeStamp.usec);
+		TimeStamp_s.sec = pDataHead->iTimeStamp.sec;
+		TimeStamp_s.usec = pDataHead->iTimeStamp.usec;	
+	}
+	else
+	{
+		printf("TimeStamp error \n");
+		return -1;
+	}
+	
 	
 #ifdef CHECKSUM_AUDIO
 	if (H264 == uNowPayloadType)
@@ -75,6 +91,7 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 		usAudioChecksum = pDataHead->usChecksum;
 	}
 #endif
+	
 	while(DataFrameLen < (iPacketLeftLen-sizeof(DATAHEAD))) //multiframe in one packet
 	{
 		//copy the frame
@@ -122,8 +139,8 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 			//printf("\n***************WAV 1*****************\n");
 			//printf("size : %d \n", size);
 #ifdef CHECKSUM_AUDIO
-			printf("sum: %x \n", csum(pFrame, size));
-			printf("usAudioChecksum : %x \n", usAudioChecksum);
+			//printf("sum: %x \n", csum(pFrame, size));
+			//printf("usAudioChecksum : %x \n", usAudioChecksum);
 			if (csum(pFrame, size) == usAudioChecksum)
 			{
 				audio_play(pFrame, size);
@@ -137,59 +154,52 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 #endif
 			//fwrite(pFrame, size, 1, outfile);
 		}
-		
+	
 		//find next head
 		iPacketLeftLen = iPacketLeftLen - (DataFrameLen+sizeof(DATAHEAD));
 		buf = buf+DataFrameLen+sizeof(DATAHEAD);
 		pDataHead = buf;
+	}	
 #ifdef CHECKSUM_AUDIO
-		if (H264 == uNowPayloadType)
-		{
-			//printf("\n------------------------%d----------------------\n", pDataHead->uSeq);
-			//printf("DataFrameLen : %d \n", DataFrameLen);
-			usVideoChecksum = pDataHead->usChecksum;
-		}
-		if (WAV == uNowPayloadType)
-		{
-			//printf("\n*****************************************\n");
-			//printf("DataFrameLen : %d \n", DataFrameLen);
-			usAudioChecksum = pDataHead->usChecksum;
-			//printf("usAudioChecksum: %d \n",usAudioChecksum )
-			
-		}
+	if (H264 == uNowPayloadType)
+	{
+		//printf("\n------------------------%d----------------------\n", pDataHead->uSeq);
+		//printf("DataFrameLen : %d \n", DataFrameLen);
+		usVideoChecksum = pDataHead->usChecksum;
+	}
+	if (WAV == uNowPayloadType)
+	{
+		//printf("\n*****************************************\n");
+		//printf("DataFrameLen : %d \n", DataFrameLen);
+		usAudioChecksum = pDataHead->usChecksum;
+		//printf("usAudioChecksum: %d \n",usAudioChecksum )
+		
+	}
 #endif
-		if(iPacketLeftLen >= sizeof(DATAHEAD))
+	if (iPacketLeftLen >= sizeof(DATAHEAD))
+	{
+		if(0x1A1B1C1D == pDataHead->iProbe)
 		{
-			if(0x1A1B1C1D == pDataHead->iProbe)
-			{
-				uNowPayloadType = pDataHead->uPayloadType;
-				DataFrameLen = pDataHead->iLen;
-				//printf("PayloadType : %d \n", pDataHead->uPayloadType);
-				//printf("iProbe = %0x \n",pDataHead->iProbe);
-				//printf("iTimeStamp : %d \n", pDataHead->iTimeStamp);
-				//printf("uSeq : %d \n", pDataHead->uSeq);
-				//printf("Find probe \n");
-				//printf("Payload Type : %d \n", pDataHead->uPayloadType);
-				//printf("Find len = %d \n",pDataHead->iLen);
-			}
-			else
-			{
-				printf("Packet wrong, searching again \n");
-				//uFrameErrorFlag = 1;
-				return -1;
-			}
+			uNowPayloadType = pDataHead->uPayloadType;
+			DataFrameLen = pDataHead->iLen;
 		}
-		else //data head split in two packet
+		else
 		{
-			printf("/////////////////////////////error 2 //////////////////////////////");
-			printf(" Data Head in two packet, will do it in future \n");
+			printf("Packet wrong, searching again \n");
 			//uFrameErrorFlag = 1;
 			return -1;
 		}
 	}
+	else //data head split in two packet
+	{
+		printf("/////////////////////////////error 2 //////////////////////////////");
+		printf(" Data Head in two packet, will do it in future \n");
+		//uFrameErrorFlag = 1;
+		return -1;
+	}
 	
 	//process last part of packet
-	if(DataFrameLen > (iPacketLeftLen-sizeof(DATAHEAD))) // not finished
+	if (DataFrameLen > (iPacketLeftLen-sizeof(DATAHEAD))) // not finished
 	{
 		//printf("process DataFrameLen: %d \n", DataFrameLen);
 		//copy frame data to pFrame;
@@ -247,10 +257,10 @@ static int process_start_frame(unsigned char *buf, unsigned int len, unsigned in
 		if (WAV == uNowPayloadType)
 		{
 			//printf("\n***************WAV 2*****************\n");
-			printf("size : %d \n", size);
+			//printf("size : %d \n", size);
 #ifdef CHECKSUM_AUDIO
-			printf("sum: %d \n", csum(pFrame, size));
-			printf("usAudioChecksum : %d \n", usAudioChecksum);
+			//printf("sum: %d \n", csum(pFrame, size));
+			//printf("usAudioChecksum : %d \n", usAudioChecksum);
 			if (csum(pFrame, size) == usAudioChecksum)
 			{
 				audio_play(pFrame, size);
@@ -343,7 +353,7 @@ ReSocket:
 	//set Multicast loop
 	int loop = 1; //1: on , 0: off
 	ret = setsockopt(rtp_server_socket,IPPROTO_IP,IP_MULTICAST_LOOP,&loop,sizeof(loop));
-	if(ret < 0)
+	if (ret < 0)
 	{
 		printf("set multicast loop error \n");
 		perror("setsockopt");
@@ -353,7 +363,7 @@ ReSocket:
 	struct ip_mreq mreq;
 	//mreq.imr_multiaddr.s_addr = inet_addr(MCAST_ADDR);       
 	mreq.imr_multiaddr.s_addr = inet_addr(multicast);
-	mreq.imr_interface.s_addr = htonl(INADDR_ANY);     
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 	
 	//add multicast group
 	ret = setsockopt(rtp_server_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
@@ -411,19 +421,25 @@ Recv:
 		{
 			perror("recvfrom");
 			printf("Server Recieve Data Failed!\n");
+			
 			timeOut++;
-			sleep(1);
+			
 			printf("time out : %d \n", timeOut);
-			if (timeOut > 6)
+			if (timeOut < 6)
+			{
+				//process_osd_text_solid(10, 10, " ");
+			}
+			else
 			{
 				process_osd_text_solid(10, 10, "Searching TX");
+
+				if (timeOut > 25)
+				{
+					printf("time out 100s \n");
+					reboot1();
+				}
 			}
-			if (timeOut > 25)
-			{
-				printf("time out 100s \n");
-				reboot1();
-			}
-			//sleep(1);
+			sleep(1);
 			close(rtp_server_socket);
 			goto ReSocket;
 		}
@@ -438,14 +454,16 @@ Recv:
 			#endif
 			if(!(strncmp( buf, "0abc", 4))) //check tx's hdmi 
 			{
+				
+				timeOut++;
 				process_osd_text_solid(10, 10, "Check TX's input signal");
 				printf("no tx's signal input \n");
 				sleep(1);
-				timeOut++;
-				if (timeOut > 25)
+
+				if (timeOut < 25)
 				{
-					printf("time out 100s \n");
-					reboot1();
+					printf("time out than 100s \n");
+					reboot1();	
 				}
 			}
 			//printf("recv packet len : %d \n", len);
@@ -464,6 +482,7 @@ Recv:
 					
 					uNowPayloadType = pDataHead->uPayloadType;
 					iPacketLeftLen = len;
+					
 #ifdef CHECKSUM_AUDIO
 					if (H264 == uNowPayloadType)
 					{
@@ -764,12 +783,6 @@ Recv:
 					//uNowPayloadType = pDataHead->uPayloadType;
 					//DataFrameLeftLen = pDataHead->iLen;
 					
-					//printf("iProbe = %0x \n",pDataHead->iProbe);
-					//printf("iTimeStamp : %d \n", pDataHead->iTimeStamp);
-					//printf("uSeq : %d \n", pDataHead->uSeq);
-					//printf("payload type : %d \n", pDataHead->uPayloadType);
-					//printf("Find len = %d \n",pDataHead->iLen);
-					//printf("START_PACKET == eNextPacketType \n");
 					ret = process_start_frame( buf,len,&size,&DataFrameLeftLen);
 					//printf("ret = %d \n", ret);
 					if (-1==ret)
