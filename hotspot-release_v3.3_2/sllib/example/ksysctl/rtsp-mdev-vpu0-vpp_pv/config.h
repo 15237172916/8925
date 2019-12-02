@@ -14,7 +14,8 @@ extern "C" {
 #define  STRING_LENNOTEQUAL     0x05 /*两个字符串长度不同*/  
 #define  STRING_NOTEQUAL       0x06 /*两个字符串内容不相同*/  
 #define  STRING_EQUAL        0x00 /*两个字符串内容相同*/  
-  
+
+#define RM_COONFIG "rm /tmp/config.conf"
   
 int CompareString(char *pInStr1,char *pInStr2);  
 int GetKeyValue(int fpConfig,char *pInKeyName,char *pOutKeyValue);  

@@ -19,7 +19,7 @@
 //#define CONFIG_FILE ("/user/configs/config.conf")
 //#define CONFIG_FILE ("/tmp/configs/config.conf")
 
-#define CONFIG_FILE ("./config.conf")
+#define CONFIG_FILE ("/tmp/config.conf")
 #define NETWORK_INFO         ("Info1")
 #define IP           ("IP")
 #define SERVERIP           ("SERVERIP")
