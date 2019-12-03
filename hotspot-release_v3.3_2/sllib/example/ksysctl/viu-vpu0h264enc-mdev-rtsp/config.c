@@ -11,7 +11,8 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	char *pStr;  
 	int iRetCode = 0;  
 	int cnt = 0;  
-	int seek = 0;  
+	int seek = 0;
+	unsigned long int count = 0;
 
 	iRetCode = lseek(fpConfig, 0, SEEK_SET);
 	if (iRetCode < 0) {
@@ -26,7 +27,14 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 
 	while(1)  
 	{
-
+		count++;
+		printf("\n %d", count);
+		if (count > 5000)
+		{
+			printf("\n\n*** config file error \n\n");
+			system(RM_COONFIG);
+			reboot1();
+		}
 		cnt =0;
 		pStr = szBuffer ;    
 
@@ -67,8 +75,8 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 				iRetCode = GetKeyValue(fpConfig,pInKeyName,pOutKeyValue);  
 				return iRetCode;  
 			}     
-		}                     
-	}  
+		}
+	}
 
 	return SECTIONNAME_NOTEXIST;  
 
