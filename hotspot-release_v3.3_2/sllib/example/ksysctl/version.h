@@ -25,18 +25,18 @@
 #define PRODUCT_NAME   "HSV701"     //product name
 #define VER_ID1      "1"          //major version id 
 #define VER_ID2      "0"          //minor version id 
-#define VER_ID3      "2"             //sbuversion id 
-#define BUILDING      "20190713"        //date
+#define VER_ID3      "3"             //sbuversion id 
+#define BUILDING      "20191209"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "HSV701 V1.0.2.190713_R"
-#define WEB_VERSION      "V1.0.2.190713"
-#define OSD_VERSION      "V1.0.2"
+#define PRINT_VERSION    "HSV701 V1.0.3.191209_R"
+#define WEB_VERSION      "V1.0.3.191209"
+#define OSD_VERSION      "V1.0.3"
 
 /*
 V1.0.1 base version 
 V1.0.2 repair switch key order
-
+V1.0.3 debug writing config file fail issue
 */
 
 #endif
