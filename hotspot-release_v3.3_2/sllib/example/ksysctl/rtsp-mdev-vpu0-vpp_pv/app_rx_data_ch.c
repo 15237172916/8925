@@ -9,7 +9,7 @@
 
 #include "app_rx_io_ctl.h"
 #include "app_rx_data_ch.h"
-
+#if 0
 #define MYPORT    8001
 #define LENGTH_OF_LISTEN_QUEUE     20
 #define BUFFER_SIZE                1024
@@ -220,4 +220,4 @@ ReConnect:
 
     return 0;
 }
-
+#endif

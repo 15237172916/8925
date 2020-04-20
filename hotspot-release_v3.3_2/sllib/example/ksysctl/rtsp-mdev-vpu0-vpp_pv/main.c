@@ -1,173 +1,99 @@
 /* * Note: In this example, the source video data is read from a YUV file via MDEV
- *       write, and the BSG result is dumped to a file via MDEV read.
+ *	   write, and the BSG result is dumped to a file via MDEV read.
  */
-#include <sys/types.h>
-#include <sys/socket.h>                         // 包含套接字函数库
-#include <stdio.h>
-#include <netinet/in.h>                         // 包含AF_INET相关结构
-#include <arpa/inet.h>                      // 包含AF_INET相关操作的函数
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <string.h>
-#include <signal.h>
-#include <errno.h>
-#include <netinet/tcp.h>
-#include <sys/mman.h>
-#include <net/if.h>
-#include <sl_types.h>
-#include <sl_error.h>
-#include <sl_param_vcodec.h>
-#include <sl_api_vcodec.h>
-#include <sl_config.h>
-#include <sl_debug.h>
-#include <sl_api_ksysctl.h>
-#include <sl_api_filedev.h>
-#include <sl_api_memdev.h>
-#include <sl_mmutil.h>
-#include <sl_msg.h>
-#include <pthread.h>
-#include <sl_rtsp.h>
-#include <sl_param_parser.h>
-#include <vpp/sl_param_pv.h>
-#include <vpp/sl_api_pv.h>
-#include <vpp/sl_param_osd.h>
-#include <vpp/sl_api_osd.h>
+#include "main.h"
+#include "../version.h"
 #include "list_handler.h"
 #include "sl_watchdog.h" 
 #include "display.h" 
 #include "osd.h" 
 #include "gui.h" 
 #include "cfginfo.h" 
-#include "wifi_sta.h" 
-#include <sys/time.h>
-
 #include "audio_ioctl.h" 
-
-#include "app_rtp.h"
-
-#include "app_rx_broadcast.h"
-
-//#define IR_DEBUG
-//#define ENABLE_IR_SEND
-//#define APP_CODE
-#define WEB_ENABLE
-//#define KVM_UART
-#define APP_IO
-#define APP_RTP
-
-
-#define AUDIO_SUPPORT
-#define VIDEO_SUPPORT
-
-#if 1
-#define IR_DATA_LENGTH 2040
-#define IR_DATA_NUM 2
-#else
-#define IR_DATA_LENGTH 1360
-#define IR_DATA_NUM 3
-#endif
-
-#ifdef APP_IO
 #include "app_rx_io_ctl.h"
-static pthread_t app_rx_io_ctl_handler;
-static pthread_t app_rx_light_ctl_handler;
-#endif
-
-#ifdef APP_CODE
-#include <sl_types.h>
-
-#include "app_rx_signal_ch.h"
-#include "app_rx_data_ch.h"
-
-extern unsigned char signal_connect_state;
-
-static pthread_t app_rx_handler;
-
-static pthread_t app_rx_signal_ch_handler;
-static pthread_t app_rx_data_ch_handler;
-
-
-#endif
-
-#include "app_igmp.h"
-
-static pthread_t app_rtp_main_handler;
-static pthread_t app_igmp_report_handler;
-#ifdef KVM_UART
-
-#include "app_rx_uart.h"
-
-static pthread_t app_rx_uart_handler;
-
-#endif
-
-static pthread_t audio_handle;
-static pthread_t  checkWr_handler;
-extern void * check_wr_thread(void * Args);
-
-char 	web_flag;
-
+#include "test_gpio_rx_i2c.h"
+#ifdef BROAD_CONTROL
+#include "app_rx_broadcast.h"
+#endif /* BROAD_CONTROL */
+#ifdef APP_RTP
+#include "app_rtp.h"
+#endif /* APP_RTP */
+#ifdef WATCHDOG_UART
+#include "uart_watchdog.h"
+#endif /* WATCHDOG_UART */
 #ifdef WEB_ENABLE
 #include "sharemem.h"
 #include "init.h"
+#endif /* WEB_ENABLE */
+#ifdef IGMP_ENABLE
+#include "app_igmp.h"
+#endif /* IGMP_ENABLE */
+#ifdef CONFIG_EEPROM
+#include "EEPROM.h"
+#endif /* CONFIG_EEPROM */
+#ifdef IR_ENABLE
+#include "IR.h"
+#endif /* IR_ENABLE */
+
+/*************************thread hande****************************/
+static pthread_t  checkWr_handle;
+static pthread_t iHandle;
+#ifdef APP_RTP
+static pthread_t app_rtp_main_handle;
+#endif /* WEB_ENABLE */
+#ifdef IGMP_ENABLE
+static pthread_t app_igmp_report_handle;
+#endif /* IGMP_ENABLE */
+#ifdef WEB_ENABLE
 static pthread_t ConfigHandle;
-#endif
-
+#endif /* WEB_ENABLE */
+#ifdef  SWITCH_KEY
 static pthread_t IP_switch_handle;
-
-client_param_t client_param;
-
-#ifdef ENABLE_IR_SEND
-
-#define IR_CLIENT_PORT  7998
-#define BUFFER_SIZE 1024
-
-
-typedef struct
-{
-    unsigned char num[IR_DATA_LENGTH];
-}Node;
-static SL_U32 dsp_dev;
-
+#endif /* SWITCH_KEY */
+#ifdef WATCHDOG
+static pthread_t watchdogHandle;
+#endif /* WATCHDOG */
+#ifdef BROAD_CONTROL
+static pthread_t IP_report_handle;
+static pthread_t IP_recive_handle;
+#endif /* BROAD_CONTROL */
+#ifdef WATCHDOG_UART
+static pthread_t uartWatchdogHandle;
+#endif /* WATCHDOG_UART */
+#ifdef IR_ENABLE
 static pthread_t send_ir_handle;
+#endif /* IR_ENABLE */
+#ifdef KEY
+static pthread_t app_rx_io_ctl_handle;
+#endif /* KEY */
 
-#endif
+/******************************global  variable*********************************/
 
-#define NUM_RETRY       50000
-#define USLEEP_TIME     5*1000
-#define TIMEOUT   -1
-
-#ifdef HANG_PAI
-#define MAX_RTSP_TIMEOUT  3
-#else
-#define MAX_RTSP_TIMEOUT  8
-#endif
-
-#define TIME_CHECK_SECONDS 2
-
-static SL_U32 wpa_need_restart = 0;
 extern CFG_INFO_S cfginfo;
-
 extern char idr_flag;
-extern char key_display;
-extern char display_flag;
+extern char g_key_display;
+extern char g_display_flag;
+extern char g_ipConflict_flag;
+extern char g_searchTX_flag;
+extern char g_checkTxInput_flag;
 
+pthread_mutex_t mutex_iic;
 
-char rtspURL_video_eth0[128] = "rtsp://192.168.1.3:8554/ch0"; //video 
-char rtspURL_audio_eth0[128] = "rtsp://192.168.1.3:8559/testStream"; //audio 
+#ifdef WEB_ENABLE
+char web_flag;
+#endif
+char g_osd_state = 0;
 
-char rtspURL_video_wlan0[128] = "rtsp://10.10.1.1:8554/ch0"; //video 
-char rtspURL_audio_wlan0[128] = "rtsp://10.10.1.1:8559/testStream"; //audio 
+SL_U32 g_fs;
+SL_U32 g_audio_bits;
+SL_U32 g_chns;
 
+char serverip[20] = "192.168.1.3";
+char multicast[20] = "239.255.42.1";
+char g_Is_E2prom = 0; //0:EEPROM 1:Flash
+
+/********************************************************************************/
 volatile static int timeoutCnt = 0;
-
-int fd_config;
 
 static chanVideoPara_s cvp;
 static SLVDEC_Cfg_s vdecCfg;
@@ -186,10 +112,8 @@ static SL_U32 g_height;
 static SL_S32 g_sysctl_configed;
 static SL_U32 g_frameRate;
 
-SL_S32  audio_change = 0;
-SL_S32 g_discard_frame; //for eric 
-
-static SL_S32 g_server_connect; //for eric
+static SL_S32  audio_change = 0;
+static SL_S32 g_discard_frame;
 
 static SL_U8 g_refreshRate;
 static SL_U8 g_interlace;
@@ -198,28 +122,11 @@ static SL_S32 g_cnt;
 static SL_U32 g_osd_need_reconfig;
 static SL_U32 g_osd_overlay;
 
-SL_U32 g_fs;
-SL_U32 g_audio_bits;
-SL_U32 g_chns;
-
-static SL_U32 netInterface; 
-
 static SL_U32 need_feed_dog = 1;
 static LIST_BUFFER_S *list;
 
-
-static pthread_t iHandle;
-
-static pthread_t rtspHandle_audio;
-static pthread_t rtspHandle_video;
-static pthread_t watchdogHandle;
-static pthread_t wifiHandle;
-static pthread_t IP_report_handle;
-static pthread_t 	witch_multicast_handler;   //Jason add
-
-
-static SL_POINTER join_ret;
-static SL_POINTER join_ret1;
+//static SL_POINTER join_ret;
+//static SL_POINTER join_ret1;
 
 #if 0
 const char * server_not_connect ="Not connect to TX";
@@ -234,139 +141,30 @@ const char * server_running ="Check TX's input signal";
 const char * hdmi_pullout = "Check TX's input signal";
 #endif
 
-char serverip[20] = "192.168.1.3";
-char multicast[20] = "239.255.42.1";
 //const char * show_text ="你好:hotspot";
 const char * show_text ="welcome to silan";
 
 static int process_osd_text_overlay(int x, int y, const char *text);
-int process_osd_text_solid(int x, int y, const char *text);
-int process_osd_disable(void);
-#define DEV_IO_NAME		"/dev/silan_testio"
+static int process_osd_text_solid(int x, int y, const char *text);
+static int process_osd_disable(void);
 
-static unsigned char *dsp_ir_start_addr_va;
+extern void * check_wr_thread(void * Args);
 
 typedef struct
 {
 	unsigned int addr;
 	unsigned int data;
 }SILANWORDR;
-
-/**********************************************************/
-#ifdef APP_CODE
-
-//SHOWDATA g_ShowData;
-
-void  *app_rx_main(void)
-{
-    SL_BOOL bPrevTestMode;
-    
-    gbTestMode = SL_FALSE;
-    bPrevTestMode = SL_FALSE;
-    
-    g_ShowData.uShowTime = 2; //default 2 seconds
-
-    while(1)
-    {
-        sleep(1); 
-#if 0	
-		/*
-        if (SL_TRUE == gbTestMode && SL_FALSE==bPrevTestMode)
-        {
-        	printf("Test Mode On \n");
-	        process_osd_text_solid(10, 10, "Test Mode On");
-            bPrevTestMode = SL_TRUE;
-
-        }
-        else if(SL_FALSE == gbTestMode && SL_TRUE == bPrevTestMode)
-        {
-	        process_osd_text_solid(10, 10, "Test Mode Off");
-	        printf("Test Mode Off \n");
-	        sleep(2);
-		    process_osd_disable();
-        	bPrevTestMode = SL_FALSE;
-        }
-        */
-#endif
-		/******************Show Data***************************/
-        if(SL_TRUE == g_ShowData.bShowFlag)
-        {
-			g_ShowData.bShowFlag = SL_FALSE;
-			printf("process_osd_text_solid(100, 100, g_ShowData.cText);%s \n", g_ShowData.cText);
-            process_osd_text_solid(100, 100, g_ShowData.cText);
-			
-            if(g_ShowData.uShowTime > 0)
-            {
-	            sleep(g_ShowData.uShowTime);
-		        process_osd_disable();
-		        //g_ShowData.bShowFlag = SL_FALSE;
-            }
-            else
-            {
-                g_ShowData.uShowTime = 2; //return to default 2 seconds disappear
-            }
-        }
-    }
-}
-
-#endif
-/***********************************************************/
-#if 1
-int printf_log(const char *log)
-{
-	int fd_log = -1;
-	int ret = -1;
-	int len = -1;
-	struct timeval tv1;
-	struct timezone tz;
-	char buf[40] = {0};
-	
-	len = strlen(log);
-	//len = sizeof(log);
-	printf("len = %d \n", len);
-	fd_log = open("/tmp/log", O_CREAT|O_RDWR|O_APPEND, \
-							S_IRUSR|S_IRGRP|S_IROTH);
-	//fd_log = open("/mnt/log", O_CREAT|O_RDWR|O_APPEND, \
-							S_IRUSR|S_IRGRP|S_IROTH);
-	if (fd_log < 0){
-		printf("printf_log open error \n");
-		perror("open");
-	}
-	ret = gettimeofday(&tv1,&tz);
-	if (ret < 0){
-		printf("printf_log gettimeofday error \n");
-		perror("gettimeofday");
-	}
-	//sprintf(buf, "%ld log: ", tv1.tv_sec-144221050);
-	sprintf(buf, "%ld.%ld ", tv1.tv_sec, tv1.tv_usec);
-	//sprintf(buf, "%ld log: ", tv1.tv_usec);
-	printf("%s", buf);
-	ret = write(fd_log, buf, sizeof(buf));
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = write(fd_log, log, len);
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = write(fd_log, "\n", sizeof("\n"));
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = close(fd_log);
-	if (ret < 0)
-		printf("close log file error \n");
-}
-#endif
-
+#define DEV_IO_NAME		"/dev/silan_testio"
 int reboot1(void)
 {
 	int fd;
 	int res = 0;
 	SILANWORDR data;
-
-	//sleep(1);
 	
+	printf("\n----reboot1---- \n");
+	sleep(1);
+	while (share_mem->ucUpdateFlag) sleep(1);
 	//system("umount /home");
 	fd = open(DEV_IO_NAME, O_RDWR);
 	if(fd < 0){
@@ -397,22 +195,22 @@ static void initMemCtrl(memCtrl_s *mc, SL_U32 size)
 
 static SL_S32 SLVDEC_setCfg(SLVDEC_Cfg_s *cfg)
 {
-    memset(cfg,0x00,sizeof(SLVDEC_Cfg_s));
+	memset(cfg,0x00,sizeof(SLVDEC_Cfg_s));
 	cfg->chnNum = 1;
-    cfg->chnParam[0].rotAngle = 0;
-    cfg->chnParam[0].mirDir = 0;
-    cfg->chnParam[0].useRot = 0;
-    cfg->chnParam[0].useDering = 0;
-    cfg->chnParam[0].userPackNeeded = 0;
-    cfg->chnParam[0].format = STD_AVC;
-    cfg->chnParam[0].picWidth = g_width;
-    cfg->chnParam[0].picHeight = (g_height + 15)&(~15); //FIXME
+	cfg->chnParam[0].rotAngle = 0;
+	cfg->chnParam[0].mirDir = 0;
+	cfg->chnParam[0].useRot = 0;
+	cfg->chnParam[0].useDering = 0;
+	cfg->chnParam[0].userPackNeeded = 0;
+	cfg->chnParam[0].format = STD_AVC;
+	cfg->chnParam[0].picWidth = g_width;
+	cfg->chnParam[0].picHeight = (g_height + 15)&(~15); //FIXME
 
-    cfg->chnParam[0].avcExtension = 0; 
-    cfg->chnParam[0].mp4DeblkEnable = 0; 
-    cfg->chnParam[0].mpeg4Class = 0; 
-    cfg->chnParam[0].mapType = 0; 
-    return 0;
+	cfg->chnParam[0].avcExtension = 0;
+	cfg->chnParam[0].mp4DeblkEnable = 0;
+	cfg->chnParam[0].mpeg4Class = 0;
+	cfg->chnParam[0].mapType = 0;
+	return 0;
 }
 
 static void  setPvCfg(SLVPP_PV_Cfg_s *cfg)
@@ -529,7 +327,7 @@ static SL_S32 sysctl_config(void)
 	cvp.format = FORMAT_YUV_420;
 	cvp.reso = RESO_USER_DEFINED;
 	cvp.reso_wi = g_width;
-	cvp.reso_hi = (g_height + 15)&(~15);//g_height;    
+	cvp.reso_hi = (g_height + 15)&(~15);//g_height;	
 	//cvp.reso_hi = g_height;
 	ret = SLSYSCTL_open(&im_devman, ID_MEMORY, &cvp, sizeof(cvp));
 	if (SL_NO_ERROR != ret)
@@ -541,7 +339,7 @@ static SL_S32 sysctl_config(void)
 
 	ret = SLSYSCTL_open(&pv_dev, ID_VPP_PV, &cvp, sizeof(cvp));
 	if (SL_NO_ERROR != ret)
-		goto close_vdec;    
+		goto close_vdec;	
 
 	ret = SLSYSCTL_bind(im_devman, 0, vpu_dev, 0);
 	if (SL_NO_ERROR != ret)
@@ -628,22 +426,8 @@ static SL_S32 trigger(SL_S32 first_time)
 }
 
 #if 1
-#define DEBUG 	0
-
-#if DEBUG
-#define FILE1 "./test1.264"
-#define FILE2 "./test2.264"
-#define FILE3 "./test3.264"
-#define FILE4 "./test4.264"
-#define FILE5 "./test5.264"
-#define FILE6 "./test6.264"
-
-static char outfilename[128] = "./test.264";
-char save_264file_flag = 0;
-#endif
 //pthread
-//static SL_POINTER wacPushFrameToMDev(SL_POINTER Args)
-void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
+int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 {
 	SL_S32 ret;
 	void *buf;
@@ -658,7 +442,7 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	static SL_S32 tmp_fs = 0;
 	static SL_S32  idr_got = 0;
 	static SL_S32 frameCount = 0;
-	static SL_S32 write_block_fail_count = 0;
+	//static SL_S32 write_block_fail_count = 0;
 	static SL_S32 discard_p_frame = 0;
 	static struct timeval time_begin = {0};
 	static struct timeval time_end = {0};
@@ -669,112 +453,9 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	
 	size = uiSize;
 
-    //printf("wac Get a Frame size = %d \n",size);
-    //return 0;
-    
-#if DEBUG //save h264 file
+	//printf("wac Get a Frame size = %d \n",size);
+	//return 0;
 	
-	static unsigned int file_count = 0;
-	static FILE * outfile1  = NULL;
-	static FILE * outfile2  = NULL;
-	static FILE * outfile3  = NULL;
-	static FILE * outfile4  = NULL;
-	static FILE * outfile5  = NULL;
-	static FILE * outfile6  = NULL;
-	
-	
-	if (file_count < 10000)
-	{
-		if(!outfile1)
-		{
-			if ((outfile1 = fopen(FILE1, "wb")) == NULL)
-			{
-				printf("can't open ", outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile1);
-	}
-	else if ((file_count >= 10000) && (file_count < 20000))
-	{
-		if(!outfile2)
-		{
-			if ((outfile2 = fopen(FILE2, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile2);
-	}
-	else if ((file_count >= 20000) && (file_count < 30000))
-	{
-		if(!outfile3)
-		{
-			if ((outfile3 = fopen(FILE3, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile3);
-	}
-	else if ((file_count >= 3000) && (file_count < 40000))
-	{
-		if(!outfile4)
-		{
-			if ((outfile4 = fopen(FILE4, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile4);
-	}
-	else if ((file_count >= 40000) && (file_count < 50000))
-	{
-		if(!outfile5)
-		{
-			if ((outfile5 = fopen(FILE5, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile5);
-	}
-	else if ((file_count >= 50000) && (file_count < 60000))
-	{
-		if(!outfile6)
-		{
-			if ((outfile6 = fopen(FILE6, "wb")) == NULL)
-			{
-				printf("can't open %s",outfilename);
-				return;
-			}
-		}
-		
-		fwrite(pFrame, size, 1, outfile6);
-	}
-	else
-	{
-		file_count = 0;
-		outfile1 = NULL;
-		outfile2 = NULL;
-		outfile3 = NULL;
-		outfile4 = NULL;
-		outfile5 = NULL;
-		outfile6 = NULL;
-	}
-	
-	file_count++;
-#endif
-    
 	//while (1)
 	{
 		//for eric 
@@ -820,31 +501,31 @@ void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 			}
 		}
 
-        /*Removed debug info for speed up
-        int i;
-        for(i=0;i<50;i++)
-            printf(" %02x ", pframe[i]);
-        */
+		/*Removed debug info for speed up
+		int i;
+		for(i=0;i<50;i++)
+			printf(" %02x ", pframe[i]);
+		*/
 
 		data = (unsigned char *)pframe + 4;
 		//printf("data : %d \n", *data);
 		if (0x67 == *data)
 		{
 			//printf("this is I frame \n");
-		    /*Removed debug info for speed up
-		    printf(" \n idr frame size = %d \n",size);
-		    
-		    for(i=(size - sizeof(H264_APPEND_INFO_s));i<size;i++)
-                printf(" %02x ", pframe[i]);
-		    */
+			/*Removed debug info for speed up
+			printf(" \n idr frame size = %d \n",size);
+			
+			for(i=(size - sizeof(H264_APPEND_INFO_s));i<size;i++)
+				printf(" %02x ", pframe[i]);
+			*/
 			append_info = (H264_APPEND_INFO_s *)(pframe + size - sizeof(H264_APPEND_INFO_s));
 			/*Removed debug info for speed up
 			unsigned char *temp = (unsigned char *)append_info;
 					
 			for(i=0;i<sizeof(H264_APPEND_INFO_s);i++)
-	            printf("%02x ",temp[i]);
-            */
-            
+				printf("%02x ",temp[i]);
+			*/
+			
 			//parse audio
 			g_fs = append_info->fs;
 			g_audio_bits = append_info->audio_bits;
@@ -931,6 +612,8 @@ step:
 				trigger(first_time);
 				g_sysctl_configed = 1;
 				g_osd_need_reconfig = 1;
+				//g_osd_state = 0;
+
 			}
 			idr_frame = 1;
 			idr_got = 1;
@@ -941,19 +624,19 @@ step:
 		else
 		{
 			//printf("this is p frame \n");
-	    	//printf(" \n ************not idr frame : %d \n", idr_flag);
-	    	if (idr_flag) //from wang
+			//printf(" \n ************not idr frame : %d \n", idr_flag);
+			if (idr_flag) //from wang
 				return 0; //idr farme not come
 			
 			if(!g_sysctl_configed)
 			{
-			    printf("not configed \n");
+				printf("not configed \n");
 				return 0;
-            }
+			}
 			//printf("frame : %d \n", discard_p_frame);
 			if(discard_p_frame)
 			{
-			    printf("discard frame \n");
+				printf("discard frame \n");
 				return 0;
 			}
 
@@ -972,8 +655,8 @@ step:
 		if(!idr_got)
 			return 0;
 
-       //printf("allocate block \n");
-        
+	   //printf("allocate block \n");
+		
 tryAgain:
 		
 		ret = SLMDEV_mallocBlockWrite(im_devman, &buf, cpSize);
@@ -1012,7 +695,7 @@ tryAgain:
 		}
 		else
 		{
-		    //printf("list push data ok \n");
+			//printf("list push data ok \n");
 		}
 	}
 	
@@ -1235,9 +918,7 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 	SL_S32 ret;
 	SL_U32 dd;
 	static SL_S32 cnt = 0;
-	//static struct timeval time_begin = {0};
-	//static struct timeval time_end = {0};
-	
+
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
 	while (1) 
@@ -1258,68 +939,22 @@ static SL_POINTER MDEV_Input_ThreadFunc(SL_POINTER Args)
 			usleep(5000);
 			continue;
 		}
-#if 0
-		//add for wang in 20181218
-		ret = SLSYSCTL_getTimeoutDev(&dd);
-		if (dd == vpu_dev)
-		{
-			log_err("SLSYSCTL_getTimeoutDev need reboot\n");
-			reboot1();
-			break;
-		}
-		printf("ret: %d \n", ret);
-		printf("dd: %d \n", dd);
-		printf("vpu_dev: %d \n", vpu_dev);
-#endif
 		//FIXME
 		if(!g_cnt)
 		{
-			g_server_connect = 1;
+			//g_server_connect = 1;
 			if(!g_osd_overlay) {
 				if(osd_dev) 
 				{
 					//printf("\n**** stop osd\n");
 					SLSYSCTL_stopProcess(osd_dev);
-
+					g_osd_state = 0;
 				}
 			}
 			g_cnt = 1;
 		}
 
 		SLMDEV_freeBlockWrite(im_devman, buf);
-		//printf_log("mdev write");
-			//printf("mdev write\n");
-#if 0
-		if(!cnt)
-		{
-			//		gettimeofday(&time_begin, 0);
-			cnt = 1;
-		} else {
-			//		gettimeofday(&time_end, 0);
-			//		interval = (time_end.tv_sec-time_begin.tv_sec)*1000+(time_end.tv_usec-time_begin.tv_usec)/1000;
-#if 0
-			if(interval > 50)
-			{
-				printf(" interval: %d\n",interval );
-				//cnt = 0;
-			}
-#endif
-#if 0
-			//FIXME
-			if(30 == g_frameRate)
-			{
-				if(interval < 33)
-					usleep(33000-interval*1000); //30f/s
-			} else if(25 == g_frameRate) {
-				if(interval < 40)
-					usleep(40000-interval*1000);//25f/s
-			}
-#endif
-			//		gettimeofday(&time_begin, 0);
-
-		}
-#endif
-
 	}
 
 	return SL_NO_ERROR;
@@ -1440,7 +1075,7 @@ static SL_S32 osd_sysctl_config(void)
 	cvp.format = FORMAT_RGB_8888;
 	cvp.reso = RESO_USER_DEFINED;
 	cvp.reso_wi = OSD_WIDTH;
-	cvp.reso_hi = OSD_HEIGHT;    
+	cvp.reso_hi = OSD_HEIGHT;	
 
 	ret = SLSYSCTL_open(&im_devman_osd, ID_MEMORY, &cvp, sizeof(cvp));
 	if (SL_NO_ERROR != ret)
@@ -1448,7 +1083,7 @@ static SL_S32 osd_sysctl_config(void)
 
 	ret = SLSYSCTL_open(&osd_dev, ID_VPP_OSD, &cvp, sizeof(cvp));
 	if (SL_NO_ERROR != ret)
-		goto close_im;    
+		goto close_im;	
 
 	ret = SLSYSCTL_bind(im_devman_osd, 0, osd_dev, 0);
 	if (SL_NO_ERROR != ret)
@@ -1655,36 +1290,11 @@ tryAgain:
 int process_osd_disable(void)
 {
 	if(osd_dev)
+	{
+		g_osd_state = 0;
 		SLSYSCTL_stopProcess(osd_dev);
-
+	}
 	return 0;
-}
-
-static SL_POINTER rtspOpen_video(SL_POINTER Args)
-{
-	printf("rtspOpen_video\n");
-	if(INTERFACE_WLAN0 == netInterface)
-	{
-		rtsp_open("video", rtspURL_video_wlan0, wacPushFrameToMDev, &client_param);
-		printf("rtspURL_video:%s\n",rtspURL_video_wlan0);
-	}
-	else
-	{
-		rtsp_open("video", rtspURL_video_eth0, wacPushFrameToMDev, &client_param);
-		printf("rtspURL_video:%s\n",rtspURL_video_eth0);
-	}
-	return NULL;
-}
-
-static SL_POINTER rtspOpen_audio(SL_POINTER Args)
-{
-	printf("rtspOpen_audio\n");
-	if(INTERFACE_WLAN0 == netInterface)
-		rtsp_open_audio("audio", rtspURL_audio_wlan0, NULL, &client_param);
-	else
-		rtsp_open_audio("audio", rtspURL_audio_eth0, NULL, &client_param);
-
-	return NULL;
 }
 
 void signalioHandle(int signo) 
@@ -1734,31 +1344,7 @@ static SL_POINTER  watchdog_handle(SL_POINTER Args)
 	return NULL;
 }
 
-static int  wifi_sta_start(void)
-{
-	char ip[20];
-	int ret;
-
-	//printf("%s\n",__func__);
-	ret = wifi_sta_start_wpa();
-	if(ret)
-		printf("failed to start_wpa\n");
-
-	ret = wifi_sta_start_udhcpc();
-	if(ret)
-		printf("failed to start_udhcpc\n");
-
-	sleep(12);
-
-	if(!wifi_sta_get_ip_addr(ip) && (strcmp(ip, "127.0.0.1") != 0)){
-		printf("ip:%s\n",ip);
-	} else {
-		printf("failed to get ip\n");
-	}
-
-	return 0;
-}
-
+#ifdef WIFI_ENABLE
 static SL_POINTER  wifi_handle(SL_POINTER Args)
 {
 	static int timeout = 5;
@@ -1811,573 +1397,115 @@ static SL_POINTER  wifi_handle(SL_POINTER Args)
 
 	return NULL;
 }
-#ifdef ENABLE_IR_SEND
-static int init_dsp_ir(void)
+#endif
+
+int init_system(void)
 {
-	int audio_fd = -1;
-	audio_fd=open("/dev/silan-dsp-ir", O_RDWR);
-	if(audio_fd<0){
-		printf("fail to open /dev/silan-dsp-ir\n");
-		return -1;
-	}
+	int ret;
 
-	unsigned int tmp =  (unsigned long)mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, audio_fd, 0); //map 8k
+	i2c_gpio_init();
+	HPD_Init();
+	pthread_mutex_init(&mutex_iic, NULL);
 
-	dsp_ir_start_addr_va = (unsigned char *)tmp;
-
-	printf("\n***dsp_ir_start_addr_va:%x\n",dsp_ir_start_addr_va);
-
-	memset((unsigned char *)dsp_ir_start_addr_va,0x00,0x1000);
-
-	return 0;
-}
-#if 1
-static SL_POINTER  send_ir(SL_POINTER Args)
-{
-	///sockfd
-	struct ifreq if0;
-	int sock_cli;
-	static int offset = 0;
-	static int value = 0;
-	static int cnt = 0;
-
-	printf ("%s started.\n", __func__);
-	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-	int needSend=72*3*2;
-	unsigned char *dst=(unsigned char*)malloc(sizeof(Node));
-
-	unsigned short *dst1=(unsigned short*)malloc(72*3*2);
-
-
-	int i;
-	int j;
-
-	init_dsp_ir();
-#if 1
-try_again:
-	//sock_cli = socket(AF_INET,SOCK_STREAM, 0); //TCP
-	sock_cli = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  //UDP
-	
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(sock_cli,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(IR_CLIENT_PORT);
-	if(netInterface == INTERFACE_WLAN0)
-		servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
-	else
-		//servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-		servaddr.sin_addr.s_addr = inet_addr(serverip);
-
-	if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-	{
-		perror("connect");
-		close(sock_cli);
-		sleep(2);
-		goto try_again;
-	}
-
-#endif
-	while(1)
-	{
-		if((*(dsp_ir_start_addr_va + offset)) != 0)
-		{
-			usleep(100000);//FIXME let m0 capture entire data
-			memcpy(dst, (unsigned char *)(dsp_ir_start_addr_va + offset),IR_DATA_LENGTH);
-			memset((unsigned char *)(dsp_ir_start_addr_va + offset),0x00,IR_DATA_LENGTH); //FIXME
-			memset((unsigned char *)dst1,0x00,72*3*2); //FIXME
-#if 0
-			printf("dst[0]:%x\n",dst[0]);
-			printf("dst[1]:%x\n",dst[1]);
-			printf("dst[2]:%x\n",dst[2]);
-#endif
-			dst1[214] = dst[2] * 50; //FIXME 
-			//dst1[70] = dst[2] * 100 / 2; //FIXME 
-
-#if 1
-			j=0;
-			i=0;
-			while(i<=IR_DATA_LENGTH)	
-			{
-				if(*(dst + i) == 0xff)
-				{
-					if(value > 0)
-					{
-#ifdef IR_DEBUG
-						printf("-%d ",value);
-#endif
-						dst1[j] = value* 2 /dst[2];
-						j++;
-						value = 0;
-					}
-					if(i%2)
-					{
-#ifdef IR_DEBUG
-						printf("*%d ",*(unsigned short *)(dst + i + 1));
-#endif
-						dst1[j] = (*(unsigned short *)(dst + i + 1)) * 2 /dst[2] ;
-						j++;
-						i = i + 3;
-					}
-					else
-					{
-
-#ifdef IR_DEBUG
-						printf("*%d ",*(unsigned short *)(dst + i + 2));
-#endif
-						dst1[j] = (*(unsigned short *)(dst + i + 2)) * 2 /dst[2] ;
-						j++;
-						i = i + 4;
-					}
-				}
-				else if(*(dst + i) > 10)
-				{
-					value += *(dst + i);
-					i++;
-				}
-				else
-				{
-					i++;
-				}
-			}
-			if(j>=71*3)
-			{
-				printf("\n\n*** bad ir code\n");
-				offset += IR_DATA_LENGTH;
-				if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-					offset = 0;
-				continue;
-			}
-
-			dst1[j] = dst1[j-2];//FIXME
-//#ifdef IR_DEBUG
-			printf("j %d====\n\n",j);
-#if 1
-			for(j=0;j<215 ;j++)
-				printf("-%d",dst1[j]);
-			printf("\n");
-#endif
-#endif
-
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-
-#if 0
-			for(i = 0; i < 3600; i++) {
-				if(*(dst + i)>0)
-					value += *(dst + i);
-				else 
-					break;	
-			}
-			//printf("value:%d\n",value);
-			if(value < 50000) {
-				//printf("repeat=\n");
-				value =0;
-				continue; //not handle repeat code
-			}
-#endif
-			value =0;
-		} else {
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-			usleep(10000);
-			continue;
-		}
-#if 1
-		printf("send start\n");
-		int len=0;
-		len=send(sock_cli, dst1, needSend,0);
-		if(len <= 0)
-		{
-			perror("ERRPR");
-			printf("re-connect!\n");
-			close(sock_cli);
-			sleep(2);
-			goto try_again;
-		}
-		printf("send over\n");
-		if(len != needSend)
-			printf("actual send len:%d\n",len);
-#endif
-		usleep(10000);
-	}
-	free(dst);
-	close(sock_cli);
-
-	return 0;
-}
-#else
-static SL_POINTER  send_ir(SL_POINTER Args)
-{
-	///sockfd
-	struct ifreq if0;
-	int sock_cli;
-	static int offset = 0;
-	static int value = 0;
-	static int cnt = 0;
-
-	int needSend=sizeof(Node);
-	unsigned char *dst=(unsigned char*)malloc(needSend);
-	int i;
-
-	init_dsp_ir();
-#if 1
-try_again:
-	sock_cli = socket(AF_INET,SOCK_STREAM, 0);
-
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(sock_cli,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(IR_CLIENT_PORT);
-	if(netInterface == INTERFACE_WLAN0)
-		servaddr.sin_addr.s_addr = inet_addr("10.10.1.1");
-	else
-		servaddr.sin_addr.s_addr = inet_addr("192.168.1.3");
-
-	if (connect(sock_cli, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0)
-	{
-		perror("connect");
-		close(sock_cli);
-		sleep(2);
-		goto try_again;
-		//exit(1);
-	}
-
-#endif
-	while(1)
-	{
-
-		if((*(dsp_ir_start_addr_va + offset)) != 0)
-		{
-			usleep(100000);//FIXME let m0 capture entire data must > 50ms
-			memcpy(dst, (unsigned char *)(dsp_ir_start_addr_va + offset),IR_DATA_LENGTH);
-#ifdef IR_DEBUG
-			i=0;
-			while(i<=IR_DATA_LENGTH)	
-			{
-				//	printf("%d :%x\n",i,*(dst + i));
-				if(*(dst + i) == 0xff)
-				{
-					//printf("line:%d\n",__LINE__);
-					if(value > 0)
-					{
-						printf("-%d ",value);
-						value = 0;
-					}
-					if(i%2)
-					{
-						printf("*%d ",*(unsigned short *)(dst + i + 1));
-						i = i + 3;
-					}
-					else
-					{
-
-						printf("*%d ",*(unsigned short *)(dst + i + 2));
-
-						i = i + 4;
-					}
-				}
-				else if(*(dst + i) > 10)
-				{
-					//printf("line:%d\n",__LINE__);
-					value += *(dst + i);
-					i++;
-				}
-				else
-				{
-				i++;
-				}
-			}
-				printf("=====\n\n");
-#endif
-				memset((unsigned char *)(dsp_ir_start_addr_va + offset),0x00,IR_DATA_LENGTH); //FIXME
-
-				offset += IR_DATA_LENGTH;
-				if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-					offset = 0;
-
-#if 0
-				for(i = 0; i < 3600; i++) {
-					if(*(dst + i)>0)
-						value += *(dst + i);
-					else 
-						break;	
-				}
-				//	printf("value:%d\n",value);
-				if(value < 50000) {
-					//			printf("repeat=\n");
-					value =0;
-					continue; //not handle repeat code
-				}
-#endif
-				value =0;
-		} else {
-			offset += IR_DATA_LENGTH;
-			if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-				offset = 0;
-			usleep(10000);
-			continue;
-		}
-#if 1
-		printf("send start\n");
-		int len=0;
-		len=send(sock_cli, dst, needSend,0);
-		if(len <= 0)
-		{
-			perror("ERRPR");
-			printf("re-connect!\n");
-			close(sock_cli);
-			sleep(2);
-			goto try_again;
-		}
-		printf("send over\n");
-		if(len != needSend)
-			printf("actual send len:%d\n",len);
-#endif
-#ifdef IR_DEBUG
-		//printf("\ncnt:%d\n",cnt);
-		//cnt ++;
-#endif
-		usleep(10000);
-	}
-	free(dst);
-	close(sock_cli);
-	printf("Send over!!!\n");
-
-	return 0;
-}
-#endif
-#endif
-
-/* For usysctl testing */
-int main(int argc, char* argv[])
-{
-	SL_S32 ret = -1, i;
-	SL_S32 dd = -1;
-	RTSP_STATE_e state;
-	char str_tmp[50];
-	char configs[128];
-	//AppWriteCfgInfotoFile();
-#if 0
-	ret = InitCfgInfo(&fd_config);
-	if(!ret) {
-
-		sprintf(rtspURL_video,  "%s%s%s", "rtsp://",cfginfo.serverip,":8554/ch0");
-
-		sprintf(rtspURL_audio,  "%s%s%s", "rtsp://",cfginfo.serverip,":8559/testStream");
-
-		//sprintf(configs, "%s%s", "ifconfig eth0 ",cfginfo.ip);
-		//system(configs);
-
-		sprintf(cfginfo.ip,  "%s", "192.168.1.10");
-
-		update_cfg_info(fd_config, &cfginfo);
-
-	}
-	close(fd_config);
-#endif
 	ret = SLSYSCTL_openSysCtlLib();
 	if (SL_NO_ERROR != ret)
-		return 0;
-	//printf("rtspURL_video:%s\n",rtspURL_video);
-	//printf("rtspURL_audio:%s\n",rtspURL_audio);
+		return -1;
 
 	list = list_init();
 	if(!list)
 	{
 		log_err("fail to create list\n");
-		return 0;
+		return -1;
 	}
-	
-#if 1
+	InitShareMem();
+
+	strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
+	printf("multicast address : %s \n", multicast);
+	init_eth();
+
+	osd_display_init();
+	osd_sysctl_config();
+	process_osd_text_solid(10, 10, OSD_VERSION);
+
+	return 0;
+}
+
+/* For usysctl testing */
+int main(int argc, char* argv[])
+{
+	SL_S32 ret = -1, i;
+	char str_tmp[50];
+	//char configs[128];
+	printf(PRINT_VERSION);
+
+#ifdef WATCHDOG
 	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
 	if (ret) {
 		log_err("Failed to Create watchdogHandle Thread\n");
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* WATCHDOG */
+	init_system();
+#ifdef WATCHDOG_UART
+	ret = pthread_create(&uartWatchdogHandle, NULL, uart_watchdog, NULL);
+	if (ret) {
+		log_err("Failed to Create uartWatchdogHandle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif /* WATCHDOG_UART */
 	
-#ifdef 	WEB_ENABLE
-	InitShareMem();
-	AppInitCfgInfoDefault();
-    printf("cfg init ok \n");
-    ret = AppInitCfgInfoFromFile(&fd_config);
-	AppWriteCfgInfotoFile();
-    printf("ret = %d\n",ret);
-    if(ret<0)
-    {
-        if(NULL!=fd_config)
-            close(fd_config);
-        printf("build default config.conf \n");
-        AppWriteCfgInfotoFile();
-    }
-    else
-    {
-        printf("cfg get from file \n");
-        close(fd_config);
-    }
-    strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
-    //if(strcmp("192.168.1.5",share_mem->sm_eth_setting.strEthIp)!=0)
-    
-	init_eth();//   zhou
-	
-#endif
-
-#if 1
+#ifdef SWITCH_KEY
 	ret = pthread_create(&IP_switch_handle, NULL, IP_switch, NULL);
 	if (ret) {
 		log_err("Failed to Create IP_switch Thread\n");
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* SWITCH_KEY */
+
+#ifdef KEY 
+	ret = pthread_create(&app_rx_io_ctl_handle, NULL, app_rx_io_ctl_main, NULL);
+	if (ret) {
+		log_err("Failed to Create app_rx_io_ctl_main Thread\n");
+		return ret;
+	}
+#endif /* KEY */
+
 	sleep(1);
-	
-	osd_display_init();
-	osd_sysctl_config();
-	process_osd_text_solid(10, 10, "V4.0 System Starting");
-	//process_osd_text_solid(10, 10, "V4.0 System Starting");
+
 #ifdef WEB_ENABLE
 	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
-	//sleep(1);
 #endif
 
-
-#if 1
+#ifdef BROAD_CONTROL
 	ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_report, NULL);
 	if (ret) {
-		log_err("Failed to Create watchdogHandle Thread\n");
+		log_err("Failed to Create IP_broadcast_report Thread\n");
+		reboot1();
+		return ret;
+	}
+	ret = pthread_create(&IP_recive_handle, NULL, IP_broadcast_recive, NULL);
+	if (ret) {
+		log_err("Failed to Create IP_broadcast_recive Thread\n");
 		reboot1();
 		return ret;
 	}
 #endif
-	
-#ifdef KVM_UART
-	ret = pthread_create(&app_rx_uart_handler, NULL, app_rx_uart_main, NULL);
-	if (ret) {
-		log_err("Failed to Create app_rx_uart_main Thread\n");
-		return ret;
-	}
-#endif
 
-#ifdef APP_IO
-#if 0
-	ret = pthread_create(&app_rx_io_ctl_handler, NULL, app_rx_io_ctl_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-	}
-#endif
-
-#if 0
-	ret = pthread_create(&app_rx_light_ctl_handler, NULL, app_rx_light_ctl_main, NULL);
-	if (ret) {
-		log_err("Failed to Create app_rx_light_ctl_main Thread\n");
-		return ret;
-	}
-#endif
-
-
-	//while (1) sleep(1);
-	sleep(1); //wait IO init ok
-	signal_light_flash();
-	
-#endif
-	
 #ifdef WEB_ENABLE
 	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
 	if (ret) {
-		log_err("Failed to Create Config Handle Thread\n");
+		log_err("Failed to Create sharemem_handle Thread\n");
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
 #endif
-	
-#if 0
-	memset(&client_param, 0x00, sizeof(client_param_t));
-#if 1
-	netInterface = INTERFACE_ETH0; 
-#else
-	netInterface = INTERFACE_WLAN0; 
-#endif
-	client_param.interface = netInterface;
-	client_param.overTCP = 1;//0;//1; //0:UDP 1:TCP
 
-	if(netInterface == INTERFACE_WLAN0) //wifi
-	{
-		sleep(4);	//wait 8192 detected completely
-		wifi_sta_start();
-	}
-	
-	if (INTERFACE_ETH0 == netInterface) //net
-	{
-		
-#ifdef WEB_ENABLE
-		strcpy(serverip, share_mem->sm_eth_setting.strEthGateway);
-		sprintf(rtspURL_video_eth0,"rtsp://%s:8554/ch0",serverip);
-        sprintf(rtspURL_audio_eth0,"rtsp://%s:8559/testStream",serverip);
-#endif
-	}
-	
-	if(netInterface == INTERFACE_WLAN0)
-	{
-		ret = pthread_create(&wifiHandle, NULL, wifi_handle, NULL);
-		if (ret) {
-			log_err("Failed to Create wifiHandle Thread\n");
-			reboot1();
-			return ret;
-		}
-	}
-#endif
-
-#ifdef APP_CODE
-#if 1
-	ret = pthread_create(&app_rx_handler, NULL, app_rx_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
-#if 1
-	ret = pthread_create(&app_rx_signal_ch_handler, NULL, app_rx_signal_ch_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
-#if 1
-	ret = pthread_create(&app_rx_data_ch_handler, NULL, app_rx_data_ch_main, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}
-#endif
-#endif
-
-#ifdef ENABLE_IR_SEND
+#ifdef IR_ENABLE
 	ret = pthread_create(&send_ir_handle, NULL, send_ir, NULL);
 	if (ret) {
 		log_err("Failed to send_ir Thread\n");
@@ -2385,79 +1513,39 @@ int main(int argc, char* argv[])
 		return ret;
 	}
 #endif
-	
-	//while (1) sleep(1);
-	
+
 	ret = pthread_create(&iHandle, NULL, MDEV_Input_ThreadFunc, (void *)im_devman);
 	if (ret) {
 		log_err("Failed to MDEV_Input_ThreadFunc Thread\n");
 		reboot1();
 		return ret;
 	}
-	
+
 #ifdef APP_RTP
-#if 1
-	ret = pthread_create(&app_rtp_main_handler, NULL, app_rtp_main, NULL);
+	ret = pthread_create(&app_rtp_main_handle, NULL, app_rtp_main, NULL);
 	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
+		log_err("Failed to Create app_rtp_main Thread\n");
+		reboot1();
+		return ret;
+	}
+#endif
+
+#ifdef IGMP_ENABLE
+	ret = pthread_create(&app_igmp_report_handle, NULL, app_igmp_report, NULL);
+	if (ret) {
+		log_err("Failed to Create app_igmp_report Thread\n");
+		reboot1();
 		return ret;
 		}	
 #endif
 
 #if 1
-	ret = pthread_create(&app_igmp_report_handler, NULL, app_igmp_report, NULL);
-	if (ret) {
-		log_err("Failed to Create rtspOpen Thread\n");
-		return ret;
-		}	
-#endif
-
-#if 1
-	ret = pthread_create(&checkWr_handler, NULL, check_wr_thread, NULL);
+	ret = pthread_create(&checkWr_handle, NULL, check_wr_thread, NULL);
 	if (ret) {
 		printf("Failed to create audio check wr thread, %d\n", ret);
-		return ret;
-	}
-#endif
-
-#endif
-
-#if 0
-	ret = pthread_create(&audio_handle, NULL, play_audio, NULL);
-	if (ret) {
-		log_err("Failed to Create play_audio Thread\n");
-		return ret;
-		}	
-#endif
-	//osd_display_init();
-	//osd_sysctl_config();
-#if 0
-#ifdef APP_CODE
-	sleep(1); //wait signal state update
-	if (1 == signal_connect_state)
-	{
-#endif
-	//printf_log("open rtsp");
-#ifdef VIDEO_SUPPORT
-	ret = pthread_create(&rtspHandle_video, NULL, rtspOpen_video, argv[0]);
-	if (ret) {
-		log_err("Failed to Create video rtspOpen Thread\n");
 		reboot1();
 		return ret;
 	}
-#endif
-#ifdef AUDIO_SUPPORT
-	ret = pthread_create(&rtspHandle_audio, NULL, rtspOpen_audio, argv[0]);
-	if (ret) {
-		log_err("Failed to Create audio rtspOpen Thread\n");
-		reboot1();
-		return ret;
-	}
-#endif
-#ifdef APP_CODE
-	}
-#endif
-
 #endif
 
 #if 0
@@ -2465,268 +1553,97 @@ int main(int argc, char* argv[])
 	signal(SIGTERM, signalHandle);
 	signal(SIGIO, signalioHandle);
 #endif
-	//trigger();
-	char tmp = 0;
-	
+
+	unsigned int mul_add, ip_add, tmp_add;
 	while (1)
 	{
 		sleep(1);
-		//printf("tmp:%d \n", tmp);
-		//printf("display_flag: %d\n", display_flag);
-		if (key_display || display_flag)
+		#if 0
+		printf("g_osd_state:%d \n", g_osd_state);
+		printf("g_ipConflict_flag: %d\n", g_ipConflict_flag);
+		printf("g_checkTxInput_flag: %d\n", g_checkTxInput_flag);
+		printf("g_display_flag: %d\n", g_display_flag);
+		printf("g_searchTX_flag: %d \n", g_searchTX_flag);
+		#endif
+		if (g_ipConflict_flag || g_checkTxInput_flag || g_searchTX_flag || g_key_display || g_display_flag || (!g_osd_state))
 		{
-			if (0==tmp)
+			//get multicast address
+			inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
+			mul_add = ntohl(mul_add); //host
+			mul_add &= 0xFF;
+
+			//get ip address
+			inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
+			ip_add = ntohl(ip_add); //host
+			ip_add &= 0xFF;
+
+			if (g_ipConflict_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
+			{
+				tmp_add = ip_add + mul_add;
+				sprintf(str_tmp, "IP:%s Conflict", share_mem->sm_eth_setting.strEthIp);
+				process_osd_text_solid(10, 20, str_tmp);
+				g_osd_state = 1;
+			}
+			else if (g_checkTxInput_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
+			{
+				tmp_add = ip_add + mul_add;
+				sprintf(str_tmp, "RX:%d Check TX:%d's HDMI input signal", ip_add, mul_add);
+				process_osd_text_solid(10, 20, str_tmp);
+				g_osd_state = 1;
+			}
+			else if (g_searchTX_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
+			{
+				tmp_add = ip_add + mul_add;
+				sprintf(str_tmp, "RX:%d Searching TX:%d device", ip_add, mul_add);
+				process_osd_text_solid(10, 20, str_tmp);
+				g_osd_state = 1;
+			}
+			else if ((g_key_display || g_display_flag) && (!g_osd_state)) //display ip and mulitcast info
 			{
 				sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
 				process_osd_text_solid(10, 20, str_tmp);
+				g_osd_state = 1;
+				if (g_key_display || g_display_flag)
+				{
+					sleep(5);
+					g_key_display = 0;
+					g_display_flag = 0;
+				}
 			}
-			tmp = 1;
 		}
 		else
 		{
-			if (1==tmp)
+			if (1==g_osd_state)
 			{
 				process_osd_disable();
-				tmp = 0;
+				g_osd_state = 0;
 			}
 		}
-		
 #if 0
-		//add for wang in 20181219
-		ret = SLSYSCTL_getTimeoutDev(&dd);
-		if (dd == vpu_dev)
+		static FILE *stream = NULL;
+		static char buf[20] = {0};
+		static char HPD_flag = 0;
+		stream = popen("/user/word.csky 0xbfa500DF", "r");
+		fread(buf, 1, sizeof(buf), stream);
+		//printf("%s", buf);
+		pclose(stream);
+		//printf("%d \n", strncmp(buf, "0x00b000c0", 10));
+		if (0 == strncmp(buf, "0x00b000c0", 10))
 		{
-			log_err("SLSYSCTL_getTimeoutDev need reboot\n");
-			reboot1();
-			break;
+			if (0 == HPD_flag)
+			{
+				Reset_HPD();
+				HPD_flag = 1;
+				printf("\n--------------------------\n");
+			}
 		}
-		printf("ret: %d \n", ret);
-		printf("dd: %d \n", dd);
-		printf("vpu_dev: %d \n", vpu_dev);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthMulticast);
-		//process_osd_text_solid(10, 20, share_mem->sm_eth_setting.strEthIp);
-#endif
-	}
-	
-#if 0
-	while(1)
-	{
-		sleep(1);
-		timeoutCnt++;
-		printf("timeoutCnt = %d \n", timeoutCnt);
-		//printf("MAX_RTSP_TIMEOUT : %d \n", MAX_RTSP_TIMEOUT);
-#ifdef APP_CODE
-		gbBandwidthDetectMode = SL_TRUE;
-		//printf("signal_connect_state = %d \n", signal_connect_state);
-		//printf("rtspHandle_video = %d \n", rtspHandle_video);
-		//printf("rtspHandle_audio = %d \n", rtspHandle_audio);
-		//printf("argv[0] = %d \n", argv[0]);
-		
-		if(1 == signal_connect_state) //signal is connect
+		else
 		{
-			if(timeoutCnt >= MAX_RTSP_TIMEOUT){
-			//if(timeoutCnt >= 8){
-				HDMI_light_off();
-#else
-#ifdef WEB_ENABLE
-		if(timeoutCnt >= MAX_RTSP_TIMEOUT || 1 == web_flag){
-			web_flag = 0;
-			//sleep(1);
-#else
-		if(timeoutCnt >= MAX_RTSP_TIMEOUT){
-#endif
-#endif
-			//wpa_need_restart = 1;
-			printf("timeoutCnt:%d\n",timeoutCnt);
-
-#if 0
-			state = rtsp_getState();
-			switch(state)
-			{
-				case SERVER_NOT_CONNECT: 
-					//process_osd_text_solid(10, 10, server_running);
-					process_osd_text_solid(10, 10, server_not_connect);
-					g_server_connect = 0;
-					printf("SERVER_NOT_CONNECT\n");
-					break;
-
-				case SERVER_CONNECT: 
-					//process_osd_text_solid(10, 10, server_connect);
-					printf("SERVER_CONNECT\n");
-					//reboot1();
-					break;
-
-				case SERVER_NOT_RUNNING: 
-					process_osd_text_solid(10, 10, server_not_running);
-					printf("SERVER_NOT_RUNNING\n");
-					//reboot1();
-					break;
-
-				case SERVER_RUNNING: 
-					printf("SERVER_RUNNING\n");
-					g_server_connect = 1;
-					process_osd_text_solid(10, 10, server_running);
-
-					break;
-
-				default:
-					printf("unkonwn server state");
-					process_osd_text_solid(10, 10, server_not_connect);
-					break;
-			}
-#endif
-			//Timeout is occur, so need to setup link again.
-
-		
-#ifdef VIDEO_SUPPORT
-			//printf_log("rtsp_close");
-			if (rtspHandle_video > 0){
-				printf("rtspHandle_video : %d \n", rtspHandle_video);
-			rtsp_close();
-			}
-#endif
-#ifdef AUDIO_SUPPORT
-			if (rtspHandle_audio > 0){
-				printf("rtspHandle_audio : %d \n", rtspHandle_audio);
-			rtsp_audio_close();
-			}
-#endif
-			need_feed_dog = 0;
-#if 1
-#ifdef VIDEO_SUPPORT
-			if (rtspHandle_video > 0){
-			pthread_join(rtspHandle_video, &join_ret); //FIXME
-			rtspHandle_video = 0;
-			printf("rtspHandle_video : %d \n", rtspHandle_video);
-			}
-#endif
-
-#ifdef AUDIO_SUPPORT
-			if (rtspHandle_audio > 0){
-			pthread_join(rtspHandle_audio, &join_ret1); //FIXME
-			rtspHandle_audio = 0;
-			printf("rtspHandle_audio : %d \n", rtspHandle_audio);
-			}
-#endif
-#else
-			ret = pthread_kill(rtspHandle,SIGQUIT);
-			if(ret == ESRCH)
-				printf("thread non-exsistent or has been killed\n");
-			else if(ret == EINVAL)
-				printf("signal is invalid\n");
-			else
-				printf("thread exsist\n");
-#endif
-			need_feed_dog = 1;
-			printf("need_feed_dog : %d \n", need_feed_dog);
-#if 1
-#ifndef HANG_PAI
-			if(netInterface == INTERFACE_WLAN0)
-			{
-				wifi_sta_stop_wpa();
-				wifi_sta_stop_udhcpc();
-				sleep(2);
-				ret = wifi_sta_start_wpa();
-				if(ret)
-					printf("failed to start_wpa\n");
-				ret = wifi_sta_start_udhcpc();
-				if(ret)
-					printf("failed to start_udhcpc\n");
-				sleep(11);
-			} else {
-				sleep(13);
-				//sleep(2);
-			}
-#endif
-#endif
-
-#if 0
-			state = SERVER_NOT_CONNECT;
-			rtsp_setState(state);
-#endif
-
-#ifdef VIDEO_SUPPORT
-			if (0 == rtspHandle_video){
-			ret = pthread_create(&rtspHandle_video, NULL, rtspOpen_video, argv[0]);
-			if (ret) {
-				log_err("Failed to Create video rtspOpen Thread\n");
-				reboot1();
-				return ret;
-			}
-			}
-#endif
-#ifdef AUDIO_SUPPORT
-			if (0 == rtspHandle_audio){
-			ret = pthread_create(&rtspHandle_audio, NULL, rtspOpen_audio, argv[0]);
-			if (ret) {
-				log_err("Failed to Create audio rtspOpen Thread\n");
-				reboot1();
-				return ret;
-			}
-			}
-#endif
-			//printf_log("open rtsp");
-#if 1
-			sleep(3); //must sleep here TODO when server not inserted hdmi signal
-			g_cnt = 0;
-			if(timeoutCnt < MAX_RTSP_TIMEOUT)
-				continue;
-			state = rtsp_getState();
-			switch(state)
-			{
-				case SERVER_NOT_CONNECT: 
-					//process_osd_text_solid(10, 10, server_running);
-					process_osd_text_solid(10, 10, server_not_connect);
-					g_server_connect = 0;
-					printf("SERVER_NOT_CONNECT\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					break;
-
-				case SERVER_CONNECT: 
-					//process_osd_text_solid(10, 10, server_connect);
-					printf("SERVER_CONNECT\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					//reboot1();
-					break;
-
-				case SERVER_NOT_RUNNING: 
-					process_osd_text_solid(10, 10, server_not_running);
-					printf("SERVER_NOT_RUNNING\n");
-					timeoutCnt = MAX_RTSP_TIMEOUT;
-					//reboot1();
-					break;
-
-				case SERVER_RUNNING: 
-					printf("SERVER_RUNNING\n");
-					g_server_connect = 1;
-					timeoutCnt = 0;
-					process_osd_text_solid(10, 10, server_running);
-					break;
-
-				default:
-					printf("unkonwn server state");
-					process_osd_text_solid(10, 10, server_not_connect);
-					break;
-			}
-#endif
-			g_cnt = 0;
-			//timeoutCnt = 0;
-		}
-#ifdef APP_CODE
-		}
-		else //signal not connect
-		{
-			signal_light_flash();
-			HDMI_light_off();
-			g_server_connect = 0;
-			printf("server not connect \n");
-			process_osd_text_solid(10, 10, server_not_connect);
-			//process_osd_text_overlay(10, 10, server_not_connect);
-			//sleep(1);
+			Reset_HPD();
 		}
 #endif
 	}
-#endif
 
+	pthread_mutex_destroy(&mutex_iic);
 	return 0;
 }

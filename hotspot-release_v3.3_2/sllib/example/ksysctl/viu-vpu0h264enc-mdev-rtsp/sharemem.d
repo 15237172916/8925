@@ -1,8 +1,30 @@
 sharemem.o: \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/sharemem.c \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/sharemem.h \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/include/sl_types.h \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/include/sl_debug.h \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/include/sl_config.h \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/Setting.h \
- /home/ubuntu/Work/8925/test/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/cfginfo.h
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/sharemem.c \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/sharemem.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_types.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_debug.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_config.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/Setting.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/../version.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/linked_list.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/cfginfo.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/ksysctl/viu-vpu0h264enc-mdev-rtsp/main.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_error.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_filedev.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_ksysctl.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_video.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_sys.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_avmem.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_memdev.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_viu.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_viu.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_vcodec.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_vcodec.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/vpp/sl_param_pv.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/src/include/sl_os.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_vpp.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/vpp/sl_api_pv.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_api_vpre.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_param_vpre.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/include/sl_mmutil.h \
+ /home/king/Work/8925/git_HSV/8925/hotspot-release_v3.3_2/sllib/example/common/include/sl_file.h

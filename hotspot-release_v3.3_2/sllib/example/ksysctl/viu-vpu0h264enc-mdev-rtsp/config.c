@@ -16,8 +16,8 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 	int iRetCode = 0;  
 	int cnt = 0;  
 	int seek = 0;  
-
-	usleep(1000); //cup 
+	//int timeout = 0;
+	//usleep(10); //cup 
 
 	iRetCode = lseek(fpConfig, 0, SEEK_SET);
 	if (iRetCode < 0) {
@@ -32,9 +32,10 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 
 	while(1)  
 	{
+		//printf("GetConifgStringValue \n");
 
 		cnt =0;
-		pStr = szBuffer ;    
+		pStr = szBuffer;
 
 		do{
 			iRetCode = read(fpConfig, pStr, 1);
@@ -64,25 +65,27 @@ int GetConfigStringValue(int fpConfig,char *pInSectionName,char *pInKeyName,char
 			if( '\0'==*pStr1)     
 				continue;  
 			while( ' '==*(pStr1-1) )  
-				pStr1--;      
+				pStr1--;
 			*pStr1 = '\0';  
 
 			iRetCode = CompareString(pStr2,pInSectionName);   
 			if( !iRetCode )/*检查节名*/  
 			{  
 				iRetCode = GetKeyValue(fpConfig,pInKeyName,pOutKeyValue);  
-				return iRetCode;  
+				return iRetCode; 
 			}     
 		}                     
 	}  
 
 	return SECTIONNAME_NOTEXIST;  
-
-}     
+}  
  
 /*区分大小写*/  
 int CompareString(char *pInStr1,char *pInStr2)  
 {  
+	//int timeOut;
+
+	//printf("Compare \n");
     if( strlen(pInStr1)!=strlen(pInStr2) )  
     {  
         return STRING_LENNOTEQUAL;  
@@ -113,10 +116,19 @@ int GetKeyValue(int fpConfig,char *pInKeyName,char *pOutKeyValue)
 	int iRetCode = 0;  
 	int cnt = 0;  
 	int seek = 0;
+	int timeOut = 0;
+	//printf("Key \n");
 
 	memset(szBuffer,0,sizeof(szBuffer));      
 	while(1)  
-	{     
+	{   
+		timeOut++;
+		if (timeOut > 500)
+		{
+			printf("\n GetKeyValue time out \n");
+			return FAILURE;
+		}
+		//printf("*");
 		cnt =0;
 		pStr = szBuffer ;    
 

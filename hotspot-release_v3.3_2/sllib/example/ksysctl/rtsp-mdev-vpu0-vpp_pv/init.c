@@ -21,7 +21,7 @@ int init_eth(void)
     FILE *fp = -1;
     int ret = -1;
     
-    printf("init eth \n");
+    printf("init eth start \n");
     strcpy(syscmd,"ifconfig eth0 ");
     strcat(syscmd,share_mem->sm_eth_setting.strEthIp);
     strcat(syscmd," netmask ");
@@ -58,8 +58,26 @@ int init_eth(void)
     system(MUL_ADDRESS);
     
     system(DEFAULT_ROUTE);
-    
+    printf("init eth finish \n");
+
     return 0;
+}
+
+void set_eth0_ip(void)
+{
+    static FILE *pf = NULL;
+    char syscmd[100] = {0};
+    strcpy(syscmd,"ifconfig eth0 ");
+    //strcat(syscmd,share_mem->sm_eth_setting.strEthIp);
+    strcat(syscmd,share_mem->sm_eth_setting.strEthIp);
+    printf(syscmd);
+    //pf = popen(syscmd, "r");
+    pf = popen("ifconfig eth0 192.168.1.12", "r");
+    if (NULL == pf)
+    {
+        printf("\n------set eth0 ip error----- \n");
+    }
+    pclose(pf);
 }
 
 int init_wlan(void)

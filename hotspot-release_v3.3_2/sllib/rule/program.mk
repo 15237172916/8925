@@ -22,6 +22,7 @@ DEPS :=  $(subst .c,.d, $(filter %.c, $(sources))) \
 
 program_full := $(PROJECT_DIR)/bin/$(program)
 
+
 include_dirs := . $(PROJECT_DIR)/include \
 	$(PROJECT_DIR)/include/IL \
 	$(PROJECT_DIR)/include/AL \
@@ -36,7 +37,7 @@ library_dirs := $(PROJECT_DIR)/lib $(PROJECT_DIR)/3rd/lib $(PROJECT_DIR)/3rd/liv
 
 #CFLAGS += -fPIC -Wall -mhard-float $(addprefix -I, $(include_dirs))
 #LDFLAGS += -fPIC -Wall $(addprefix -L, $(library_dirs)) $(addprefix -l, $(DEPLIBS))  -Wl,-rpath-link=$(PROJECT_DIR)/lib 
-CFLAGS += -fPIC -g -Wall -static -mhard-float $(addprefix -I, $(include_dirs))
+CFLAGS += -fPIC -g -Wall -static -mhard-float $(addprefix -I, $(include_dirs)) -D $(MAKENAME)
 LDFLAGS += -fPIC -g -Wall -static $(addprefix -L, $(library_dirs)) $(addprefix -l, $(DEPLIBS))  -Wl,-rpath-link=$(PROJECT_DIR)/lib 
 #CFLAGS += -fPIC -Wall  -mhard-float $(addprefix -I, $(include_dirs))
 #LDFLAGS += -fPIC -Wall $(addprefix -L, $(library_dirs)) $(addprefix -l, $(DEPLIBS))  -Wl,-rpath-link=$(PROJECT_DIR)/lib 
@@ -49,7 +50,7 @@ endif
 %.o:%.c %.d
 	$(CC) -c $(CFLAGS) `pwd`/$< -o $@
 %.d:%.c
-	$(CC)  $(CFLAGS) -MM -MD -c `pwd`/$< -o $@
+	$(CC)  $(CFLAGS) -MM -MD -c `pwd`/$< -o $@ 
 
 .PHONY:program
 program:$(program_full)

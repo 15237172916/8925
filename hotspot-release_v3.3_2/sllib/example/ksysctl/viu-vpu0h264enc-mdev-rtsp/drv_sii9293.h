@@ -93,6 +93,7 @@ typedef struct {
 
 void sii9293_init_reigster(void);
 void sii9293_HDCP_init(void);
+int  audio_config(void);
 
 void *sii9293_handler(void *p);
 UINT8 sii9293_HAL_ReadByte(UINT16 u16_index);

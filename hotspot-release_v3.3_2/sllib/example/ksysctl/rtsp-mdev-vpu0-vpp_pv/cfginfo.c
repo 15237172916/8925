@@ -15,11 +15,12 @@
 #include "cfginfo.h"
 #include "Setting.h"
 #include "sharemem.h"
+#include "EEPROM.h"
 
 //#define CONFIG_FILE ("/user/configs/config.conf")
 //#define CONFIG_FILE ("/tmp/configs/config.conf")
 
-#define CONFIG_FILE ("./config.conf")
+#define CONFIG_FILE ("/tmp/config.conf")
 #define NETWORK_INFO         ("Info1")
 #define IP           ("IP")
 #define SERVERIP           ("SERVERIP")
@@ -30,7 +31,7 @@
 			
 //CFG_INFO_S cfginfo = {{0},{0},0,0};
 CFG_INFO_S cfginfo;
-
+extern char g_Is_E2prom;
 
 #if 1
 static int get_random(void)
@@ -45,7 +46,6 @@ static int get_random(void)
 }
 #endif
 
-
 int AppInitCfgInfoDefault(void)
 {
     //RUN_STATUS.ucHDMIStatus = HDMI_OUT;
@@ -53,11 +53,13 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_run_status.usWidth = 0;
     share_mem->sm_run_status.usHeight = 0;
     share_mem->sm_run_status.ucFrameRate = 0;
-    share_mem->sm_run_status.usAudioSampleRate = 0;
-    share_mem->sm_run_status.ucRTSPStatus = 0;
-    share_mem->sm_run_status.ucRTPStatus = 0;
-    share_mem->sm_run_status.ucRTMPStatus = 0;
-    share_mem->sm_run_status.ucWiFiStatus = 0;   
+    
+    //share_mem->sm_run_status.usAudioSampleRate = 0;
+    //share_mem->sm_run_status.ucRTSPStatus = 0;
+    //share_mem->sm_run_status.ucRTPStatus = 0;
+    //share_mem->sm_run_status.ucRTMPStatus = 0;
+    //share_mem->sm_run_status.ucWiFiStatus = 0;  
+
 #if 1
     share_mem->uuid = 0;
 #endif
@@ -72,6 +74,7 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_eth_setting.strEthMulticast,"239.255.42.01");
     
     //WLAN
+    #if 1
     share_mem->sm_wlan_setting.ucWlanDHCPSwitch = WLAN_DHCP_DISABLE;
     strcpy(share_mem->sm_wlan_setting.strWlanIp,"-");
     strcpy(share_mem->sm_wlan_setting.strWlanMask,"-");
@@ -80,14 +83,7 @@ int AppInitCfgInfoDefault(void)
     strcpy(share_mem->sm_wlan_setting.strWlanPSK,"");
     share_mem->sm_wlan_setting.ucWlanEyp=WPA;
     share_mem->sm_wlan_setting.ucWlanEnable=DISABLE; 
-    
-    //ENCODER
-    share_mem->sm_encoder_setting.usEncRate = 1000;
-    share_mem->sm_encoder_setting.ucInterval = 30;
-    share_mem->sm_encoder_setting.ucIQP = 36;
-    share_mem->sm_encoder_setting.ucPQP = 40;
-    share_mem->sm_encoder_setting.ucFrameRate = 30;    
-    
+
     //RTMP
     share_mem->sm_rtmp_setting.ucRTMPSwitch = RTMP_DISABLE;
     strcpy(share_mem->sm_rtmp_setting.strRTMPUrl,"");
@@ -100,9 +96,20 @@ int AppInitCfgInfoDefault(void)
     share_mem->sm_rtsp_setting.usRTPPort = 1234;
     strcpy(share_mem->sm_rtsp_setting.strRTPBroadcastIp, "239.255.42.42");
     share_mem->sm_rtsp_setting.ucRTSPInterface = INTERFACE_ETH0;
-    //strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, share_mem->sm_eth_setting.strEthIp);
+    strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, share_mem->sm_eth_setting.strEthIp);
     strcpy(share_mem->sm_rtsp_setting.strRTSPUrl, "main");
     //printf("init interval = %d  \n",  share_mem->sm_encoder_setting.ucInterval);
+
+    #endif
+
+    //ENCODER
+    share_mem->sm_encoder_setting.usEncRate = 1000;
+    share_mem->sm_encoder_setting.ucInterval = 30;
+    share_mem->sm_encoder_setting.ucIQP = 36;
+    share_mem->sm_encoder_setting.ucPQP = 40;
+    share_mem->sm_encoder_setting.ucFrameRate = 30;    
+    
+    
 	
     return 1;
 }
@@ -140,16 +147,10 @@ int AppInitCfgInfoFromFile(int *fp)
 	}
     printf("get eth ip ok\n");
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MASK",share_mem->sm_eth_setting.strEthMask);  
-	/*
-	if(iRetCode)  
-	{  
-		log_err("get Eth Mask failed, %d !\n", iRetCode); 
-		return -2;
-	}
-	*/
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_GATEWAY",share_mem->sm_eth_setting.strEthGateway);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","ETH_MULTICAST",share_mem->sm_eth_setting.strEthMulticast);  
 
+    #if 0
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_IP",share_mem->sm_wlan_setting.strWlanIp);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_MASK",share_mem->sm_wlan_setting.strWlanMask);  
 	iRetCode = GetConfigStringValue(*fp,"ETH","WLAN_GATEWAY",share_mem->sm_wlan_setting.strWlanGateway);
@@ -217,7 +218,7 @@ int AppInitCfgInfoFromFile(int *fp)
 	share_mem->sm_rtsp_setting.ucRTSPInterface = atoi(strTemp);
 
     iRetCode = GetConfigStringValue(*fp,"ETH","RTSP_URL",share_mem->sm_rtsp_setting.strRTSPUrl);
-
+    #endif
 
 #if 1 //uuid
 	iRetCode = GetConfigStringValue(*fp,"ETH","UUID",strTemp);
@@ -248,11 +249,16 @@ int AppInitCfgInfoFromFile(int *fp)
 
 int AppWriteCfgInfotoFile(void)
 {
+    if (1 == g_Is_E2prom)
+    {
+        WriteConfigIntoE2prom(share_mem);
+        return 0;
+    }
 	int iRetCode = 0; 
 	char strTemp[20];
     FILE* fp;
     fp = fopen(CONFIG_FILE, "w");
-    printf("write conf file \n");
+    printf("write conf file start\n");
     
     //Section Eth
     //fwrite("[ETH]\r\n",strlen("[ETH]\r\n"),1,fp);
@@ -262,6 +268,7 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"ETH_GATEWAY=%s\n",share_mem->sm_eth_setting.strEthGateway);
     fprintf(fp,"ETH_MULTICAST=%s\n",share_mem->sm_eth_setting.strEthMulticast);
     
+    #if 0
     //Section WLAN
     //fprintf(fp,"[WLAN]\n");
     fprintf(fp,"WLAN_DHCP_SWITCH=%d\n",share_mem->sm_wlan_setting.ucWlanDHCPSwitch);
@@ -297,14 +304,14 @@ int AppWriteCfgInfotoFile(void)
     fprintf(fp,"RTP_BROADCAST_IP=%s\n",share_mem->sm_rtsp_setting.strRTPBroadcastIp);
     fprintf(fp,"RTSP_INTERFACE=%d\n",share_mem->sm_rtsp_setting.ucRTSPInterface);
     fprintf(fp,"RTSP_URL=%s\n",share_mem->sm_rtsp_setting.strRTSPUrl);
-	
+	#endif
 	//UUID
     fprintf(fp,"UUID=%d\n",share_mem->uuid);
     
     fprintf(fp,"[END]");
     
     fclose(fp);
-    
+    printf("write conf file finish\n");
     return 0;
 }
 

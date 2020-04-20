@@ -14,6 +14,9 @@ static int audioOut_trigger = 0;
 
 extern SL_S32 audio_change;
 extern char idr_flag;
+extern SL_U32 g_fs;
+extern SL_U32 g_audio_bits;
+extern SL_U32 g_chns;
 
 void audio_close(void)
 {
@@ -24,13 +27,6 @@ void audio_close(void)
 		
 		printf("\n\n ***audio close \n\n");
 	}
-	
-	
-	
-	
-	
-	
-	//sleep(1);
 }
 
 void * check_wr_thread(void * Args)
@@ -42,6 +38,10 @@ void * check_wr_thread(void * Args)
 	{
 		if(audioOut_trigger > 0)
 		{
+			if (audio_fd < 0)
+			{
+				audio_config(g_fs, g_audio_bits, g_chns);
+			}	
 			if(wr_old == audio_dma_out.wrPtr)
 			{
 				if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER_OFF, &tmp) == -1) {
@@ -56,7 +56,7 @@ void * check_wr_thread(void * Args)
 			else 
 				wr_old = audio_dma_out.wrPtr;
 		}
-		sleep(1);
+		usleep(200000);
 	}
 
 	return NULL;
@@ -162,7 +162,8 @@ void audio_play(unsigned char * src, unsigned frameSize)
 	#if 1
 	if (idr_flag != 0)
 	{
-		printf("idr flag not come \n");
+		printf("idr not comed \n");
+		audio_close();
 		return 0;
 	}
 	else
@@ -206,7 +207,10 @@ void audio_play(unsigned char * src, unsigned frameSize)
 	}
 #endif
 #endif
-	
+	if (audio_fd < 0)
+	{
+		audio_config(g_fs, g_audio_bits, g_chns);
+	}	
 	if((audio_dma_out.wrPtr + frameSize) < (audio_dma_out.start_addr + audio_dma_out.size))
 	{
 		dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);

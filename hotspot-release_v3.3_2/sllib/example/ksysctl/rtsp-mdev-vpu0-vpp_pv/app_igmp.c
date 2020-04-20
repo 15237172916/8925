@@ -18,7 +18,7 @@ static unsigned short csum(unsigned short *buf, int nwords)
 {
 	unsigned long sum;
 	
-	printf("buf : 0x%x \n", buf);
+	//printf("buf : 0x%x \n", buf);
 	
 	for (sum = 0; nwords > 0; nwords--)
 	{
@@ -26,7 +26,7 @@ static unsigned short csum(unsigned short *buf, int nwords)
 	}
 	sum = (sum >> 16) + (sum & 0xffff);
 	sum += (sum >> 16);
-	printf("buf.usChecksum: 0x%x \n", ~sum);
+	//printf("buf.usChecksum: 0x%x \n", ~sum);
 	return (unsigned short)(~sum);
 }
 
@@ -41,7 +41,7 @@ int IGMP_config(const char type)
 		IGMP_Packet.uiAddGroup = multicast_tmp; //leave address
 		IGMP_Packet.usChecksum = 0;
 		IGMP_Packet.usChecksum = csum(&IGMP_Packet, sizeof(IGMP_V2));
-		printf("usChecksum : 0x%x \n", IGMP_Packet.usChecksum);
+		//printf("usChecksum : 0x%x \n", IGMP_Packet.usChecksum);
 	}
 	else
 	{
@@ -50,7 +50,7 @@ int IGMP_config(const char type)
 		IGMP_Packet.uiAddGroup = inet_addr(multicast); //report address
 		IGMP_Packet.usChecksum = 0;
 		IGMP_Packet.usChecksum = csum(&IGMP_Packet, sizeof(IGMP_V2));
-		printf("usChecksum : 0x%x \n", IGMP_Packet.usChecksum);
+		//printf("usChecksum : 0x%x \n", IGMP_Packet.usChecksum);
 		multicast_tmp = inet_addr(multicast);
 	}
 }
@@ -58,8 +58,8 @@ int IGMP_config(const char type)
 //void main(void)
 void *app_igmp_report()
 {
-	printf("igmp : %d \n", sizeof(IGMP_V2));
-	printf("unsigned long int : %ld \n", sizeof(unsigned long int));
+	//printf("igmp : %d \n", sizeof(IGMP_V2));
+	//printf("unsigned long int : %ld \n", sizeof(unsigned long int));
 	int len, ret;
 	
 #if 1

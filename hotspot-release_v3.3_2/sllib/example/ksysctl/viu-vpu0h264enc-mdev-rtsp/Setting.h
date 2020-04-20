@@ -1,8 +1,11 @@
 #ifndef _SETTING_H_
 #define _SETTING_H_
+#include "../version.h"
+#include "linked_list.h"
+
 
 #define HD_VERSION "HW11.2"
-#define SW_VERSION "SW21.1"
+#define SW_VERSION WEB_VERSION //version number is smaller than 20 byte
 
 #define RTMP_ENABLE 1
 #define RTMP_DISABLE 0
@@ -90,7 +93,8 @@ typedef struct
 {
 	unsigned char ucIpAddress[128]; 
 	unsigned char ucMultiAddress[128]; 
-	unsigned int uuid[128]; 
+	//unsigned int uuid[128]; 
+    pNODE_S uuid[128];
 
 } GROUP_PACK_S;
 GROUP_PACK_S group_pack;

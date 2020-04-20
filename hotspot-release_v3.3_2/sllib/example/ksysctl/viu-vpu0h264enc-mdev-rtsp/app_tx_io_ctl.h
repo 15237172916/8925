@@ -42,10 +42,11 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define MID_LED 0
 #define LOW_LED 2
 
-
 #define LED_ON 0
 #define LED_OFF 1
 
+#define KEY_ONE 5  //GPIO1_05
+#define KEY_TWO 6  //GPIO1_06
 #define KEY_IO		8 		//GPIO1_8
 
 #define LED_SIG_LOW 	6 	//GPIO1_6
@@ -64,19 +65,28 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 //Multicast address switch io port
 #define MULTICAST_SWITCH_1		34 	//GPIO02_02
 #define MULTICAST_SWITCH_2		36	//GPIO02_04
+
 #define MULTICAST_SWITCH_3		4	//GPIO01_04
 #define MULTICAST_SWITCH_4		7	//GPIO01_07
 #define MULTICAST_SWITCH_5		6	//GPIO01_06
 #define MULTICAST_SWITCH_6		5	//GPIO01_05
 #define MULTICAST_SWITCH_7		30	//GPIO01_30
 #endif
-
+#if 0
 #define MULTICAST_SWITCH_1		6	//GPIO01_06
 #define MULTICAST_SWITCH_2		5	//GPIO01_05
 #define MULTICAST_SWITCH_3		4	//GPIO01_04
 #define MULTICAST_SWITCH_4		7	//GPIO01_07
 #define MULTICAST_SWITCH_5		33 	//GPIO02_01
+#endif
 
+#if 1
+#define MULTICAST_SWITCH_1		4	//GPIO01_04
+#define MULTICAST_SWITCH_2		7	//GPIO01_07
+#define MULTICAST_SWITCH_3		6	//GPIO01_06
+#define MULTICAST_SWITCH_4		5	//GPIO01_05
+#define MULTICAST_SWITCH_5		30	//GPIO01_30
+#endif
 #define LED_HDMI				35 //GPIO2_03
 #define LED_SYS_STA     		32 //GPIO2_00
 
@@ -84,7 +94,7 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 
 void HDMI_light_off(void);
 void HDMI_light_on(void);
-void System_running(void);
+void GPIO_init(void);
 SL_U32 get_key_value(void);
 
 void Multicast_switch(void);

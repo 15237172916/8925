@@ -62,8 +62,8 @@
 #define BKSV4					0x03
 #define BKSV5					0x04
 /********************-R-***********************/
-#define R-1						0x08
-#define R-2						0x09
+#define R_1						0x08
+#define R_2						0x09
 /******************-AKSV-**********************/
 #define AKSV1					0x10
 #define AKSV2					0x11
@@ -85,26 +85,26 @@
 #define BSTATUS1			0x41
 #define BSTATUS2			0x42
 /*******************-V.H-**************************/
-#define V-H0_0				0x20
-#define V-H0_1				0x21
-#define V-H0_2				0x22
-#define V-H0_3				0x23
-#define V-H1_0				0x24
-#define V-H1_1				0x25
-#define V-H1_2				0x26
-#define V-H1_3				0x27
-#define V-H2_0				0x28
-#define V-H2_1				0x29
-#define V-H2_2				0x2A
-#define V-H2_3				0x2B
-#define V-H3_0				0x2C
-#define V-H3_1				0x2D
-#define V-H3_2				0x2E
-#define V-H3_3				0x2F
-#define V-H4_0				0x30
-#define V-H4_1				0x31
-#define V-H4_2				0x32
-#define V-H4_3				0x33
+#define V_H0_0				0x20
+#define V_H0_1				0x21
+#define V_H0_2				0x22
+#define V_H0_3				0x23
+#define V_H1_0				0x24
+#define V_H1_1				0x25
+#define V_H1_2				0x26
+#define V_H1_3				0x27
+#define V_H2_0				0x28
+#define V_H2_1				0x29
+#define V_H2_2				0x2A
+#define V_H2_3				0x2B
+#define V_H3_0				0x2C
+#define V_H3_1				0x2D
+#define V_H3_2				0x2E
+#define V_H3_3				0x2F
+#define V_H4_0				0x30
+#define V_H4_1				0x31
+#define V_H4_2				0x32
+#define V_H4_3				0x33
 /*******************-KSV_FIFO-*********************/
 #define	KSV_FIFO			0x43
 
@@ -172,7 +172,7 @@
 #define SHA_LEN1				0x35	//HDCP SHA Length Register
 #define SHA_LEN2				0x36
 #define SHA_CTRL				0x37	//HDCP SHA Control Register
-#define KSV_FIFO				0x38	//HDCP Repeater KSV FIFO Register
+#define HDCP_KSV_FIFO				0x38	//HDCP Repeater KSV FIFO Register
 
 /****************************Video Input Registers*************************/
 #define H_RESL					0x3A	//Video H Resolution Registers
@@ -349,8 +349,8 @@
 #define XVYCC_COEFCR2R_HIGH		0x1D
 #define XVYCC_COEFCB2B_LOW		0x1E	//xvYCC Cb2B Coefficient Register
 #define XVYCC_COEFCB2B_HIGH		0x1F
-#define XVYCC_COEFCR2G_LOW		0x1E	//xvYCC Cb2B Coefficient Register
-#define XVYCC_COEFCR2G_HIGH		0x1F
+#define XVYCC_COEFCR2B_LOW		0x1E	//xvYCC Cb2B Coefficient Register
+#define XVYCC_COEFCR2B_HIGH		0x1F
 #define XVYCC_COEFCR2G_LOW		0x20	//xvYCC Cr2G Coefficient Register
 #define XVYCC_COEFCR2G_HIGH		0x21
 #define XVYCC_COEFCB2G_LOW		0x22	//xvYCC Cr2G Coefficient Register

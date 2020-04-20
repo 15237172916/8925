@@ -19,6 +19,7 @@
 #include <sl_rtsp.h>
 #include <linux/soundcard.h>
 #include <sys/mman.h>
+#include <stdbool.h>
 
 #include "drv_sii9293_register.h"
 #include "drv_sii9293.h"
@@ -33,8 +34,7 @@
 #include "app_tx_data_ch.h"
 #endif
 
-unsigned char HDMI_lost;
-
+bool videoIsOkFlag = false;
 audio_dma_info_s audio_dma_in;
 audio_dma_info_s audio_dma_out;
 
@@ -426,7 +426,7 @@ int Is_HDMI_5V_detected(void)
 		return 1;
 	else
 	{
-		printf("HDMI_5V : %x \n", value);
+		//printf("HDMI_5V : %x \n", value);
 		return 0;
 	}
 }
@@ -689,7 +689,7 @@ static int get_audio_fs(void)
 }
 
 
-static int audio_turnOn(audio_info_s *audio_info )
+static int audio_turnOn(audio_info_s *audio_info)
 {
 	int value, value1;
 	unsigned char config_extend;
@@ -799,6 +799,8 @@ static int audio_turnOn(audio_info_s *audio_info )
 				break;
 		}
 	}
+
+	return 0;
 }
 
 
@@ -839,8 +841,8 @@ int Is_AVMute_clear(void)
 int Is_audioMode_change(audio_info_s *audio_info)
 {
 	unsigned char value;
-	unsigned char value1;
-	unsigned int tmp = 0;
+	//unsigned char value1;
+	//unsigned int tmp = 0;
 	
 	value = get_audio_fs();
 	if (value != audio_info->fs)
@@ -1264,10 +1266,7 @@ int check_video_format_change(video_info_s *video_info)
 	static int video_width_new = 0;
 	static int video_height_new = 0;
 	static int video_rate_new = 0;
-	//static int video_width_tmp = 0;
-	//static int video_height_tmp = 0;
-	int tmp = 0;
-	
+
 	video_width_new = get_video_pix_width();
 	video_height_new = get_video_pix_height();
 	video_rate_new = get_video_frameRate();
@@ -1275,10 +1274,7 @@ int check_video_format_change(video_info_s *video_info)
 	//printf("video_height_new = %d \n", video_height_new);
 	//printf("video_info->width = %d \n", video_info->width);
 	//printf("video_info->height = %d \n", video_info->height);
-	
-	//while ((video_info->width != video_width_new) \
-		|| (video_info->height != video_height_new) \
-		|| (video_info->frameRate != video_rate_new))
+
 	while ((video_info->height != video_height_new))
 	{
 		if (1080 == video_height_new || \
@@ -1476,141 +1472,6 @@ void sii9293_Audio_clock(void)
 			sii9293_HAL_ReadByte(AUDIO_DBYTE4);
 		}
 	}
-}
-
-
-/*
-	****video
-*/
-
-
-
-
-/*
-	******
-*/
-void sii9293_test(void)
-{
-	int value;
-//	sii9293_HAL_SetChipAddr(Page[0]);
-//	sii9293_HAL_ReadByte(INTR2);
-//	sii9293_HAL_ReadByte(STATE);
-//	sii9293_HAL_ReadByte(VID_CTRL);
-//	sii9293_HAL_ReadByte(VID_STAT);
-		/*
-			***interrupt infomation
-		*/
-#if 0
-	sii9293_HAL_SetChipAddr(Page[0]);
-	sii9293_HAL_ReadByte(INTR_STATE);
-	sii9293_HAL_ReadByte(INTR1);
-	sii9293_HAL_ReadByte(INTR2);
-	sii9293_HAL_ReadByte(INTR3);
-	sii9293_HAL_ReadByte(INTR4);
-	sii9293_HAL_ReadByte(INTR5);
-	sii9293_HAL_ReadByte(INTR6);
-	sii9293_HAL_ReadByte(RX_INTR7);
-	sii9293_HAL_ReadByte(RX_INTR8);
-#endif
-	/*
-		**video infomation 
-	*/
-#if 0
-	sii9293_HAL_SetChipAddr(Page[0]);
-	printf("Hsync : %d \n", sii9293_HAL_ReadByte(H_RESL));	//Hsync time
-	printf("%d \n", sii9293_HAL_ReadByte(V_RESL));
-	printf("%d \n", sii9293_HAL_ReadByte(DE_PIX1));
-	printf("%d \n", sii9293_HAL_ReadByte(DE_PIX2));
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	printf("%d \n", );
-	//sii9293_HAL_ReadByte(H_RESH);
-	sii9293_HAL_ReadByte(V_RESL);	//Vsync time
-	sii9293_HAL_ReadByte(V_RESH);
-	sii9293_HAL_ReadByte(DE_PIX1);	//Video DE Pixels Registers
-	sii9293_HAL_ReadByte(DE_PIX2);	//
-	sii9293_HAL_ReadByte(DE_LINL);	//Video DE Line Registers
-	sii9293_HAL_ReadByte(DE_LINH);	//
-	sii9293_HAL_ReadByte(VID_VTAVL);
-	sii9293_HAL_ReadByte(VID_VFP);
-	sii9293_HAL_ReadByte(VID_STAT);
-	sii9293_HAL_ReadByte(VID_HFP1);
-	sii9293_HAL_ReadByte(VID_HFP2);
-	sii9293_HAL_ReadByte(VID_HSWID1);
-	sii9293_HAL_ReadByte(VID_HSWID2);
-	sii9293_HAL_ReadByte(VID_XPCNT1);
-	sii9293_HAL_ReadByte(VID_XPCNT2);
-#endif
-#if 0 //video 
-	
-	video_info_s video_info;
-	audio_info_s audio_info;
-	check_video_timing(&video_info);
-	Is_HDMI_5V_detected();
-	audio_turnOn(&audio_info);
-	
-	sii9293_HAL_SetChipAddr(Page[1]);
-	value = sii9293_HAL_ReadByte(AUDP_STAT); //HDMI Mode
-	
-	printf("video_info->hdmiMode :%d\n", value);	
-	
-	printf("Is_HDMI_5V_detected  :%d\n", Is_HDMI_5V_detected());
-	printf("Is_Sync_stable  :%d\n", Is_Sync_stable());
-	printf("Is_eccErr_occur  :%d\n", Is_eccErr_occur());
-	value = sii9293_HAL_ReadByte(VID_AOF);
-	printf("VID_AOF : %d\n", value);
-	
-
-	printf("hdmiMde : %d \n", get_video_hdmiMode());
-	printf("interlaceMode : %d \n",get_video_interlaceMode());
-	printf("frameRate : %d \n",get_video_frameRate());
-	printf("height : %d \n",get_video_total_height());
-	printf("pix_width : %d \n",get_video_pix_width());
-	printf("pix_height : %d \n",get_video_pix_height());
-	printf("vsync : %d \n",get_video_input_vsync_polarity());
-	printf("hsync : %d \n",get_video_input_hsync_polarity());
-	printf("Is_HDMI_5V_detected  :%d\n", Is_HDMI_5V_detected());
-	printf("Is_Sync_stable  :%d\n", Is_Sync_stable());
-#endif
-#if 1 //audio config
-	
-	Audio_init();
-	
-#endif
-	
-#if 0
-	sii9293_HAL_WriteByte(0xff, 0x80);
-	sii9293_HAL_WriteByte(0xee, 0x01);
-	printf("0xff = 0x%x \n", sii9293_HAL_ReadByte(0x00));
-	
-	sii9293_HAL_WriteByte(0xff, 0x82);
-	printf("0x7c = 0x%x \n", sii9293_HAL_ReadByte(0x7c));
-	printf("0x7a = 0x%x \n", sii9293_HAL_ReadByte(0x7a));
-	
-	printf("0x80 = 0x%x \n", sii9293_HAL_ReadByte(0x80));
-	printf("0x7e = 0x%x \n", sii9293_HAL_ReadByte(0x7e));
-	
-	printf("0x78 = 0x%x \n", sii9293_HAL_ReadByte(0x78));
-	printf("0x72 = 0x%x \n", sii9293_HAL_ReadByte(0x72));
-	printf("0x76 = 0x%x \n", sii9293_HAL_ReadByte(0x76));
-	
-	printf("0x75 = 0x%x \n", sii9293_HAL_ReadByte(0x75));
-	printf("0x71 = 0x%x \n", sii9293_HAL_ReadByte(0x71));
-	printf("0x74 = 0x%x \n", sii9293_HAL_ReadByte(0x74));
-	
-	//printf("0x7e = 0x%x \n", sii9293_HAL_ReadByte(0x7e));
-	//printf("0x7e = 0x%x \n", sii9293_HAL_ReadByte(0x7e));
-#endif
-
-#if 1
-	
-#endif
-
 }
 
 #if 1
@@ -1856,6 +1717,7 @@ void *sii9293_handler(void *p)
 	video_info_s *video_info;
 	audio_info_s *audio_info;
 	int ret = -1, timeOutReset_5V = 0;
+	int waitSyncCount = 0;
 	unsigned int tmp = 0;
 	extern volatile int viu_started;
 	extern volatile int viu_configed;
@@ -1873,33 +1735,17 @@ void *sii9293_handler(void *p)
 	video_info = &(chip->video_info);
 	audio_info = &(chip->audio_info);
 	//check_video_timing(video_info); //FIXME
-	
+
 	sleep(1);
 	audio_info->audio_bits = 16;
 	audio_info->fs = 48000;
-	//sii9293_Audio_clock();
-#if 0 //auido
-	//sii9293_test();
-	chip->g_audio_output = 1;
-	audio_info->fs = 48000;
-	audio_info->chns = 2;
-	h264_append_info.fs = audio_info->fs;
-	//chip->audio_status = AudioOn;
-	//chip->audio_prev_status = AudioOn;
-	
-	//audio_info->audio_bits = 16;
-	audio_config();
-	h264_append_info.audio_bits = audio_info->audio_bits;
-	h264_append_info.chns = audio_info->chns;
-	
-	rtsp_audio_config(audio_info->fs, audio_info->audio_bits, audio_info->chns); //defined from live555
-#endif
 
 	while (1)
 	{
 		switch (chip->video_status)
 		{
 			case Unplug:	//unplug
+				videoIsOkFlag = false;
 				printf("Unplug \n");
 #ifdef APP_CODE
 				//gbBandwidthDetectMode = SL_TRUE;
@@ -1911,12 +1757,6 @@ void *sii9293_handler(void *p)
 				share_mem->sm_run_status.usHeight = 0;
 				share_mem->sm_run_status.ucFrameRate = 0;
 #endif
-				HDMI_lost = 1;
-				timeOutReset_5V++;
-				if (timeOutReset_5V > 300)
-				{
-					reboot1();
-				}
 				if (audioOut_trigger)
 				{
 					//trigger
@@ -1933,7 +1773,8 @@ void *sii9293_handler(void *p)
 					chip->video_status = WaitSync;
 				break;
 				
-			case WaitSync:
+			case WaitSync:	//video sync signal isn't stable
+				videoIsOkFlag = false;
 				printf("WaitSync \n");
 				//sleep(3);
 				if(Is_Sync_stable())
@@ -1943,6 +1784,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case CheckSync:
+				videoIsOkFlag = false;
 				printf("CheckSync \n");
 				if(!Is_Sync_stable())
 					chip->video_status = WaitSync;
@@ -1953,6 +1795,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case ModeDetect:
+				videoIsOkFlag = false;
 				printf("ModeDetect \n");
 				if(!Is_Sync_stable())
 				{
@@ -2007,13 +1850,14 @@ void *sii9293_handler(void *p)
 			
 			case VideoOn:
 				//printf("VideoOn \n");
-#ifdef APP_CODE
+				videoIsOkFlag = true;
+#ifdef APP_CODE	
+				waitSyncCount = 0;		
 				//gbBandwidthDetectMode = SL_FALSE;
 				HDMI_light_on();
 #endif
 				share_mem->sm_run_status.ucInputStatus = 1;
-				HDMI_lost = 0;
-				timeOutReset_5V = 0;
+				
 				if( VideoOn == chip->video_prev_status)
 				{
 #if 1
@@ -2065,7 +1909,7 @@ void *sii9293_handler(void *p)
 #endif
 #endif
 				} 
-				else 
+				else
 				{
 					printf(":VideoOn\n");
 #if 0
@@ -2114,6 +1958,7 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case HDCP_Reset:
+				videoIsOkFlag = false;
 				printf(":HDCP_Reset\n");
 				if(Is_eccErr_occur())
 					chip->video_status = SWReset;
@@ -2122,11 +1967,13 @@ void *sii9293_handler(void *p)
 				break;
 			
 			case SWReset:
+				videoIsOkFlag = false;
 				printf(":SWReset\n");
 				//swReset(); //FIXME yuliubing
 				chip->video_status = Unplug;
 			
 			default:
+				videoIsOkFlag = false;
 				break;
 		}
 	

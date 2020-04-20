@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,22 +5,26 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
-
 #include <sl_gpio.h>
-
 #include <sl_types.h>
+#include <sys/syscall.h>   /* For SYS_xxx definitions */
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <netinet/in.h>                         // 包含AF_INET相关结构
 
+#include "../version.h"
 #include "app_tx_io_ctl.h"
-
-#include "wifi_ap.h"
 #include "cfginfo.h" 
 #include "sharemem.h"
+#include "digit_led.h"
+
 
 #define SYSFS_GPIO_DIR  "/sys/class/gpio"
 
 extern SL_BOOL gbTestMode;
 
-
+unsigned char shumaduan[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0x88,0x83,0xc6,0xa1,0x86,0x8e};  //0~f duanxuanxinhao
 //extern SHOWDATA g_ShowData;
 extern int reboot1(void);
 
@@ -37,7 +40,7 @@ SL_S32 GPIO_export(SL_U32 Gpio)
 {
     int fd, len;
     char buf[GPIO_MAXBUF];
-        //printf("GPIO is %d\n", Gpio);  //
+    //printf("GPIO is %d\n", Gpio);  //
     fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fd < 0) {
         log_err("gpio/export");
@@ -152,7 +155,7 @@ SL_S32 GPIO_getValue(SL_U32 Gpio, SL_U32 *Value)   //SL_U32 *Value
     int fd, len;
     char buf[GPIO_MAXBUF];
     char ch;
-	//extern int t;
+    //extern int t;
 
     len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", Gpio);
 
@@ -166,12 +169,12 @@ SL_S32 GPIO_getValue(SL_U32 Gpio, SL_U32 *Value)   //SL_U32 *Value
 
     if (ch != '0') {
         *Value = 1;
-	//t = 1; ////
+        //t = 1; ////
     } else {
         *Value = 0;
-	//t = 1;
+        //t = 1;
     }
-	//return t;   ///
+    //return t;   ///
     close(fd);
     return 0;
 }
@@ -251,10 +254,183 @@ void Sleep(int ms)
 
 void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCnt)
 {
-	g_LightMode[uLightNo].uMode = uMode; 
-	g_LightMode[uLightNo].uCnt = uCnt;
+    g_LightMode[uLightNo].uMode = uMode; 
+    g_LightMode[uLightNo].uCnt = uCnt;
 }
 
+void *app_tx_io_ctl_main(void)
+{
+    SL_U32 value1,value2;
+    char str[20]={0};
+    char tx_multicast_ip[20];
+    char *p;
+    int flag1=0;
+    int flag2=0;
+    int cnt=0;
+    int i,num;
+    static int ip_add, mul_add, tmp_add;
+
+    //get ip address
+	inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
+	ip_add = ntohl(ip_add); //host
+	ip_add &= 0xFF;
+	//get multicast address
+	inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
+	mul_add = ntohl(mul_add); //host
+	mul_add &= 0xFF;
+	printf("ip_add: %d, mul_add: %d \n", ip_add, mul_add);
+
+	flag1=mul_add/10; //shi
+	flag2=mul_add%10; //ge
+    tmp_add = mul_add;
+    GPIO_openFd(KEY_ONE);   //open gpio1_5 Fd
+    GPIO_export(KEY_ONE);   //export the gpio1_5 to users 
+    GPIO_setDir(KEY_ONE, GPIO_INPUT); //set the gpio1_5 direction is input 
+
+    GPIO_openFd(KEY_TWO);   //open gpio1_6 Fd
+    GPIO_export(KEY_TWO);   //export the gpio1_6 to users 
+    GPIO_setDir(KEY_TWO, GPIO_INPUT); //set the gpio1_6 direction is input 
+    
+    sleep(1);
+    digit_led_writebyte(0x48, 0x11);
+    digit_led_writebyte(0x68, 0xff);
+    digit_led_writebyte(0x6A, 0xff);
+
+    sleep(1);
+    digit_led_writebyte(0x68, shumaduan[flag1]);
+    digit_led_writebyte(0x6A, shumaduan[flag2]);
+
+#if 1
+    while(1)
+    {
+        GPIO_getValue(KEY_ONE, &value1); //tens
+        GPIO_getValue(KEY_TWO, &value2); //unit
+        if (0==value1)  //tens
+        {
+            usleep(400000);
+            if (0==value1)
+            {
+                flag1++;
+                printf("flag1 : %d \n", flag1);
+#ifdef HSV7011 //ip = 1-24
+                if ((flag2 > 4) && (flag1 >= 2)) // num > 24
+                {
+                    flag1 = 0;
+                }
+                if ((0 == flag2) && (flag1 > 2)) //01 - 09
+                {
+                    flag1 = 1;
+                }
+                if (flag1 > 2)
+                {
+                    flag1 = 0;
+                }
+#endif
+#ifdef HSV7012 //ip = 1-128
+                if ((0 == flag2) && (flag1 > 12)) //1 - 9
+                {
+                    flag1 = 1;
+                }
+                if ((flag2 > 8) && (flag1 > 12)) //num > 128
+                {
+                    flag1 = 1;
+                }
+                if (flag1 > 12)
+                {
+                    flag1 = 0;
+                }
+#endif
+                digit_led_writebyte(0x48, 0x11);
+                digit_led_writebyte(0x68, shumaduan[flag1]);
+                cnt=0;
+            }
+        }
+        if (0==value2)
+        {
+            usleep(400000);
+            if (0==value2)
+            {
+                flag2++;
+                printf("flag2 : %d \n", flag2);
+#ifdef HSV7011 //ip = 1-24
+                if ((2 == flag1) && (flag2 > 4)) //num > 24
+                {
+                    
+                    flag2 = 0;
+                }
+                if ((0 == flag1) && (flag2 > 9)) //01 -09
+                {
+                    flag2 = 1;
+                }
+                if (flag2 > 9)
+                {
+                    flag2 = 0;
+                }
+#endif
+#ifdef HSV7012 //ip = 1-128
+                if ((0 == flag1) && (flag2 > 9)) //1 - 9
+                {
+                    flag2 = 1;
+                }
+                if ((12 == flag1) && (flag2 > 8)) //num > 128
+                {
+                    flag2 = 0;
+                }
+                if (flag2 > 9)
+                {
+                    flag2 = 0;
+                }
+#endif
+                digit_led_writebyte(0x48,0x11);
+                digit_led_writebyte(0x6A,shumaduan[flag2]);
+                cnt=0;
+            }
+        }
+        tmp_add = (flag1*10)+flag2;
+        usleep(100000);  
+        cnt++;
+        if(cnt>50)    //5s
+        {
+            tmp_add = (flag1*10)+flag2;
+            //printf("tmp_add : %d \n", tmp_add);
+            //printf("mul_add : %d \n", mul_add);
+            if(mul_add!=tmp_add)
+            {
+                //printf("old_ip != new_ip;  fa song new_ip ! \n");
+                //printf("ip_address:%d , tmp:%d\n",ip_address,tmp);
+                mul_add = tmp_add;
+
+                sprintf(str, "239.255.42.%d", tmp_add); //multicast address
+                strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
+                printf("str: %s", str);
+#ifdef HSV7011
+                sprintf(str, "192.168.1.%d", tmp_add+200); //201 - 224
+                strcpy(share_mem->sm_eth_setting.strEthIp, str);
+                printf("str :%s\n",str);
+#endif
+                for(i=0;i<3;i++)
+                {
+                    usleep(600000);
+                    digit_led_writebyte(0x6A, 0xff);
+                    digit_led_writebyte(0x68, 0xff);
+                    usleep(300000);
+                    digit_led_writebyte(0x6A, shumaduan[flag2]);
+                    digit_led_writebyte(0x68, shumaduan[flag1]);
+                }
+                cnt=0;
+                share_mem->ucUpdateFlag = 1;
+                sleep(1);
+                while (share_mem->ucUpdateFlag)
+                    sleep(1);
+                reboot1();
+                //printf("newip write is ok!\n");
+            }
+        }
+    }// while
+
+#endif
+}
+#if 0
 void *app_tx_light_ctl_main(void)
 {
     unsigned int i=0;
@@ -437,77 +613,77 @@ void *app_tx_light_ctl_main(void)
         }
     }
 }
-
+#endif
 
 void HDMI_light_off(void)
 {
 #if 0
-	SetLightMode(HDMI_LED, LED_OFF, 0);
-	//GPIO_setDir(HDMI_LED, GPIO_INPUT);
+    SetLightMode(HDMI_LED, LED_OFF, 0);
+    //GPIO_setDir(HDMI_LED, GPIO_INPUT);
 #else
-	GPIO_export(LED_HDMI);
-	GPIO_setDir(LED_HDMI, GPIO_INPUT); //output
-	GPIO_setValue(LED_HDMI, GPIO_HIG_STA); //high
+    GPIO_export(LED_HDMI);
+    GPIO_setDir(LED_HDMI, GPIO_INPUT); //output
+    GPIO_setValue(LED_HDMI, GPIO_HIG_STA); //high
 #endif
 }
 
 void HDMI_light_on(void)
 {
 #if 0
-	SetLightMode(HDMI_LED, LED_ON, 0);
-	//GPIO_setDir(HDMI_LED, GPIO_OUTPUT);
+    SetLightMode(HDMI_LED, LED_ON, 0);
+    //GPIO_setDir(HDMI_LED, GPIO_OUTPUT);
 #else
-	GPIO_export(LED_HDMI);	   			
-	GPIO_setDir(LED_HDMI, GPIO_OUTPUT); //output
-	GPIO_setValue(LED_HDMI, GPIO_LOW_STA); //
+    GPIO_export(LED_HDMI);	   			
+    GPIO_setDir(LED_HDMI, GPIO_OUTPUT); //output
+    GPIO_setValue(LED_HDMI, GPIO_LOW_STA); //
 #endif
 }
 
-void System_running(void)
+#if 1
+void GPIO_init(void)
 {
-	//system running state led
-	GPIO_export(LED_SYS_STA);	   			
-	GPIO_setDir(LED_SYS_STA, GPIO_OUTPUT); //output
-	GPIO_setValue(LED_SYS_STA, GPIO_LOW_STA); //
-	
-	//SWITCH 
-	GPIO_openFd(MULTICAST_SWITCH_1);
-	GPIO_export(MULTICAST_SWITCH_1);	   			
-	GPIO_setDir(MULTICAST_SWITCH_1, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_2);
-	GPIO_export(MULTICAST_SWITCH_2);	   			
-	GPIO_setDir(MULTICAST_SWITCH_2, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_3);
-	GPIO_export(MULTICAST_SWITCH_3);	   			
-	GPIO_setDir(MULTICAST_SWITCH_3, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_4);
-	GPIO_export(MULTICAST_SWITCH_4);	   			
-	GPIO_setDir(MULTICAST_SWITCH_4, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_5);
-	GPIO_export(MULTICAST_SWITCH_5);	   			
-	GPIO_setDir(MULTICAST_SWITCH_5, GPIO_INPUT);
-#if 0
-	GPIO_openFd(MULTICAST_SWITCH_6);
-	GPIO_export(MULTICAST_SWITCH_6);	   			
-	GPIO_setDir(MULTICAST_SWITCH_6, GPIO_INPUT);
-	
-	GPIO_openFd(MULTICAST_SWITCH_7);
-	GPIO_export(MULTICAST_SWITCH_7);	   			
-	GPIO_setDir(MULTICAST_SWITCH_7, GPIO_INPUT);
-#endif
+    //system running state led
+    GPIO_export(LED_SYS_STA);	   			
+    GPIO_setDir(LED_SYS_STA, GPIO_OUTPUT); //output
+    GPIO_setValue(LED_SYS_STA, GPIO_LOW_STA); //
+
+    //SWITCH 
+    GPIO_openFd(MULTICAST_SWITCH_1);
+    GPIO_export(MULTICAST_SWITCH_1);	   			
+    GPIO_setDir(MULTICAST_SWITCH_1, GPIO_INPUT);
+
+    GPIO_openFd(MULTICAST_SWITCH_2);
+    GPIO_export(MULTICAST_SWITCH_2);	   			
+    GPIO_setDir(MULTICAST_SWITCH_2, GPIO_INPUT);
+
+    GPIO_openFd(MULTICAST_SWITCH_3);
+    GPIO_export(MULTICAST_SWITCH_3);	   			
+    GPIO_setDir(MULTICAST_SWITCH_3, GPIO_INPUT);
+
+    GPIO_openFd(MULTICAST_SWITCH_4);
+    GPIO_export(MULTICAST_SWITCH_4);	   			
+    GPIO_setDir(MULTICAST_SWITCH_4, GPIO_INPUT);
+
+    GPIO_openFd(MULTICAST_SWITCH_5);
+    GPIO_export(MULTICAST_SWITCH_5);	   			
+    GPIO_setDir(MULTICAST_SWITCH_5, GPIO_INPUT);
+/*
+    GPIO_openFd(MULTICAST_SWITCH_6);
+    GPIO_export(MULTICAST_SWITCH_6);	   			
+    GPIO_setDir(MULTICAST_SWITCH_6, GPIO_INPUT);
+
+    GPIO_openFd(MULTICAST_SWITCH_7);
+    GPIO_export(MULTICAST_SWITCH_7);	   			
+    GPIO_setDir(MULTICAST_SWITCH_7, GPIO_INPUT);
+*/
 }
+#endif
 
 SL_U32 get_key_value(void)
 {
-	SL_U32 value;
-	
+    SL_U32 value;
 	GPIO_getValue(KEY_IO, &value);
-	
-	return value;
+    return value;
 }
 
 #if 1
@@ -556,9 +732,7 @@ void Init_Multicast_and_IP(void)
 	sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
 	strcpy(share_mem->sm_eth_setting.strEthIp, str);
 	printf(str);
-	AppWriteCfgInfotoFile();
-	init_eth();
-	//tmp2 = tmp1;
+	share_mem->ucUpdateFlag = 1;
 	
 	usleep(10000);
 	}
@@ -568,15 +742,15 @@ void Init_Multicast_and_IP(void)
 
 void device_reset(void)
 {
-	printf("device reset \n\n");
-	GPIO_openFd(DEVICE_RESET);
-	GPIO_export(DEVICE_RESET);
-	GPIO_setDir(DEVICE_RESET, GPIO_OUTPUT);
+    printf("device reset \n\n");
+    GPIO_openFd(DEVICE_RESET);
+    GPIO_export(DEVICE_RESET);
+    GPIO_setDir(DEVICE_RESET, GPIO_OUTPUT);
     GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
-	usleep(10000);
-	GPIO_setValue(DEVICE_RESET, GPIO_LOW_STA);
-	usleep(100000);
-	GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
+    usleep(10000);
+    GPIO_setValue(DEVICE_RESET, GPIO_LOW_STA);
+    usleep(100000);
+    GPIO_setValue(DEVICE_RESET, GPIO_HIG_STA);
 }
 
 
@@ -585,60 +759,60 @@ void device_reset(void)
 #if 0
 void Multicast_switch(void)
 {
-	SL_U32 value = 0, tmp1, tmp2, i = 10;
-	char str[50] = {0};
-	
-	printf("-----------IP switch-----------\n");
-	while (1)
-	{
-		tmp1 = 0x00;
-		
-		GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
-		tmp1 |= value; //0x01
-		printf("value: %d \n", value);
-		tmp1 = tmp1 << 1; //0x02
-		GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
-		tmp1 = tmp1 | value; //0x03
-		printf("value: %d \n", value);
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(MULTICAST_SWITCH_3, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(MULTICAST_SWITCH_4, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(MULTICAST_SWITCH_5, &value);
-		tmp1 |= value;
-		
-		#if 0
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(MULTICAST_SWITCH_6, &value);
-		tmp1 |= value;
-		tmp1 = tmp1 << 1;
-		GPIO_getValue(MULTICAST_SWITCH_7, &value);
-		tmp1 |= value;
-		#endif
-		
-		printf("tmp1 = 0x%x \n", tmp1);
-		
-		
-		#if 1
-		if (tmp2 != tmp1)
-		{
-			tmp2 = tmp1;
-			sprintf(str, "239.255.42.%d", tmp1+200); //multicast address
-			strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
-			printf(str);
-			sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
-			strcpy(share_mem->sm_eth_setting.strEthIp, str);
-			printf(str);
-			AppWriteCfgInfotoFile();
-			init_eth();
-		}
-		#endif
-		usleep(10000);
-	}
-	
+    SL_U32 value = 0, tmp1, tmp2, i = 10;
+    char str[50] = {0};
+
+    printf("-----------IP switch-----------\n");
+    while (1)
+    {
+        tmp1 = 0x00;
+
+        GPIO_getValue(MULTICAST_SWITCH_1, &value); //1
+        tmp1 |= value; //0x01
+        printf("value: %d \n", value);
+        tmp1 = tmp1 << 1; //0x02
+        GPIO_getValue(MULTICAST_SWITCH_2, &value); //1
+        tmp1 = tmp1 | value; //0x03
+        printf("value: %d \n", value);
+        tmp1 = tmp1 << 1;
+        GPIO_getValue(MULTICAST_SWITCH_3, &value);
+        tmp1 |= value;
+        tmp1 = tmp1 << 1;
+        GPIO_getValue(MULTICAST_SWITCH_4, &value);
+        tmp1 |= value;
+        tmp1 = tmp1 << 1;
+        GPIO_getValue(MULTICAST_SWITCH_5, &value);
+        tmp1 |= value;
+
+#if 0
+        tmp1 = tmp1 << 1;
+        GPIO_getValue(MULTICAST_SWITCH_6, &value);
+        tmp1 |= value;
+        tmp1 = tmp1 << 1;
+        GPIO_getValue(MULTICAST_SWITCH_7, &value);
+        tmp1 |= value;
+#endif
+
+        printf("tmp1 = 0x%x \n", tmp1);
+
+
+#if 1
+        if (tmp2 != tmp1)
+        {
+            tmp2 = tmp1;
+            sprintf(str, "239.255.42.%d", tmp1+200); //multicast address
+            strcpy(share_mem->sm_eth_setting.strEthMulticast, str);
+            printf(str);
+            sprintf(str, "192.168.1.%d", tmp1+200); //ip address 
+            strcpy(share_mem->sm_eth_setting.strEthIp, str);
+            printf(str);
+            AppWriteCfgInfotoFile();
+            init_eth();
+        }
+#endif
+        usleep(10000);
+    }
+
 }
 #endif
 

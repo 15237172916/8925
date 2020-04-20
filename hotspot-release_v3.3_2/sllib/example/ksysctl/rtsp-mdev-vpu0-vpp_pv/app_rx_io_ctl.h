@@ -55,6 +55,9 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define LED_OFF 1
 #define LED_FLASH 2
 
+#define KEY_ONE		5 		//GPIO1_5
+#define KEY_TWO     6      //GPIO1_6
+
 #define KEY_IO		8 		//GPIO1_8
 #define LED_SIG_LOW 	6 	//GPIO1_6
 #define LED_SIG_MOD		4	//GPIO1_4
@@ -78,7 +81,7 @@ void SetLightMode(unsigned char uLightNo, unsigned char uMode, unsigned char uCn
 #define IP_SWITCH_1		34 //GPIO2_02
 
 #define OSD_MULTICAST 	32 //GPIO2_00
-
+#define HDMI_HPD_CONTROL 106 //GPIO04_10
 
 void signal_light_all_off(void);
 void signal_light_all_on(void);
@@ -92,5 +95,5 @@ void HDMI_light_on(void);
 SL_U32 get_key_value(void);
 
 void *IP_switch(void);
-
+void HPD_Init(void);
 #endif

@@ -52,7 +52,8 @@ mv execute-client.jffs2 ./tmp
 mv rootfs-server.sfs ./tmp
 mv rootfs-client.sfs ./tmp
 
+sudo cp client.img /tftpboot
+sudo cp client.img /tftpboot
 
-
-cp client.img /tftpboot/
-cp server.img /tftpboot/
+sudo cp client.img /mnt/nfs/tftpboot/
+sudo cp server.img /mnt/nfs/tftpboot/

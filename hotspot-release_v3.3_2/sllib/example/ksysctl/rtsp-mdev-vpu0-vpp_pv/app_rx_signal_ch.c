@@ -17,7 +17,7 @@
 #include <errno.h>
 #include "app_rx_signal_ch.h"
 #include "app_rx_io_ctl.h"
-
+#if 0
 #define SIGNAL_CLIENT_PORT  8000
 
 extern char serverip[128];
@@ -240,3 +240,4 @@ ReConnect:
 ******************************************************************/		
 	}
 }
+#endif

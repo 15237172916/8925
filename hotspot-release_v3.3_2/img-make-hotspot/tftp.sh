@@ -1,8 +1,8 @@
 #!/bin/bash
 cp client.img /tftpboot
 cp server.img /tftpboot
-cp client.img /mnt/nfs/tmp
-cp server.img /mnt/nfs/tmp
+sudo cp client.img /mnt/nfs/tftpboot
+sudo cp server.img /mnt/nfs/tftpboot
 
 
 echo "OK"

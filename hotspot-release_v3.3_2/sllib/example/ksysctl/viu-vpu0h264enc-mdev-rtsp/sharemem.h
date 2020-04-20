@@ -12,6 +12,8 @@ typedef struct{
 	unsigned char ucModeApplyFlag; //1:apply
 	unsigned char ucInfoDisplayFlag; //1:send flag of display information to RX
 	unsigned char ucCurrentMode;
+	unsigned char ucControlBoxFlag;
+	unsigned char ucOnlineNum[256];
 	RUN_STATUS sm_run_status;
 	ETH_SETTING sm_eth_setting;
 	WLAN_SETTING sm_wlan_setting;
@@ -26,6 +28,6 @@ typedef struct{
 SHARE_MEM *share_mem;
 
 int InitShareMem(void);
-SL_POINTER  sharemem_handle(SL_POINTER Args);
+void sharemem_handle(void);
 
 #endif

@@ -1,129 +1,73 @@
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <string.h>
-#include <sys/syscall.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#include <net/if.h>
-#include <sys/mman.h>
-#include <sl_types.h>
-#include <sl_error.h>
-#include <sl_api_filedev.h>
-#include <sl_api_ksysctl.h>
-#include <sl_api_memdev.h>
-#include <sl_api_viu.h>
-#include <sl_param_vcodec.h>
-#include <sl_api_vcodec.h>
-#include <vpp/sl_param_pv.h>
-#include <vpp/sl_api_pv.h>
-#include <sl_api_vpre.h>
-#include <sl_param_vpre.h>
-#include <pthread.h>
-#include <sl_debug.h>
-#include <sl_mmutil.h>
-#include <sl_file.h>
-#include <sl_rtsp.h>
-#include <linux/soundcard.h>
-#include <errno.h>
-//#include "drv_sii9293.h"
+#include "main.h"
+#include "../version.h"
 #include "sl_watchdog.h"
 #include "list_handler.h"
 #include "audio_ioctl.h"
 #include "cfginfo.h"
-#include "wifi_ap.h"
 #include "ring_buffer.h"
-#include <sys/time.h>
-#if 1
-//#include "drv_sii9293_register.h"
+
+#ifdef BACKUP
+#include "app_hot_backup.h"
+#endif /* BACKUP */
+#ifdef VIDEO_IN
 #include "drv_sii9293.h"
-#endif
+#endif /* VIDEO_IN */
+#ifdef APP_RTP
 #include "app_rtp_tx.h"
+#endif /* APP_RTP */
+#ifdef BROAD_CONTROL
 #include "app_tx_broadcast.h"
-
-#if 1
-#define IR_DATA_LENGTH 2040
-#define IR_DATA_NUM 2
-#else
-#define IR_DATA_LENGTH 1360
-#define IR_DATA_NUM 3
-#endif
-
-//#define IR_DEBUG
-//#define ENABLE_GET_IR
-#define VIU_DISPLAY
-//#define VIU_OUTPUT
-#define VIU_OUT_FRAMES 1
-//#define H264_OUTPUT
-#define WEB_ENABLE
-//#define APP_CODE
-//#define KVM_UART
-#define DEBUG_OFF
-//#define APP_IO
-#define APP_RTP
-//#define SWIT_MULTICAST
-
-
-#ifdef ENABLE_GET_IR
-#define IR_SERVER_PORT    7998
-#define LENGTH_OF_LISTEN_QUEUE     20
-#define BUFFER_SIZE                1024
-
-typedef struct
-{
-    unsigned char num[IR_DATA_LENGTH];
-}Node;
-#endif
-
-#define WIDTH 1920
-#define HEIGHT 1080
-
+#include "app_tx_ask.h"
+#endif /* BROAD_CONTROL */
+#ifdef WATCHDOG_UART
+#include "uart_watchdog.h"
+#endif /* WATCHDOG_UART */
 #include "app_tx_io_ctl.h"
-
-#ifdef APP_CODE
-#include "app_tx_signal_ch.h"
-#include "app_tx_data_ch.h"
-
-//static pthread_t server_broadcast_handler;
-static pthread_t app_tx_handler;
-static pthread_t app_tx_light_ctl_handler;
-
-static pthread_t app_tx_signal_ch_handler_a;
-static pthread_t app_tx_data_ch_handler_a;
-
-static pthread_t app_tx_signal_ch_handler_b;
-static pthread_t app_tx_data_ch_handler_b;
-
-char connect_state_a = 0;
-char connect_state_b = 0;
-
-#endif
-
-#ifdef KVM_UART
-
-#include "app_tx_uart.h"
-static pthread_t app_tx_uart_handler;
-
-#endif
-char 	web_flag;
-char multicast[20] = "239.255.42.1";
 #ifdef WEB_ENABLE
 #include "sharemem.h"
+#endif /* WEB_ENABLE */
+#ifdef IR_ENABLE
+#include "IR.h"
+#endif /* IR_ENABLE */
 
+
+/*****************************thread handle******************************/
+#ifdef WEB_ENABLE
 static pthread_t ConfigHandle;
-
+#endif /* WEB_ENABLE */
+#ifdef IR_ENABLE
+static pthread_t get_ir_handle;
+#endif /* IR_ENABLE */
+#ifdef VIDEO_IN
+static pthread_t chip_handle;
+static pthread_t pushMdev2List_handle;
+#endif /* VIDEO_IN */
+#ifdef WATCHDOG
+static pthread_t watchdogHandle;
+#endif /* WATCHDOG */
+static pthread_t PullFromList_handle;
+#ifdef BROAD_CONTROL
+static pthread_t controlHandle;
+static pthread_t IP_report_handle;
+#endif /* BROAD_CONTROL */
+#ifdef WATCHDOG_UART
+static pthread_t uartWatchdogHandle;
+#endif /* WATCHDOG_UART */
+#ifdef BACKUP
+static pthread_t hostBackupHandle;
+static pthread_t slaveBackupHandle;
+#endif /* BACKUP */
+#ifdef AUDIO_IN
+static pthread_t audio_handle;
+#endif /* AUDIO_IN */
+#ifdef DIGIT_LED
+static pthread_t app_tx_io_ctl_handler;
 #endif
-
+/******************************global  variable*********************************/
 int key=0;
 LIST_BUFFER_S *list;
-
-
+char web_flag;
+char multicast[20] = "239.255.42.1";
 
 extern CFG_INFO_S cfginfo;
 static volatile int liveTimeCount = 0;
@@ -133,30 +77,21 @@ extern  int audio_fd;
 extern audio_dma_info_s audio_dma_in;
 extern audio_dma_info_s audio_dma_out;
 extern int audio_configed;
+extern sii9293_chip_s *chip;
+extern int audioIn_trigger;
+extern int audioOut_trigger;
 
-#define USLEEP_TIME	    5*1000
-#define LIVE_TIME_SECONDS 20
+/***************************************************************/
+pthread_mutex_t mutex_iic;
 
-static pthread_t rtspserver;
-static pthread_t chip_handler;
-#ifdef ENABLE_GET_IR
-static pthread_t get_ir_handler;
-#endif
-static pthread_t noteLive_handle;
-static pthread_t  pushMdev2List_handle;
-static pthread_t  viu_output_handle;
-static pthread_t	watchdogHandle;
-static pthread_t	setBitrateHandle;
-static pthread_t 	PullFromList_handler;
-
-static pthread_t controlHandle;
-
-#ifdef RINGBUFF
-static pthread_t audio_handler;
-#endif
+#ifdef IR_ENABLE
+typedef struct
+{
+    unsigned char num[IR_DATA_LENGTH];
+}Node;
+#endif /* IR_ENABLE */
 
 static chanVideoPara_s cvpIn;
-
 static chanVideoPara_s cvp;
 static SLVIU_Cfg_s viu_cfg; 
 static SLVENC_Cfg_s vencCfg;
@@ -164,29 +99,21 @@ static SLVENC_Cfg_s vencCfg;
 #ifdef VIU_DISPLAY
 static SLVPP_PV_Cfg_s pv_cfg; 
 static SL_U32 pv_dev;
-#endif
+#endif /* VIU_DISPLAY */
 
 static SL_U32 viu0_devman;
 static SL_U32 venc_dev;
 static SL_U32 vpre_dev;
 static SL_U32 om_devman;
-#ifdef VIU_OUTPUT
-static SL_U32 viu_om_devman;
-#endif
-#ifdef ENABLE_GET_IR
+#ifdef IR_ENABLE
 static SL_U32 dsp_dev;
-#endif
-extern sii9293_chip_s *chip;
+#endif /* IR_ENABLE */
+
 volatile int viu_started = 0;
 volatile int viu_configed = 0;
 H264_APPEND_INFO_s h264_append_info;
-//static int MdevCount = 0;
-
-extern int audioIn_trigger;
-extern int audioOut_trigger;
-static SL_U32 interface;
-static server_param_t server_param;
 static SL_U32 need_feed_dog = 1;
+
 //static SL_S32 g_bitrate = 40000;//20M cpu high;
 //static SL_S32 g_bitrate = 20000;//20M cpu high;
 //static SL_S32 g_bitrate = 16000;//16M quality is good;
@@ -199,173 +126,21 @@ static SL_S32 g_bitrate = 8000;//8M is good;
 //static SL_S32 g_bitrate = 4000;//
 //static SL_S32 g_bitrate = 1000;//
 
-
 SL_S32 bad_network = 0; //for eric
 
-
 void *mutexlock;
-#define DEV_IO_NAME		"/dev/silan_testio"
 
 int fd_config;
-FILE *fp_outfile;
-//#define DUMP_BITRATE
+/********************************************************************/
 
-static unsigned char *dsp_ir_start_addr_va;
-
-extern int reboot1(void);
 typedef struct
 {
 	unsigned int addr;
 	unsigned int data;
 }SILANWORDR;
 
-
-#ifdef APP_CODE
-SL_S32 SLVENC_setBitrate(SL_U32 bitRate);
-
-//COMMAND g_TxCommand; //remove for link issue 2017-06-09
-//SL_BOOL g_bDataTestEn=FALSE;
-
-void  *app_tx_main(void)
-{
-    int ret = -1;
-    
-    //gbDataTestEn = SL_FALSE;
-    //gbBandwidthDetectMode = SL_FALSE;
-    
-    while(1)
-    {
-		sleep(1);
-        ///////////////process command///////////////
-        if (SL_TRUE==g_TxCommand.bCmdFlag)
-        {
-            g_TxCommand.bCmdFlag = SL_FALSE;
-            //printf("Get command type = %d \n", g_TxCommand.iCmdData[0]);
-            
-            switch(g_TxCommand.iCmdData[0])
-            {
-                case 1: //change bitRate
-                {
-                    printf("Current bitrate = %d \n", g_bitrate);
-#if 0
-                    if(g_bitrate > 2000)
-                    {
-                        g_bitrate = g_bitrate - 1000;
-                    }
-                    else
-                    {
-                        g_bitrate = 12000;
-                    }
-#endif
-#if 1	//three level
-					if (g_bitrate >= 12000)
-                    {
-                        g_bitrate = 4000;
-                    }
-                    else
-                    {
-                        g_bitrate += 4000;
-                    }
-#endif 
-                    if(viu_configed)
-                        ret = SLVENC_setBitrate(g_bitrate);  
-                    
-                    printf(" bitrate change to %d ret = %d\n",g_bitrate,ret);     
-					
-					if(SL_FALSE == g_RemoteCmd.bSendFlag)
-					{
-						printf("Set Remote Command to Send\n");
-						g_RemoteCmd.bSendFlag = SL_TRUE;
-						g_RemoteCmd.uCmdBuf[0]=1; //change bitrate
-						g_RemoteCmd.uCmdBuf[1]=g_bitrate/1000;
-					}
-					break;
-                }
-                case 3: //TestMode Change
-                {
-                    //if(SL_TRUE == gbDataTestEn)
-                    if(0 == g_TxCommand.iCmdData[1])
-                    {
-                        gbDataTestEn = SL_FALSE;
-                        g_RemoteCmd.uCmdBuf[0]=3;
-                        g_RemoteCmd.uCmdBuf[1]=0;
-                    }
-                    else
-                    {
-                        gbDataTestEn = SL_TRUE;
-                        g_RemoteCmd.uCmdBuf[0]=3;
-                        g_RemoteCmd.uCmdBuf[1]=1;
-                    }
-                                   
-                    if(SL_FALSE == g_RemoteCmd.bSendFlag)
-                    {
-                        printf("Set Remote Command to Send\n");
-                        g_RemoteCmd.bSendFlag = SL_TRUE;
-                    }
-                    break;
-                }
-
-                default:
-                    break;
-            }
-        }
-    }
-}
-
-#endif
-/**********************************************************/
-
-#if 1
-int printf_log(const char *log)
-{
-	int fd_log = -1;
-	int ret = -1;
-	int len = -1;
-	struct timeval tv1;
-	struct timezone tz;
-	char buf[40] = {0};
-	
-	len = strlen(log);
-	//len = sizeof(log);
-	printf("len = %d \n", len);
-	fd_log = open("/tmp/log", O_CREAT|O_RDWR|O_APPEND, \
-							S_IRUSR|S_IRGRP|S_IROTH);
-	if (fd_log < 0){
-		printf("printf_log open error \n");
-		perror("open");
-	}
-	ret = gettimeofday(&tv1,&tz);
-	if (ret < 0){
-		printf("printf_log gettimeofday error \n");
-		perror("gettimeofday");
-	}
-	sprintf(buf, "%ld log: ", tv1.tv_sec-144221050);
-	printf("%s", buf);
-	ret = write(fd_log, buf, sizeof(buf));
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = write(fd_log, log, len);
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = write(fd_log, "\n", sizeof("\n"));
-	if (ret < 0)
-		printf("write log file error \n");
-		
-	ret = close(fd_log);
-	if (ret < 0)
-		printf("close log file error \n");
-}
-#endif
-
 int reboot1(void)
 {
-#if 0
-	printf("\n\n reboot1 \n");
-	return 0;
-#endif
-
 	int fd;
 	int res = 0;
 	SILANWORDR data;
@@ -430,77 +205,7 @@ int flushMdev(void)
 
 	return 0;
 }
-#ifdef VIU_OUTPUT
-SL_POINTER viu_output(SL_POINTER arg)
-{
-	void *buf;
-	SL_U32 dlen;
-	SL_S32 ret;
-	char outfilename[128] = "./test.yuv";
-	FILE * outfile;
-	static int cnt = 0;
-	if ((outfile = fopen(outfilename, "wb")) == NULL) {
-		log_err("can't open %s",outfilename);
-		return;
-	}
 
-	printf("\n**viu_output***\n");
-	while(1)
-	{
-		if(viu_started)
-		{
-			ret = SLMDEV_getBlockRead(viu_om_devman, &buf, &dlen, 100);
-			if (SL_NO_ERROR != ret) {
-				usleep(10000);
-				continue;
-			}
-			printf("dlen:%d\n",dlen);
-//#define SWAP_BITS
-
-#ifdef SWAP_BITS
-			unsigned char *pTmp;
-			unsigned char *src;
-			src = (unsigned char *)buf;
-			pTmp = malloc(dlen);
-			int i;
-			int j;
-			for(i=0;i<dlen;i++)
-			{
-		
-				for(j=0;j<8;j++)
-				{
-				if(src[i]&(1<<j))
-					pTmp[i]|=1<<(7-j);
-				}
-			
-			}
-			printf("src[i]:%x\n",src[i-1]);
-			printf("pTmp[i]:%x\n",pTmp[i-1]);
-
-			fwrite(pTmp, dlen, 1, outfile);
-			free(pTmp);
-
-#else
-			fwrite(buf, dlen, 1, outfile);
-#endif
-			sync();
-			printf("write viu done\n");
-			ret = SLMDEV_returnBlockRead(viu_om_devman, (void *)buf);
-			if (SL_NO_ERROR != ret) {
-				log_err("SLMDEV_returnBlockRead failed\n");
-				return 0;
-			}
-			usleep(20000);
-			cnt ++ ;
-			if(cnt >= VIU_OUT_FRAMES)
-			{
-				sync();
-				return 0; 
-			}
-		}
-	}
-}
-#endif
 SL_POINTER pushMdev2List(SL_POINTER arg)
 {
 	void *buf;
@@ -508,7 +213,7 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 	SL_S32 ret;
 	SLVENC_ExtendStream_info_s *stream;
 	SL_U32 append_size;
-	int i;
+	//int i;
 
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
@@ -521,9 +226,6 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 		return 0;
 	}
 
-#ifdef H264_OUTPUT
-	h264_output();
-#endif
 	while(1)
 	{
 		if(!viu_configed)
@@ -602,16 +304,9 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 			//printf("header_offset_addr:%d\n",(stream->header_offset_addr));
 			//printf("stream_offset_addr:%d\n",(stream->stream_offset_addr));
 			
-#ifdef H264_OUTPUT
-			fwrite(buf+stream->header_offset_addr, stream->header_size, 1, fp_outfile);
-			fwrite(buf+stream->stream_offset_addr, stream->stream_size, 1, fp_outfile);
-#endif	
 		}
 		else
 		{
-#ifdef H264_OUTPUT
-			fwrite(buf+stream->stream_offset_addr, stream->stream_size, 1, fp_outfile);
-#endif
 			//printf("p size:%d\n",stream->stream_size);
 		}
 #ifdef DUMP_BITRATE
@@ -632,14 +327,26 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 			}
 		}
 #endif
+		static char push_fail_count = 0;
 		ret = list_push_data(list, buf);
 		if(ret > 0)
 		{
+			push_fail_count++;
 			printf("fail to push data,list is full\n");
 			need_feed_dog = 0;
 			list_flush_data(list);
 			need_feed_dog = 1;
+			if (push_fail_count > 20)
+			{
+				printf("push_fail_count > 20 , reboot\n");
+				reboot1();
+			}
 		}
+		else
+		{
+			push_fail_count = 0;
+		}
+		
 		ret = SLMDEV_returnBlockRead(om_devman, (void *)buf);
 		if (SL_NO_ERROR != ret) {
 			log_err("SLMDEV_returnBlockRead failed\n");
@@ -656,248 +363,6 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 	}
 
 }
-
-#if 0
-typedef struct
-{
-    unsigned int iProbe;
-	unsigned char uSeq:8;
-	unsigned int  iLen:24;
-	unsigned int iTimeStamp;
-}DATAHEAD;
-
-
-//thread
-SL_POINTER  PullFromList(SL_POINTER p)
-{
-	void *buf;
-	SL_S32 ret;
-	unsigned char *dst;
-
-	int server_socket, new_server_socket;
-	struct sockaddr_in   server_addr;
-	struct tcp_info info;
-	bzero(&server_addr, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
-	server_addr.sin_port = htons(8001);
-
-	SLVENC_ExtendStream_info_s *stream;
-
-	dst = malloc(2*1024*1024); //FIXME
-	if(!dst)
-		printf("fail to malloc\n");
-	//flush the list, get the newest data
-	if (SL_NO_ERROR != SLOS_AcquireMutex(mutexlock,SL_INFINITE))
-		return NULL;
-
-	list_flush_data(list);
-	if(viu_configed)
-		flushMdev();
-
-	SLOS_ReleaseMutex(mutexlock);
-	
-	// create a stream socket
-	server_socket = socket(PF_INET, SOCK_STREAM, 0);
-	if (server_socket < 0)
-	{
-		printf("Create Socket Failed!\n");
-		exit(1);
-	}
-    printf("Create Socket OK \n");
-    setsockopt(server_socket,SOL_SOCKET,SO_REUSEADDR,&info,sizeof(info));
-
-    //bind
-    if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
-    {
-        printf("Server Bind Port: 8001 Failed!\n");
-        exit(1);
-    }
-    printf("bind socket ok \n");
-    
-//    sleep(5);
-    
-    // listen
-    if (listen(server_socket, 20))
-    {
-        printf("Server Listen Failed!\n");
-        exit(1);
-    }
-    printf("listen socket ok \n");
-        
-ReAccept:
-
-	printf("Start Accept \n");
-	new_server_socket = accept(server_socket, NULL,NULL);
-	printf("Finish Accept \n");
-	if (new_server_socket < 0)
-	{
-		printf("Server Accept Failed!\n");
-		exit;
-	}
-	else
-	{
-		printf("Server Aceept OK \n");
-	}
-        
-    struct timeval tv1,tv2;
-    struct timezone tz;
-    //struct tcp_info info;
-    
-    int optlen = sizeof(struct tcp_info);
-    int pos,len;
-    int iDataNum = 0;
-    DATAHEAD DataHead;
-    DataHead.iProbe = 0x1A1B1C1D;
-    DataHead.uSeq = 0;
-
-	
-	while(1)
-	{
-		ret = list_fetch_data(list, &buf);
-		if(ret)
-		{
-			usleep(5000);
-			continue;
-		}
-		
-//#ifdef APP_CODE
-        DataHead.uSeq += 1;
-//#endif
-		stream = (SLVENC_ExtendStream_info_s *)buf;
-		printf("stream->header_size : %d \n", stream->header_size);
-		//while (1)sleep(1);
-		if(stream->header_size)
-		{
-			if(stream->header_size > 23)
-			{
-				//reboot1();//FIXME
-			}
-			//#ifdef APP_CODE
-			DataHead.iLen =  stream->header_size + stream->stream_size;
-			
-                len=send(new_server_socket, &DataHead, sizeof(DataHead),0);
-                if(len <= 0)
-                {
-                    printf("Send data len <= 0 len= %d \n",len);
-                    printf("errno is %d\n",errno);
-                    close(new_server_socket);
-                    goto ReAccept;
-                }
-                else
-                {
-                    //printf("Send data len = %d \n",len);
-                 }     
-
-			
-			memcpy(dst, (unsigned char *)stream + stream->header_offset_addr, stream->header_size);
-			memcpy(dst + stream->header_size, (unsigned char *)stream + stream->stream_offset_addr, stream->stream_size);
-			
-			int i,templen;
-			templen = stream->header_size+stream->stream_size;
-			/* removed debug info for speed up
-			printf("stream total size is %d \n",templen);
-			for(i=(templen-24);i<templen;i++)
-			    printf("%02x ",dst[i]);
-			*/
-	        //printf("Get frame with header, size is %d",stream->header_size + stream->stream_size);
-	        //gettimeofday(&tv1,&tz);			
-                len=send(new_server_socket, dst, stream->header_size + stream->stream_size,0);
-                if(len <= 0)
-                {
-                    printf("Send data len <= 0 len= %d \n",len);
-                    printf("errno is %d\n",errno);
-                    close(new_server_socket);
-                    goto ReAccept;
-                }
-                else
-                {
-                /* removed debug info for speed up
-                    printf("Frame with Header Send data len = %d \n",len);
-                */
-                }
-            //#else
-			//memcpy(dst, (unsigned char *)stream + stream->header_offset_addr, stream->header_size);
-			//memcpy(dst + stream->header_size, (unsigned char *)stream + stream->stream_offset_addr, stream->stream_size);
-	        //printf("Get frame with header, size is %d",stream->header_size + stream->stream_size);
-            
-            //#endif
-                			
-			//eric dst to send;
-			//send(dst, stream->header_size + stream->stream_size);
-			
-		}
-		else
-		{
-			//eric dst to send;
-			//send((unsigned char *)stream + stream->stream_offset_addr, stream->stream_size);
-            //printf("Get frame without header, size is %d",stream->stream_size);
-
-   			//#ifdef APP_CODE
-            DataHead.iLen =  stream->stream_size;
-            
-			len=send(new_server_socket, &DataHead, sizeof(DataHead),0);
-			if(len <= 0)
-			{
-				printf("Send data len <= 0 len= %d \n",len);
-				printf("errno is %d\n",errno);
-				close(new_server_socket);
-				goto ReAccept;
-			}
-			else
-			{
-			   // printf("Send data len = %d \n",len);
-			 }         
-							
-			len=send(new_server_socket, (unsigned char *)stream + stream->stream_offset_addr, stream->stream_size,0);
-			if(len <= 0)
-			{
-				printf("Send data len <= 0 len= %d \n",len);
-				printf("errno is %d\n",errno);
-				close(new_server_socket);
-				goto ReAccept;
-			}
-			else
-			{
-			   // printf("Send data len = %d \n",len);
-				if(len < 20)
-				{
-					
-					for(pos=0;pos<len;pos++)
-						printf("%02X ",*(stream+stream->stream_offset_addr+pos));
-					printf("stream offset addr = %d \n",stream->stream_offset_addr);
-				}
-			}
-	   // #else
-			printf("Get frame without header, size is %d",stream->stream_size);
-	   // #endif
-
-		}
-
-	}
-	free(dst);
-
-	return NULL;
-}
-#endif
-
-#ifdef H264_OUTPUT
-
-int h264_output(void)
-{
-	
-	char outfilename[12] = "./test.264";
-	
-	if ((fp_outfile = fopen(outfilename, "wb")) == NULL)
-	{
-		printf("can't open %s \n", outfilename);
-		return -1;
-	}
-	printf("open %s file ok \n", outfilename);
-	
-	return 0;
-}
-#endif
 
 int PullFromMdev(unsigned char *src, int len, int channel)
 {
@@ -958,26 +423,6 @@ int PullFromMdev(unsigned char *src, int len, int channel)
 	printf("1 stream->stream_size:%d\n",stream->stream_size);
 #endif
 	return stream->stream_size;
-}
-
-
-int PushToMdev(unsigned char *src)
-{
-#if 0
-	SL_S32 ret;
-	ret = SLMDEV_returnBlockRead(om_devman, (void *)src);
-	if (SL_NO_ERROR != ret) {
-		return -1;
-	}
-
-	if(MdevCount==2)
-	{
-		printf("pusd and pull not pare occur, exit");
-		exit(-1);
-	}
-	MdevCount --;
-#endif
-	return 0;
 }
 
 static SL_S32 setViu0Cfg(SLVIU_Cfg_s *viu_cfg, video_info_s *video_info)
@@ -1593,7 +1038,7 @@ int trigger(void)
 	SL_U32 interlaceMode;
 	SL_S32 need_scale_down;
 
-	SL_S32 bitRate_step = 20000;
+	//SL_S32 bitRate_step = 20000;
 
 	ret = SLSYSCTL_openSysCtlLib();
 	if (SL_NO_ERROR != ret)
@@ -1601,53 +1046,7 @@ int trigger(void)
 
 	video_info = &(chip->video_info);
 	audio_info = &(chip->audio_info);
-	
-#if 0 //video
-	//eric force config. not from 9293
-#if 1
-	video_info->width = 1280;
-	video_info->height =720;
-	video_info->interlaceMode = 0;
 
-	video_info->hdmiMode = 1;
-	video_info->avmute = 0;
-	video_info->input_vsync_polarity = 0;
-	video_info->input_hsync_polarity = 0;
-
-	video_info->frameRate = 60;
-	chip->g_video_output = 1;
-	viu_started = 0;
-	viu_configed = 0;
-#else
-	video_info->width = 1920;
-	video_info->height =1080;
-	video_info->interlaceMode = 0; 
-
-	video_info->hdmiMode = 1;
-	video_info->avmute = 0;
-	video_info->input_vsync_polarity = 0;
-	video_info->input_hsync_polarity = 0;
-
-	video_info->frameRate = 60;
-	chip->g_video_output = 1;
-	viu_started = 0;
-	viu_configed = 0;
-#endif
-#endif
-
-#if 0 //audio
-	audio_info_s *audio_info;
-	audio_info = &(chip->audio_info);
-	audio_info->fs = 48000;
-	chip->audio_status = AudioOn;
-	chip->audio_prev_status = AudioOn;
-	chip->g_audio_output = 1;
-	audio_info->audio_bits = 16;
-	h264_append_info.audio_bits = audio_info->audio_bits;
-	h264_append_info.chns = audio_info->chns;
-	
-	
-#endif
 	while(1)
 	{
 		if((chip->g_video_output)&&(!viu_started)&& (!viu_configed))
@@ -1880,17 +1279,6 @@ int trigger(void)
 
 		//usleep(500000);//500ms
 		usleep(50000);//50ms
-#if 0
-		//g_bitrate += bitRate_step;
-		if(g_bitrate == 30000)
-			g_bitrate =3000;
-		else
-			g_bitrate =30000;
-		if(viu_configed)
-			SLVENC_setBitrate(g_bitrate);
-		sleep(10);
-#endif
-
 	}
 
 unbind_om_devman:
@@ -1918,41 +1306,25 @@ close_sysctllib:
 	return 0;
 }
 
-#ifdef RINGBUFF
-//#define DUMP_AUDIO_DATA
+#ifdef AUDIO_IN
 SL_POINTER  audio_transfer(SL_POINTER p)
 {
-	//SL_S32 ret = -1;
 	audio_info_s *audio_info;
 	unsigned int tmp;
-	//char tmpbuf[1400];
-	//int readed;
 	struct timeval start, end;
 	static int cnt = 0;
 	unsigned char *src;
 	unsigned char *src1;
 	unsigned char *src2;
 	unsigned char *dst;
-	
+
 	int valid_size;
 	int valid_size_1;
 	int valid_size_2;
-	int write_size_1;
-	int write_size_2;
 	
-	int len, i;
-	
+	unsigned int audioPushFailCount = 0;
 	audio_info = &(chip->audio_info);
-#ifdef DUMP_AUDIO_DATA
-#define DUMP_COUNT_TOTAL 10000 
-	static int dump_count = 0;
-	char outfilename[128] = "./test.wav";
-	FILE * outfile;
-	if ((outfile = fopen(outfilename, "wb")) == NULL) {
-		log_err("can't open %s",outfilename);
-		return;
-	}
-#endif
+
 	printf ("%s started.\n", __func__);
 	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
 	
@@ -2006,7 +1378,6 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 					}
 				}
 #endif
-
 				valid_size = audio_dma_in.wrPtr - audio_dma_in.rdPtr;
 				//printf("wr-rd:%d\n",valid_size);
 
@@ -2014,111 +1385,21 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 				src1= src;
 				
 				//printf("valid_size : %d \n", valid_size);
-				
-#ifdef DUMP_AUDIO_DATA
-								
-				if (outfile)
-				{
-					fwrite(src, valid_size, 1, outfile);
-					dump_count ++;
-					//printf("%x, %x, %x\n",audio_dma_in.start_addr_va, audio_dma_in.rdPtr, audio_dma_in.start_addr);
-					//printf("rdPtr:%x,wrPtr:%x,valid_size:%d\n",audio_dma_in.rdPtr,audio_dma_in.wrPtr,valid_size);
-					if(DUMP_COUNT_TOTAL == dump_count)
-					{
-						fclose(outfile);
-						outfile = NULL;
-					}
-				}
-#endif
-#ifdef AUDIO_OUTPUT
-
-#if 0
-				key ++;
-				//if(key <40)
-				printf("w:%x\n",audio_dma_out.wrPtr);
-				//if(key <40)
-				{
-
-					if (ioctl(audio_fd, AUDIO_IOCTL_GET_OUT_RD_DMA_ADDR, &tmp) == -1) {
-						close(audio_fd);
-						return -1;
-					}
-					audio_dma_out.rdPtr = tmp;
-					printf("-r:%x\n",audio_dma_out.rdPtr);
-				}
-#endif
-
-#if 0
-				if((audio_dma_out.wrPtr + valid_size) < (audio_dma_out.start_addr + audio_dma_out.size))
-				{
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-					memcpy(dst, src, valid_size);
-					audio_dma_out.wrPtr += valid_size;
-				} 
-				else
-				{
-					write_size_1 = audio_dma_out.start_addr + audio_dma_out.size - audio_dma_out.wrPtr;
-
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-
-					memcpy(dst, src, write_size_1);
-
-					write_size_2 = valid_size - write_size_1;
-
-					dst =(unsigned char *)audio_dma_out.start_addr_va;
-					src += write_size_1;
-					memcpy(dst, src, write_size_2);
-
-					audio_dma_out.wrPtr = audio_dma_out.start_addr + write_size_2;
-				}
-
-#endif
-#endif
-
-#ifdef AUDIO_OUTPUT
-
-#if 0
-				if(!audioOut_trigger) {
-
-					tmp = audio_dma_out.wrPtr - audio_dma_out.start_addr;
-					if(tmp > 1400*23) {
-						//trigger
-						if (ioctl(audio_fd, AUDIO_IOCTL_OUT_TRIGGER, &tmp) == -1) {
-							close(audio_fd);
-							return NULL;
-						}
-						audioOut_trigger = 1;
-					}
-				}
-#endif
-#endif
-#if 0
-				//gettimeofday(&start, NULL);
-				if (0 > PCMPush(src1, valid_size))
-				{
-					//printf("push buff failed\n");
-				}
-#endif
 #if 1
 				//gettimeofday(&start, NULL);
 				if (0 > RingPCMPush(src1, valid_size))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("push buff failed\n");
 				}
-#endif
-
-#if 0
-				gettimeofday(&end, NULL);
-				if((end.tv_sec*1000000+end.tv_usec-start.tv_sec*1000000-start.tv_usec) > 8000)
-					printf("interval:%d %d\n",end.tv_sec*1000000+end.tv_usec-start.tv_sec*1000000-start.tv_usec,valid_size);
+				else
+				{
+					audioPushFailCount = 0;
+				}	
 #endif
 			}
 			else
 			{
-				//printf("audio_dma_in.wrPtr : %d \n", audio_dma_in.wrPtr);
-				//printf("audio_dma_in.rdPtr : %d \n", audio_dma_in.rdPtr);
-				//printf("audio_dma_in.size : %d \n", audio_dma_in.size);
-			
 				valid_size = audio_dma_in.size + audio_dma_in.wrPtr - audio_dma_in.rdPtr;
 
 				valid_size_1 = audio_dma_in.size + audio_dma_in.start_addr - audio_dma_in.rdPtr;
@@ -2126,117 +1407,23 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 				src =(unsigned char *)(audio_dma_in.start_addr_va + audio_dma_in.rdPtr - audio_dma_in.start_addr);
 
 				src1 = src;
-#ifdef DUMP_AUDIO_DATA
-				if(outfile)
-				{
-					fwrite(src, valid_size_1, 1, outfile);
-					dump_count ++;
-					if(DUMP_COUNT_TOTAL == dump_count)
-					{
-						fclose(outfile);
-						outfile = NULL;
-					}
-				}
-#endif
 
-#ifdef AUDIO_OUTPUT
-#if 0
-				if((audio_dma_out.wrPtr + valid_size_1) < (audio_dma_out.start_addr + audio_dma_out.size))
-				{
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-					memcpy(dst, src, valid_size_1);
-					audio_dma_out.wrPtr += valid_size_1;
-				} 
-				else
-				{
-					write_size_1 = audio_dma_out.start_addr + audio_dma_out.size - audio_dma_out.wrPtr;
-
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-
-					memcpy(dst, src, write_size_1);
-
-					write_size_2 = valid_size_1 - write_size_1;
-
-					dst =(unsigned char *)audio_dma_out.start_addr_va;
-					src += write_size_1;
-					memcpy(dst, src, write_size_2);
-
-					audio_dma_out.wrPtr = audio_dma_out.start_addr + write_size_2;
-				}
-#endif
-#endif
 				valid_size_2 = audio_dma_in.wrPtr - audio_dma_in.start_addr;
 				src =(unsigned char *)(audio_dma_in.start_addr_va);
 				src2 =src;
-#ifdef DUMP_AUDIO_DATA
-				if(outfile)
-				{
-					fwrite(src, valid_size_2, 1, outfile);
-					dump_count ++;
-					if(DUMP_COUNT_TOTAL == dump_count)
-					{
-						fclose(outfile);
-						outfile = NULL;
-					}
-				}
-#endif
-
-#ifdef AUDIO_OUTPUT
-
-#if 0
-				if((audio_dma_out.wrPtr + valid_size_2) < (audio_dma_out.start_addr + audio_dma_out.size))
-				{
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-					memcpy(dst, src, valid_size_2);
-					audio_dma_out.wrPtr += valid_size_2;
-				} 
-				else
-				{
-					write_size_1 = audio_dma_out.start_addr + audio_dma_out.size - audio_dma_out.wrPtr;
-
-					dst =(unsigned char *)(audio_dma_out.start_addr_va + audio_dma_out.wrPtr - audio_dma_out.start_addr);
-
-					memcpy(dst, src, write_size_1);
-
-					write_size_2 = valid_size_2 - write_size_1;
-
-					dst =(unsigned char *)audio_dma_out.start_addr_va;
-					src += write_size_1;
-					memcpy(dst, src, write_size_2);
-
-					audio_dma_out.wrPtr = audio_dma_out.start_addr + write_size_2;
-				}
-#endif
-#endif
-				//gettimeofday(&start, NULL);
-#if 0
-				if (0 > PCMPush(src1, valid_size_1))
-				{
-					//printf("push buff failed\n");
-				}
-
-				if (0 > PCMPush(src2, valid_size_2))
-				{
-					//printf("push buff failed\n");
-				}
-#endif
 				//gettimeofday(&start, NULL);
 #if 1
 				if (0 > RingPCMPush(src1, valid_size_1))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("audio push buff failed\n");
 				}
 
 				if (0 > RingPCMPush(src2, valid_size_2))
 				{
-					//printf("push buff failed\n");
+					audioPushFailCount++;
+					printf("audio push buff failed\n");
 				}
-#endif
-
-#if 0
-				gettimeofday(&end, NULL);
-				if((end.tv_sec*1000000+end.tv_usec-start.tv_sec*1000000-start.tv_usec) > 8000)
-					printf("1 interval:%d %d\n",end.tv_sec*1000000+end.tv_usec-start.tv_sec*1000000-start.tv_usec,valid_size_1 + valid_size_2);
 #endif
 			}
 
@@ -2244,7 +1431,10 @@ SL_POINTER  audio_transfer(SL_POINTER p)
 			if(audio_dma_in.rdPtr >= (audio_dma_in.size + audio_dma_in.start_addr))
 				audio_dma_in.rdPtr = audio_dma_in.rdPtr - audio_dma_in.size;
 		}
-		
+		if (audioPushFailCount > 20)
+		{
+			reboot1();
+		}
 		usleep(10000); //must sleep here or cpu will 100%
 	}
 	
@@ -2311,27 +1501,6 @@ int PullFromDsp(unsigned char *src, int len)
 		return 0;
 }
 
-static SL_POINTER  setBitrate_handle(SL_POINTER Args)
-{
-	static int key = 0;
-	sleep(10);
-	while(1)
-	{
-		sleep(20);
-		if(0 == key)
-		{
-			SLVENC_setBitrate(2000);
-			key = 1;
-		} else{
-
-			SLVENC_setBitrate(16000);
-			key = 0;
-		}
-	}
-
-	return NULL;
-}
-
 static SL_POINTER  watchdog_handle(SL_POINTER Args)
 {
 	int fd;
@@ -2366,26 +1535,6 @@ static SL_POINTER  watchdog_handle(SL_POINTER Args)
 			{
 				count = write(fd, buf, sizeof(buf)); //feed dog
 				//printf("success to feed dog\n");
-#if 0
-				//for debug eric
-				{
-					if(!bad_network)
-					{
-						bad_network = 1;
-						g_bitrate =1800;
-					}
-					else
-					{
-						bad_network = 0;
-						g_bitrate =8000;
-					}
-
-					chip->video_status = Unplug;
-					chip->video_prev_status = Unplug;
-					chip->g_video_output = 0;
-
-				}
-#endif
 			}
 		}
 	}
@@ -2393,302 +1542,17 @@ static SL_POINTER  watchdog_handle(SL_POINTER Args)
 	return NULL;
 }
 
-#ifdef ENABLE_GET_IR
-static int send_to_dsp(unsigned char *buf, int len)
+void init_system(void)
 {
-	static int offset = 0;
+	int ret = 0;
 
-	//while(*(unsigned char *)(dsp_ir_start_addr_va + offset))
-	{
-		printf("send to dsp while \n");
-		usleep(10000);
-	}
-	memcpy((unsigned char *)(dsp_ir_start_addr_va + offset), buf, len);
-
-	offset += IR_DATA_LENGTH;
-	if(offset == IR_DATA_LENGTH*IR_DATA_NUM)
-		offset = 0;
-	
-}
-
-static int init_dsp_ir(void)
-{
-	int audio_fd = -1;
-	audio_fd=open("/dev/silan-dsp-ir", O_RDWR);
-	if(audio_fd<0){
-		printf("fail to open /dev/silan-dsp-ir\n");
-		return -1;
-	}
-
-	unsigned int tmp =  (unsigned long)mmap(NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, audio_fd, 0);
-
-	dsp_ir_start_addr_va = (unsigned char *)tmp;
-
-	memset((unsigned char *)dsp_ir_start_addr_va,0x00,0x1000);
-
-	return 0;
-}
-
-#if 1
-static SL_POINTER  get_ir(SL_POINTER Args)
-{
-	struct ifreq if0;
-	int needRecv;
-	unsigned char *buffer;
-	unsigned short *tmp;
-	// set socket's address information
-	struct sockaddr_in   server_addr;
-
-	printf ("%s started.\n", __func__);
-	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-
-	bzero(&server_addr, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
-	server_addr.sin_port = htons(IR_SERVER_PORT);
-
-	// create a stream socket
-	//int server_socket = socket(PF_INET, SOCK_STREAM, 0); //TCP
-	int server_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);  //UDP
-	if (server_socket < 0)
-	{
-		printf("Create Socket Failed!\n");
-		exit(1);
-	}
-
-	if(interface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(server_socket,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	//bind
-	if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
-	{
-		printf("Server Bind Port: %d Failed!\n", IR_SERVER_PORT);
-		exit(1);
-	}
-ReListen:
-#if 0 //0:UDP 1:TCP
-	// listen
-	if (listen(server_socket, LENGTH_OF_LISTEN_QUEUE))
-	{
-		printf("Server Listen Failed!\n");
-		exit(1);
-	}
-
-	printf("listen ok\n");
-	struct sockaddr_in client_addr;
-	socklen_t length = sizeof(client_addr);
-	
-	int new_server_socket = accept(server_socket, (struct sockaddr*)&client_addr, &length);
-	if (new_server_socket < 0)
-	{
-		printf("Server Accept Failed!\n");
-		//break;
-	}
-#endif
-	//needRecv=sizeof(Node);
-	needRecv=72*3*2;
-	buffer=(unsigned char*)malloc(needRecv);
-	memset(buffer,0x00,needRecv);
-	int pos=0;
-	int len;
-	while(1)
-	{
-		pos=0;
-		while(pos < needRecv)
-		{
-			//len = recv(new_server_socket, buffer + pos, needRecv-pos, 0);// TCP block receive 
-			len = recv(server_socket, buffer + pos, needRecv - pos, 0);  //UDP
-			if (len < 0)
-			{
-				printf("Server Recieve Data Failed!\n");
-				break;
-			}
-
-			pos+=len;
-
-		}
-		if(needRecv != pos)
-			printf("pos=%d \n",pos);
-		printf("send ir \n");
-#ifdef IR_DEBUG
-		tmp = (unsigned short *)buffer;
-		int i;
-		//for (i=0;i<72;i++)
-		for (i=0;i<215;i++)
-		{
-			printf("%d ",tmp[i]);
-		}
-		printf("\n");
-#endif
-		send_to_dsp(buffer, pos);
-		printf("send to dsp \n");
-		usleep(20000); //FIXME
-	}
-	//close(new_server_socket);
-	free(buffer);
-	close(server_socket);
-
-	return 0;
-}
-
-#else
-static SL_POINTER  get_ir(SL_POINTER Args)
-{
-	struct ifreq if0;
-	int needRecv;
-	unsigned char *buffer;
-	unsigned char *tmp;
-	// set socket's address information
-	struct sockaddr_in   server_addr;
-
-	printf ("%s started.\n", __func__);
-	printf ("%s started. pid %ld ....\n", __func__, syscall(SYS_gettid) );
-
-	bzero(&server_addr, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htons(INADDR_ANY);
-	server_addr.sin_port = htons(IR_SERVER_PORT);
-
-	// create a stream socket
-	int server_socket = socket(PF_INET, SOCK_STREAM, 0);
-	if (server_socket < 0)
-	{
-		printf("Create Socket Failed!\n");
-		exit(1);
-	}
-
-	if(interface == INTERFACE_WLAN0)
-	{
-		strncpy(if0.ifr_name,"wlan0",IFNAMSIZ);
-		if(ioctl(server_socket,SIOCGIFHWADDR,&if0)<0)
-		{
-			printf("ioctl SIOCGIFHWADDR error\n");
-			return -1;
-		}
-	}
-
-	//bind
-	if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
-	{
-		printf("Server Bind Port: %d Failed!\n", IR_SERVER_PORT);
-		exit(1);
-	}
-#if 0 //
-	// listen
-	if (listen(server_socket, LENGTH_OF_LISTEN_QUEUE))
-	{
-		printf("Server Listen Failed!\n");
-		exit(1);
-	}
-
-	printf("listen ok\n");
-	struct sockaddr_in client_addr;
-	socklen_t length = sizeof(client_addr);
-	int new_server_socket = accept(server_socket, (struct sockaddr*)&client_addr, &length);
-	if (new_server_socket < 0)
-	{
-		printf("Server Accept Failed!\n");
-		//break;
-	}
-#endif
-
-	needRecv=sizeof(Node);
-	buffer=(unsigned char*)malloc(needRecv);
-	memset(buffer,0x00,needRecv);
-	int pos=0;
-	int len;
-	while(1)
-	{
-		pos=0;
-		while(pos < needRecv)
-		{
-			len = recv(new_server_socket, buffer + pos, needRecv-pos, 0);//block receive 
-			if (len < 0)
-			{
-				printf("Server Recieve Data Failed!\n");
-				break;
-			}
-
-			pos+=len;
-
-		}
-		if(needRecv != pos)
-			printf("pos=%d \n",pos);
-
-#ifdef IR_DEBUG
-		tmp = (unsigned short *)buffer;
-		int i;
-		//for (i=0;i<needRecv/2;i++)
-		for (i=0;i<6;i++)
-		{
-			printf("%d ",tmp[i]);
-		}
-		printf("\n");
-#endif
-		send_to_dsp(buffer, pos);
-		usleep(20000); //FIXME
-	}
-	close(new_server_socket);
-	free(buffer);
-	close(server_socket);
-
-	return 0;
-}
-
-#endif
-#endif
+	GPIO_init();
+	i2c_gpio_init();
 
 #ifdef WEB_ENABLE
-static SL_POINTER  config_handle(SL_POINTER Args)//             for zhou 1.29
-{
-	while(1)
-	{	
-		//printf("ucUpdateFlag=%d\n",share_mem->ucUpdateFlag);
-		if(1==share_mem->ucUpdateFlag)
-		{
-			AppWriteCfgInfotoFile();
-			SLVENC_setBitrate(share_mem->sm_encoder_setting.usEncRate);
-			share_mem->ucUpdateFlag = 0;
-		}
-		sleep(1);
-	}
-	return NULL;
-}
-#endif
-
-int main(int argc, char* argv[])
-{
-	SL_S32 ret = -1;
-	
-#if 0
-	char configs[256];
-	ret = InitCfgInfo(&fd_config);
-	if(!ret) {
-
-		sprintf(configs, "%s%s", "ifconfig eth0 ",cfginfo.ip);
-		system(configs);
-		//update ip
-		//sprintf(cfginfo.ip,  "%s", "192.168.1.10");
-		//update_cfg_info(fd_config, &cfginfo);
-
-	}
-	close(fd_config);
-#endif
-	printf("********************system starting***************************\n");
-	System_running();
-	
-#ifdef WEB_ENABLE
-
     InitShareMem();
+#ifdef CONFIG_FLASH_TX
     AppInitCfgInfoDefault();
-    
     ret = AppInitCfgInfoFromFile(&fd_config);
     printf("*****\n\n ret = %d \n\n****",ret);
     if (ret<0)
@@ -2697,17 +1561,17 @@ int main(int argc, char* argv[])
             close(fd_config);
         printf("build default config.conf \n");
         AppWriteCfgInfotoFile();
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config0.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config1.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config2.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config3.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config4.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config5.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config6.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config7.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config8.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config9.conf");
-        system("/bin/cp /tmp/configs/config.conf /tmp/configs/config10.conf");
+        system(CP_CONFIG_00);
+        system(CP_CONFIG_01);
+        system(CP_CONFIG_02);
+        system(CP_CONFIG_03);
+        system(CP_CONFIG_04);
+        system(CP_CONFIG_05);
+        system(CP_CONFIG_06);
+        system(CP_CONFIG_07);
+        system(CP_CONFIG_08);
+        system(CP_CONFIG_09);
+        system(CP_CONFIG_10);
     }
     else
     {
@@ -2715,26 +1579,54 @@ int main(int argc, char* argv[])
         printf("cfg get from file \n");
         close(fd_config);
     }
-    
-    printf("cfg init ok \n");
-    
+#endif /* CONFIG_FLASH_TX */
+    printf("cfg init ok \n");    
     strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
-    //if(strcmp("192.168.1.3",share_mem->sm_eth_setting.strEthIp)!=0)
-		//init_eth();//   zhou
-		//sleep(1);
-#endif
+#endif /* WEB_ENABLE */
 
-#if 1 
+#ifdef SWITCH_KEY
 	Init_Multicast_and_IP(); //ip and multicast set
+#endif /* SWITCH_KEY */
 	init_eth();
+#ifdef IR_ENABLE
+	init_dsp_ir();
+#endif /* IR_ENABLE */
+
+}
+
+int main(int argc, char* argv[])
+{
+	SL_S32 ret = -1;
 	
+	printf("********************system starting***************************\n");
+	printf(PRINT_VERSION);
+	init_system();
+
+#ifdef WATCHDOG
+	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
+	if (ret) {
+		log_err("Failed to Create watchdogHandle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif /* WATCHDOG */
+
+#ifdef WATCHDOG_UART
+	ret = pthread_create(&uartWatchdogHandle, NULL, uart_watchdog, NULL);
+	if (ret) {
+		log_err("Failed to Create uartWatchdogHandle Thread\n");
+		log_err("%d reboot",__LINE__);
+		reboot1();
+		return ret;
+	}
+#endif /* WATCHDOG_UART */
+
+#ifdef BROAD_CONTROL
 	//get ip address
 	static long int ip_add = -1, i;
-	//printf(share_mem->sm_eth_setting.strEthIp);
 	inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
-	//printf("ip addr : 0x%x \n", ip_add);
 	ip_add = ntohl(ip_add); //host
-	//printf("ip addr : %d \n", ip_add);
 	ip_add &= 0xFF;
 	printf("ip address : %d \n", ip_add);
 	
@@ -2748,46 +1640,55 @@ int main(int argc, char* argv[])
 			reboot1();
 			return ret;
 		}
+		
+#ifdef BACKUP
+		ret = pthread_create(&hostBackupHandle, NULL, backup_host, NULL);
+		if (ret) 
+		{
+			log_err("Failed to Create hostBackupHandle Thread\n");
+			log_err("%d reboot",__LINE__);
+			reboot1();
+			return ret;
+		}
+#endif /* BACKUP */
 	}
-#endif
+	else
+	{
+		ret = pthread_create(&IP_report_handle, NULL, IP_broadcast_report, NULL);
+		if (ret) {
+			log_err("Failed to Create watchdogHandle Thread\n");
+			reboot1();
+			return ret;
+		}
+	}
+#ifdef BACKUP
+	if (224 == ip_add)
+	{
+		ret = pthread_create(&slaveBackupHandle, NULL, backup_slave, NULL);
+		if (ret) 
+		{
+			log_err("Failed to Create slaveBackupHandle Thread\n");
+			log_err("%d reboot",__LINE__);
+			reboot1();
+			return ret;
+		}
+	}
+#endif /* BACKUP */
+#endif /* BROAD_CONTROL */
+
+
 
 	SLOS_CreateMutex(&mutexlock);
-#ifdef DEBUG_OFF
-	ret = pthread_create(&watchdogHandle, NULL, watchdog_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create watchdogHandle Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-	
-	//register_pull_method(PullFromMdev,PullFromDsp, PushToMdev);
-	
-#ifdef H264_OUTPUT
-	ret = h264_output();
-#endif
 
-#ifdef KVM_UART 
-	ret = pthread_create(&app_tx_uart_handler, NULL, app_tx_uart_main, NULL);
-	if (ret) {
-		log_err("Failed to Create app_tx_uart_handler Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-
-#ifdef ENABLE_GET_IR
-	init_dsp_ir();
-	ret = pthread_create(&get_ir_handler, NULL, get_ir, NULL);
+#ifdef IR_ENABLE
+	ret = pthread_create(&get_ir_handle, NULL, get_ir, NULL);
 	if (ret) {
 		log_err("Failed to Create get_ir Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* IR_ENABLE */
 
 #ifdef WEB_ENABLE
 	ret = pthread_create(&ConfigHandle, NULL, sharemem_handle, NULL);
@@ -2797,22 +1698,16 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
-	
-#endif
+#endif /* WEB_ENABLE */
 
-#if 1
-
-#if 1
-	ret = pthread_create(&chip_handler, NULL, sii9293_handler, NULL);
+#ifdef VIDEO_IN
+	ret = pthread_create(&chip_handle, NULL, sii9293_handler, NULL);
 	if (ret) {
 		log_err("Failed to Create chip hander Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
-#endif
-
-#if 1
 	ret = pthread_create(&pushMdev2List_handle, NULL, pushMdev2List, NULL);
 	if (ret) {
 		log_err("Failed to Create pushMdev2List_handle, %d\n", ret);
@@ -2820,145 +1715,45 @@ int main(int argc, char* argv[])
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* VIDEO_IN */
 
-#ifdef RINGBUFF
-	ret = pthread_create(&audio_handler, NULL, audio_transfer, NULL);
+#ifdef AUDIO_IN
+	ret = pthread_create(&audio_handle, NULL, audio_transfer, NULL);
 	if (ret) {
 		log_err("Failed to Create audio_transfer Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* AUDIO_IN */
 
-#ifdef VIU_OUTPUT
-	ret = pthread_create(&viu_output_handle, NULL, viu_output, NULL);
-	if (ret) {
-		log_err("Failed to Create viu_output_handle, %d\n", ret);
-		log_err("%d reboot",__LINE__);
-		//reboot1();
-		return ret;
-	}
-#endif
-	sleep(3);
-#ifdef APP_RTP
-    printf("pull from list start \n");
-	ret = pthread_create(&PullFromList_handler, NULL, PullFromList, NULL);
-	if (ret) {
-		log_err("Failed to Create rtsp Thread, %d\n", ret);
-		return ret;
-	}
-#endif
-
-#endif
-
-	//while (1) sleep(1);
-
-#if 0//def RTSP_ENABLE
-
-	char static_ip[20] = "10.10.1.1";
-	memset((void *)&server_param, 0x00,  sizeof(server_param_t));
-	
-#if 1
-	interface = INTERFACE_ETH0;
-#else
-	interface = INTERFACE_WLAN0;
-#endif
-	if(interface == INTERFACE_WLAN0)
-	{
-		sleep(2);//wait 8192du detected completely
-		wifi_ap_start_hostapd();
-		sleep(1);
-		wifi_ap_set_static_ip(static_ip);
-		//sleep(1);
-		wifi_ap_start_udhcpd();
-		sleep(1);
-	}
-
-	server_param.interface = interface;
-
-	server_param.multicast = 0;//0; //1:UDP 0:TCP
-#if 1
-	char const *destinationAddressStr = "239.255.42.44";
-	char const *destinationAddressStrAudio = "239.255.42.45";
-#else
-	char const *destinationAddressStr = "239.250.42.44";
-	char const *destinationAddressStrAudio = "239.250.42.45";
-#endif
-
-	if(server_param.multicast)
-	{
-		strcpy(server_param.ipMulticastAddr, destinationAddressStr);	
-		strcpy(server_param.ipMulticastAddrAudio, destinationAddressStrAudio);	
-	}
-
-#if 1
-	ret = pthread_create(&rtspserver, NULL, StartRtsp, (void *)&server_param);
-	if (ret) {
-		log_err("Failed to Create rtsp Thread, %d\n", ret);
+#ifdef DIGIT_LED
+    ret = pthread_create(&app_tx_io_ctl_handler,NULL,app_tx_io_ctl_main,NULL);
+    if(ret!=0)
+    {
+        log_err("Failed to Create app_tx_io_ctl_handler Thread, %d\n", ret);
 		log_err("%d reboot",__LINE__);
 		reboot1();
 		return ret;
 	}
-#endif
+#endif /* DIGIT_LED */
 
-#endif
+#ifdef APP_RTP
+	sleep(3);
+    printf("pull from list start \n");
+	ret = pthread_create(&PullFromList_handle, NULL, PullFromList, NULL);
+	if (ret) {
+		log_err("Failed to Create rtsp Thread, %d\n", ret);
+		return ret;
+	}
+#endif /* APP_RTP */
 
 #if 0
-	ret = pthread_create(&setBitrateHandle, NULL, setBitrate_handle, NULL);
-	if (ret) {
-		log_err("Failed to Create setBitrateHandle Thread\n");
-		log_err("%d reboot",__LINE__);
-		reboot1();
-		return ret;
-	}
-#endif
-
-#ifdef APP_CODE
-
-	int signal_ch_a = 8000;
-    int data_port_a = 8001;
-#if 1
-	ret = pthread_create(&app_tx_handler, NULL, app_tx_main, NULL);
-	if (ret) {
-		log_err("Failed to Create app_tx_main Thread\n");
-		return ret;
-	}
-#endif
-#ifdef APP_IO
-	ret = pthread_create(&app_tx_light_ctl_handler, NULL, app_tx_light_ctl_main, NULL);
-	if (ret) {
-		log_err("Failed to Create data ch thread Thread\n");
-		return ret;
-	}
-#endif
-#if 1
-	printf("app_tx_signal_ch_handler_a \n");
-	ret = pthread_create(&app_tx_signal_ch_handler_a, NULL, app_tx_signal_ch_main, &signal_ch_a);
-	if (ret) {
-		log_err("Failed to Create signal ch Thread\n");
-		return ret;
-	}
-#endif
-#if 1
-	ret = pthread_create(&app_tx_data_ch_handler_a, NULL, app_tx_data_ch_main, &data_port_a);
-	if (ret) {
-		log_err("Failed to Create data ch thread Thread\n");
-		return ret;
-	}
-#endif
-#endif
-	//while(1) sleep(1);
-#ifdef DEBUG_OFF
-#if 1
 	//signal(SIGINT, signalHandle);
 	//signal(SIGTERM, signalHandle);
 	//signal(SIGIO, signalioHandle);
 #endif
-#endif
-
 	trigger();
-
+	pthread_mutex_destroy(&mutex_iic);
 	return 0;
 }

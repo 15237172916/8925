@@ -1,3 +1,21 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "files.associations": {
+        "unistd.h": "c",
+        "app_tx_signal_ch.h": "c",
+        "app_rx_io_ctl.h": "c",
+        "version.h": "c",
+        "app_rtp.h": "c",
+        "app_tx_broadcast.h": "c",
+        "app_tx_io_ctl.h": "c",
+        "test_gpio_rx_i2c.h": "c",
+        "stat.h": "c",
+        "sl_gpio.h": "c",
+        "digit_led.h": "c",
+        "ir.h": "c",
+        "cmath": "c",
+        "*.tcc": "c",
+        "test_gpio_tx_i2c.h": "c"
+    },
+    "search.followSymlinks": false
 }

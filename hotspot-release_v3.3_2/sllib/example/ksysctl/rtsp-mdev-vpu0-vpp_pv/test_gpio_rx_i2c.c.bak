@@ -1,0 +1,390 @@
+#include <stdio.h>
+#include <unistd.h>
+
+#include "app_rx_io_ctl.h"   //app_rx_io_ctl.h 中有GPIO的操作定义 
+#include "test_gpio_rx_i2c.h"
+
+#define TRUE 1
+#define FALSE   0
+#define TIME 1
+
+
+void i2c_gpio_init(void)
+{
+    GPIO_openFd(I2C_SDA);
+    GPIO_export(I2C_SDA);
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SDA, GPIO_HIG_STA);
+
+    GPIO_openFd(I2C_SCL);
+    GPIO_export(I2C_SCL);
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SCL, GPIO_HIG_STA);
+
+}
+
+static void delay_us(SL_U16 time)
+{    
+   usleep(time * 1);
+}
+
+static SL_S32 get_SDA_level(void)
+{
+	SL_S32  value;
+	
+    GPIO_setDir(I2C_SDA, GPIO_INPUT);
+    delay_us(TIME);
+	GPIO_getValue(I2C_SDA, &value);
+	//delay_us(TIME);
+	//printf("%d \n", value);
+    //GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+	return  value;
+}
+
+static SL_S32 get_SCL_level(void)
+{
+	SL_S32  value;
+	
+    GPIO_setDir(I2C_SCL, GPIO_INPUT);
+    delay_us(TIME);
+	GPIO_getValue(I2C_SCL, &value);
+	//delay_us(TIME);
+	//printf("%d \n", value);
+    //GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+	return  value;
+}
+
+
+
+void set_I2C_SDA_HIG(void)
+{
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SDA, GPIO_HIG_STA);  
+}
+
+void set_I2C_SDA_LOW(void)
+{
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SDA, GPIO_LOW_STA); 
+}
+
+static void set_I2C_SCL_HIG(void)
+{
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SCL, GPIO_HIG_STA);
+}
+
+static void set_I2C_SCL_LOW(void)
+{
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SCL, GPIO_LOW_STA);
+}
+#if 1
+/**
+ * 产生I2C的起始信号
+ **/
+void  gpio_i2c_start(void)
+{
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    set_I2C_SDA_HIG();
+    delay_us(TIME);
+    set_I2C_SCL_HIG();
+    delay_us(TIME);
+    set_I2C_SDA_LOW();
+    delay_us(TIME);
+}
+#else
+void  gpio_i2c_start(void)
+{
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    GPIO_setValue(I2C_SCL, GPIO_HIG_STA);
+    GPIO_setValue(I2C_SDA, GPIO_HIG_STA);
+    delay_us(TIME);
+    GPIO_setValue(I2C_SDA, GPIO_LOW_STA);
+    delay_us(TIME);
+}
+#endif
+
+#if 1
+ /** 产生I2C停止信号 **/
+void  gpio_i2c_end(void)
+{
+#if 0
+    if (get_SCL_level() == 1)
+        set_I2C_SCL_LOW();
+	
+	if (get_SDA_level() == 1)
+        set_I2C_SDA_LOW();
+#endif
+
+    delay_us(TIME);
+    set_I2C_SCL_HIG();
+    delay_us(TIME);
+    set_I2C_SDA_HIG();
+    delay_us(TIME);
+}
+#else
+ /** 产生I2C停止信号 **/
+void  gpio_i2c_end(void)
+{
+#if 0
+    if (get_SCL_level() == 1)
+        set_I2C_SCL_LOW();
+	
+	if (get_SDA_level() == 1)
+        set_I2C_SDA_LOW();
+#endif
+
+    delay_us(TIME);
+    GPIO_setValue(I2C_SCL, GPIO_HIG_STA);
+    delay_us(TIME);
+    set_I2C_SDA_HIG();
+    delay_us(TIME);
+}
+#endif
+
+/*
+ * return : 
+ *      1 : no ack
+ *      0 : ack
+*/
+unsigned char gpio_i2c_read_ack(void) 
+{
+    unsigned char r;
+    //GPIO_setDir(I2C_SDA, GPIO_INPUT);
+
+    set_I2C_SCL_HIG();
+    r = get_SDA_level();
+    delay_us(TIME);
+    //GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    set_I2C_SCL_LOW();
+    delay_us(TIME);
+    
+    return r;
+}
+
+/* I2C发出ACK信号(读数据时使用) */  
+int gpio_i2c_send_ack(void)  
+{  
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+
+    set_I2C_SCL_LOW();
+    set_I2C_SDA_LOW();
+    delay_us(TIME);
+    set_I2C_SCL_HIG();
+    delay_us(TIME);
+    set_I2C_SCL_LOW();
+    delay_us(TIME);
+}
+
+
+void gpio_i2c_send_nack(void)
+{
+    GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+
+    set_I2C_SCL_LOW();
+    set_I2C_SDA_HIG();
+    delay_us(TIME);
+    set_I2C_SCL_HIG();
+    delay_us(TIME);
+    set_I2C_SCL_LOW();
+    delay_us(TIME);
+}
+
+#if 1
+/* I2C字节写 */  
+void gpio_i2c_write_byte(unsigned char byte)  
+{
+    int i, ret;
+    char value;
+    //GPIO_setDir(I2C_SDA, GPIO_OUTPUT);
+    //GPIO_setDir(I2C_SCL, GPIO_OUTPUT);
+    delay_us(TIME);
+    for (i=7; i>=0; i--) 
+    {
+        set_I2C_SCL_LOW();
+        delay_us(TIME);
+        if (byte & (1 << i)) //从高位到低位依次准备数据进行发送  
+        {
+            set_I2C_SDA_HIG();
+        }
+        else
+        {
+            set_I2C_SDA_LOW();
+        }
+        
+        set_I2C_SCL_HIG();  // SCL变高
+        delay_us(TIME);
+    }
+    //GPIO_setDir(I2C_SDA, GPIO_INPUT);
+    delay_us(TIME);
+    #if 0
+    if (gpio_i2c_read_ack()) //检查目标设备的ACK信号 
+    {
+        usleep(100);
+        printf("i2c read ack error \n");
+        //goto ReACK;
+    }
+    //set_I2C_SDA_HIG();
+    #endif
+}
+#else
+void gpio_i2c_write_byte(unsigned char i2c_buff)
+{
+	unsigned char i=8;
+	
+	while (i--)
+	{
+        set_I2C_SCL_LOW();
+		delay_us(TIME);
+		if (i2c_buff & 0x80)					// MSB(i2c_buff)==1
+            set_I2C_SDA_HIG();
+		else
+            set_I2C_SDA_LOW();
+		set_I2C_SCL_HIG();
+		delay_us(TIME);
+		i2c_buff = i2c_buff<<1;							// move to the next MSB(from MSB to LEB)
+	}
+	// After transfer, release the SCL line
+    //set_I2C_SCL_LOW();
+	delay_us(TIME);
+}
+#endif
+
+
+#if 0
+/* I2C字节读 */  
+unsigned char gpio_i2c_read_byte(void)  
+{  
+    int i;
+    unsigned char r = 0;
+    set_I2C_SCL_LOW();
+    delay_us(TIME);
+    for (i=7; i>=0; i--) 
+    {  
+        set_I2C_SCL_HIG();
+        delay_us(TIME);
+        //printf("%d \n", get_SDA_level());
+        r = ((r << 1) | get_SDA_level());      //从高位到低位依次准备数据进行读取  
+        delay_us(TIME);
+        set_I2C_SCL_LOW();
+        delay_us(TIME);
+    }
+
+    delay_us(TIME);
+    return r;  
+} 
+#endif
+#if 1
+unsigned char gpio_i2c_read_byte(void)
+{
+	unsigned char i=8;
+	unsigned char i2c_buff = 0x0;
+    //GPIO_setDir(I2C_SDA, GPIO_INPUT);
+	// 每次read，最开始总是高电平，即使MSB is low 也要先高再低(在SCL=0期间有一个小凸起)
+	// Is that because of setting SDA as input, making it HIGH at the very beginning? Maybe so.
+	//delay_us(TIME);
+	//io_input(SDA);				// SDA input
+	delay_us(TIME);
+	while (i--)
+	{
+		i2c_buff = i2c_buff<<1;
+		//io_set_high(SCL);		// SCL=1
+        set_I2C_SCL_HIG();
+		delay_us(TIME);
+		if(1 == get_SDA_level())
+			i2c_buff |= 0x01;							// Write 1 to LSB of i2c_buff
+		else
+			i2c_buff &= 0xFE;							// Write 0 to LSB of i2c_buff
+		delay_us(TIME);
+		//io_set_low(SCL);		// SCL=0
+        set_I2C_SCL_LOW();
+		delay_us(TIME);
+		//i2c_buff = i2c_buff<<1;						// move to the next MSB(from MSB to LEB)
+	}
+	//sl_printf("i2cbuf=%d\n", i2c_buff);
+	return i2c_buff;
+}
+#endif
+
+
+
+/*  
+I2C读操作  
+addr：目标设备地址  
+buf：读缓冲区  
+len：读入字节的长度  
+*/  
+void gpio_i2c_read(unsigned char addr, unsigned char* buf, int len)  
+{
+    int i;  
+    unsigned char t;
+
+    gpio_i2c_start();                        //起始条件，开始数据通信  
+    //发送地址和数据读写方向  
+    t = ((addr << 1) | 1);                    //低位为1，表示读数据  
+    gpio_i2c_write_byte(t);  
+    //读入数据  
+    for (i=0; i<len; i++)
+    {
+        buf[i] = gpio_i2c_read_byte(); 
+    }
+    
+    gpio_i2c_end();                     //终止条件，结束数据通信  
+}  
+
+
+
+/*  
+I2C写操作  
+addr：目标设备地址  
+buf：写缓冲区  
+len：写入字节的长度  
+*/  
+void gpio_i2c_write(unsigned char addr, unsigned char* buf, int len)  
+{  
+    int i;
+    unsigned char t;
+
+    gpio_i2c_start();                        //起始条件，开始数据通信  
+    //发送地址和数据读写方向  
+    t = ((addr << 1) | 0);                    //低位为0，表示写数据  
+    gpio_i2c_write_byte(t);
+    //写入数据  
+    for (i=0; i<len; i++)
+    {
+        gpio_i2c_write_byte(buf[i]);
+    }
+    
+    gpio_i2c_end();                     //终止条件，结束数据通信  
+}  
+
+unsigned char i2c_ack_check(unsigned char ctrl_byte)
+{
+	gpio_i2c_start();
+	gpio_i2c_write_byte(ctrl_byte);
+	if(gpio_i2c_read_ack() == 0)
+	{
+		//sl_printf("i2c_read_ack() == 0.\n");
+		// time delay here is not necessary, just to make waveforms more readable
+		delay_us(30);
+		//i2c_stop();
+		//io_input(SDA);		// set SDA as input
+
+		//io_input(SCL);		// set SCL as input
+		return 0;
+	}
+	else
+	{
+		//sl_printf("i2c_read_ack() == 1.\n");
+		// time delay here is to save computing resource
+		delay_us(100);
+		//io_input(SDA);		// set SDA as input
+		//io_input(SCL);		// set SCL as input
+		return 1;
+	}
+}

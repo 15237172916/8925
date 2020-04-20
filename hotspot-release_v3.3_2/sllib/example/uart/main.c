@@ -233,36 +233,37 @@ int main(void)
 
 	nOpenParam = (SLUART_OpenParams_t *)malloc(sizeof(SLUART_OpenParams_t));
     memset(wbuff, 0x33, sizeof(wbuff));
-    nOpenParam->speed = 115200;
+    //nOpenParam->speed = 115200;
+    nOpenParam->speed = 9600;
     nOpenParam->bits = 8;
     nOpenParam->event = 'N';
     nOpenParam->stop = 1;
-while (1)
+    while (1)
     {
-	errCode = SLUART_Open(nOpenParam);
-    if(errCode != 0)
-    {
-        printf("SLUART_Open error\n");
-        return -1;
-    }
+        errCode = SLUART_Open(nOpenParam);
+        if(errCode != 0)
+        {
+            printf("SLUART_Open error\n");
+            return -1;
+        }
 
-    for(i = 0; i < 10; i++)
-        printf("%x ", wbuff[i]);
-    printf("\n");
+        for(i = 0; i < 10; i++)
+            printf("%x ", wbuff[i]);
+        printf("\n");
 
-    errCode = SLUART_Write(wbuff, 0x10);
-    if(errCode != 0)
-    {
-        printf("SLUART_Write error\n");
-        return -1;
-    }
+        errCode = SLUART_Write(wbuff, 0x10);
+        if(errCode != 0)
+        {
+            printf("SLUART_Write error\n");
+            return -1;
+        }
 
-	errCode = SLUART_Close();
-    if(errCode != 0)
-    {
-        printf("SLUART_Close error\n");
-        return -1;
-    }
+        errCode = SLUART_Close();
+        if(errCode != 0)
+        {
+            printf("SLUART_Close error\n");
+            return -1;
+        }
     }
     return 0;
 }

@@ -16,6 +16,9 @@
 #define CHECKSUM_AUDIO
 #define CHECKSUM_VIDEO
 
+char g_searchTX_flag = 0;
+char g_checkTxInput_flag = 0;
+//extern char g_osd_state;
 static FILE * outfile  = NULL;
 
 static unsigned char uNowPayloadType;
@@ -23,8 +26,6 @@ static unsigned char uNowPayloadType;
 extern void audio_play(unsigned char * src, unsigned frameSize);
 extern int audio_config(SL_U32 fs, SL_U32 audio_bits, SL_U32 chns);
 extern void wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize);
-extern int process_osd_text_solid(int x, int y, const char *text);
-extern int process_osd_disable(void);
 extern char multicast[20];
 extern char report_succeed;
 
@@ -293,7 +294,19 @@ void *app_rtp_main()
 	clielen_addr_length = sizeof(client_addr);
 	
 ReSocket:
-	printf("starts creat socket \n");
+	timeOut++;
+	//printf("time out : %d \n", timeOut);
+	if (timeOut > 6)
+	{
+		g_searchTX_flag = 1;
+	}
+	if (timeOut > 100)
+	{
+		printf("time out 100s \n");
+		reboot1();
+	}
+
+	//printf("starts creat socket \n");
 	idr_flag = 1;
 	//web_flag = 0;
 	report_succeed = 1;
@@ -312,8 +325,7 @@ ReSocket:
 		sleep(1);
 		goto ReSocket;
 	}
-	
-    printf("Create Socket OK \n");
+    //printf("Create Socket OK \n");
     
     //bind
     if (bind(rtp_server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)))
@@ -324,7 +336,7 @@ ReSocket:
         sleep(1);
         goto ReSocket;
     }
-    printf("bind socket ok \n");
+    //printf("bind socket ok \n");
 #endif
 	
 #if 0
@@ -339,7 +351,6 @@ ReSocket:
 #endif
 
 #if 1
-
 	//set Multicast loop
 	int loop = 1; //1: on , 0: off
 	ret = setsockopt(rtp_server_socket,IPPROTO_IP,IP_MULTICAST_LOOP,&loop,sizeof(loop));
@@ -400,7 +411,6 @@ Recv:
 		if (0 == report_succeed)
 		{
 			close(rtp_server_socket);
-			//sleep(1);
 			goto ReSocket;
 		}
 		
@@ -410,36 +420,45 @@ Recv:
 		if (len < 0)
 		{
 			perror("recvfrom");
-			printf("Server Recieve Data Failed!\n");
-			timeOut++;
+			//printf("Server Recieve Data Failed!\n");
 			sleep(1);
-			printf("time out : %d \n", timeOut);
-			if (timeOut > 6)
-			{
-				process_osd_text_solid(10, 10, "Searching TX");
-			}
-			if (timeOut > 20)
-			{
-				printf("time out 100s \n");
-				reboot1();
-			}
-			//sleep(1);
 			close(rtp_server_socket);
 			goto ReSocket;
 		}
 		else if (len > 0)
 		{
-			if (timeOut > 5)
+			#ifdef DEBUG
+			printf("recvfrom len : %d \n", len);
+			#endif
+			#if 0
+			if (4==len)
 			{
-				timeOut = 0;
-				process_osd_disable();
-				//printf("\n***********************************\n");
+				printf("buf : %c%c%c%c \n", *buf, *(buf+1), *(buf+2), *(buf+3));
 			}
-			
+			#endif
+			if(!(strncmp( buf, "0abc", 4))) //check tx's hdmi 
+			{
+				g_checkTxInput_flag = 1;
+				g_searchTX_flag = 0;
+				printf("check tx's hdmi input signal\n");
+				sleep(1);
+				timeOut++;
+				if (timeOut > 100)
+				{
+					printf("time out 100s \n");
+					reboot1();
+				}
+			}
 			//printf("recv packet len : %d \n", len);
 			#if 1
-			if (0==bStartRecv)
+			else if (0==bStartRecv)
 			{
+				//g_osd_state = 0;
+				g_searchTX_flag = 0;
+				g_checkTxInput_flag = 0;
+				timeOut = 0;
+				
+
 				//check data header
 				if (0x1A1B1C1D == pDataHead->iProbe && len>=sizeof(DATAHEAD)) //ignore the DATAHEAD split frame issue
 				{
@@ -491,6 +510,9 @@ Recv:
 			}
 			else //not first frame
 			{
+				g_searchTX_flag = 0;
+				g_checkTxInput_flag = 0;
+				timeOut = 0;
 				iPacketLeftLen = len;
 				//printf("eNextPacketType : %d \n", eNextPacketType);
 				//printf("iPacketLeftLen : %d \n", iPacketLeftLen);
