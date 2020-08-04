@@ -40,6 +40,8 @@ typedef struct
 #define COLOR_WHITE_TRANSPARENT    0x00FFFFFF
 #define COLOR_WHITE_SOLID    0xFFFFFFFF
 
+#define GRAY			0xE0EAEAEA
+
 #define NULL_E "Null"
 #define NULL_C "空"
 

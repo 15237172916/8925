@@ -16,7 +16,9 @@
 //1010 		1 		10 		1/0 	513-768
 //1010 		1	 	11 		1/0 	769-1024
 /***********************************************************/
+#ifdef MUTEX_IIC
 extern pthread_mutex_t mutex_iic;
+#endif
 
 addr_ctrl_byte_struct get_eigenbytes(uint16_t address_in_chip)
 {
@@ -442,9 +444,11 @@ int InitShareMemFromE2prom(SHARE_MEM *pShareMemory)
 {
 	int ret = 0;
 
+#ifdef MUTEX_IIC
 	pthread_mutex_lock(&mutex_iic);
+#endif
 	//SHARE_MEM *pRead = malloc(sizeof(SHARE_MEM) * sizeof(char));
-	printf("---------- eeprom read start ----------\n");
+	printf("\n---------- eeprom read start ----------\n");
 	printf("buffer size : %d \n", sizeof(SHARE_MEM));
 	
 	ret = i2c_read_within_chip(0x00, pShareMemory, sizeof(SHARE_MEM));
@@ -454,19 +458,27 @@ int InitShareMemFromE2prom(SHARE_MEM *pShareMemory)
 		printf("ip : %s \n", pShareMemory->sm_eth_setting.strEthIp);
 		printf("gateway : %s \n", pShareMemory->sm_eth_setting.strEthGateway);
 		printf("multicast : %s \n", pShareMemory->sm_eth_setting.strEthMulticast);
-		printf("---------- eeprom read finish ----------\n");
+		printf("\n========== eeprom read finish ==========\n");
 		if (0 != strncmp(pShareMemory->sm_eth_setting.strEthMask, "255.255.255.0", 13))
 		{
-			printf("eeprom data error \n");
-			return 2;
+			printf("\n+++++++++++ eeprom data error ++++++++++++++\n");
+			ret = 2;
 		}
+		else
+		{
+			printf("\n+++++++++++ eeprom data ok +++++++++++++++\n");
+			ret = 1;
+		}
+		
 	}
 	else
 	{
-		printf("---------- eeprom read error ----------\n");
+		printf("\n---------- eeprom read error ----------\n");
+		ret = -1;
 	}
-	
+#ifdef MUTEX_IIC
 	pthread_mutex_unlock(&mutex_iic);
+#endif
 
 	return ret;
 }
@@ -474,14 +486,16 @@ int InitShareMemFromE2prom(SHARE_MEM *pShareMemory)
 int WriteConfigIntoE2prom(SHARE_MEM *pShareMemory)
 {
 	int ret = 0;
-
+#ifdef MUTEX_IIC
 	pthread_mutex_lock(&mutex_iic);
-	printf("------ eeprom write size: %d -------\n", sizeof(SHARE_MEM));
-	printf("------ eeprom write start --------\n");
+#endif
+	printf("\n------ eeprom write size: %d -------\n", sizeof(SHARE_MEM));
+	printf("\n------ eeprom write start --------\n");
 	ret = i2c_write_within_chip(0x00, pShareMemory, sizeof(SHARE_MEM));
-	printf("------ eeprom write finish -------- \n");
+	printf("\n------ eeprom write finish -------- \n");
+#ifdef MUTEX_IIC
 	pthread_mutex_unlock(&mutex_iic);
-
+#endif
 	return ret;
 }
 

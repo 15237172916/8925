@@ -76,9 +76,9 @@ extern char g_display_flag;
 extern char g_ipConflict_flag;
 extern char g_searchTX_flag;
 extern char g_checkTxInput_flag;
-
+#ifdef MUTEX_IIC
 pthread_mutex_t mutex_iic;
-
+#endif
 #ifdef WEB_ENABLE
 char web_flag;
 #endif
@@ -127,7 +127,7 @@ static LIST_BUFFER_S *list;
 
 //static SL_POINTER join_ret;
 //static SL_POINTER join_ret1;
-
+static char logo_flag = 0;
 #if 0
 const char * server_not_connect ="Not connect to TX";
 const char * server_connect ="connect to TX";
@@ -426,7 +426,7 @@ static SL_S32 trigger(SL_S32 first_time)
 }
 
 #if 1
-//pthread
+static char BlockWriteFailedCnt = 0;
 int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 {
 	SL_S32 ret;
@@ -434,15 +434,12 @@ int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	SL_U32 cpSize; 
 	SL_U32 size; 
 	unsigned char *data;
-	//unsigned char *pframe;
 	H264_APPEND_INFO_s *append_info;
 	SL_S32 idr_frame;
 	SL_S32 first_time;
 	static SL_S32 discard_frame_count = 0;
 	static SL_S32 tmp_fs = 0;
-	static SL_S32  idr_got = 0;
 	static SL_S32 frameCount = 0;
-	//static SL_S32 write_block_fail_count = 0;
 	static SL_S32 discard_p_frame = 0;
 	static struct timeval time_begin = {0};
 	static struct timeval time_end = {0};
@@ -453,17 +450,13 @@ int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 	
 	size = uiSize;
 
-	//printf("wac Get a Frame size = %d \n",size);
-	//return 0;
-	
 	//while (1)
 	{
 		//for eric 
 		timeoutCnt = 0;
 		//printf("wac working, g_framerate= %d\n",g_frameRate);
-		//sleep(1);
-
-		if(g_frameRate > 0)
+		#if 0
+		if (g_frameRate > 0)
 		{
 			total_frame = TIME_CHECK_SECONDS * g_frameRate;
 			if(!frameCount)
@@ -500,31 +493,12 @@ int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 				//return 0;
 			}
 		}
-
-		/*Removed debug info for speed up
-		int i;
-		for(i=0;i<50;i++)
-			printf(" %02x ", pframe[i]);
-		*/
+		#endif
 
 		data = (unsigned char *)pframe + 4;
-		//printf("data : %d \n", *data);
-		if (0x67 == *data)
+		if (0x67 == *data) //I frame
 		{
-			//printf("this is I frame \n");
-			/*Removed debug info for speed up
-			printf(" \n idr frame size = %d \n",size);
-			
-			for(i=(size - sizeof(H264_APPEND_INFO_s));i<size;i++)
-				printf(" %02x ", pframe[i]);
-			*/
 			append_info = (H264_APPEND_INFO_s *)(pframe + size - sizeof(H264_APPEND_INFO_s));
-			/*Removed debug info for speed up
-			unsigned char *temp = (unsigned char *)append_info;
-					
-			for(i=0;i<sizeof(H264_APPEND_INFO_s);i++)
-				printf("%02x ",temp[i]);
-			*/
 			
 			//parse audio
 			g_fs = append_info->fs;
@@ -532,13 +506,9 @@ int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 			g_chns = append_info->chns;
 
 			//FIXME
-			if (g_chns > 8)
+			if ((g_chns > 8) || (g_audio_bits > 24) )
 			{
 				printf("abnomal g_chns:%d\n",g_chns);
-				goto step;
-			}
-			if (g_audio_bits > 24)
-			{
 				printf("abnomal g_audio_bits:%d\n",g_audio_bits);
 				goto step;
 			}
@@ -546,53 +516,41 @@ int wacPushFrameToMDev(unsigned char *pframe, unsigned int uiSize)
 			{
 				case 44100:
 				case 48000:
-				case 192000:
 					break;
-
 				default:
 					printf("abnomal g_fs:%d\n",g_fs);
 					goto step;
 			}
-			
 #if 1
-			//printf("g_fs : %d \n", g_fs);
-			//printf("g_audio_bits : %d \n", g_audio_bits);
-			//printf("g_chns : %d \n", g_chns);
-			//if ((tmp_fs != g_fs) && ((44100 == g_fs) || (48000 == g_fs) || (192000 == g_fs)))
 			if (tmp_fs != g_fs)
 			{
 				audio_change = 1;
-				//rtsp_audio_client_config(g_fs, g_audio_bits, g_chns);
 				printf("g_fs : %d \n", g_fs);
 				printf("g_audio_bits : %d \n", g_audio_bits);
 				printf("g_chns : %d \n", g_chns);
 				audio_config(g_fs, g_audio_bits, g_chns);
-				//audio_config(44100, 16, 2);
-				printf("////////////////////////////g_fs : %d \n", g_fs);
-				//sysctl_config();
 				tmp_fs = g_fs;
 			}
 #endif
-		
+
 step:
-			//printf("append_info->width : %d \n", append_info->width);
-			//printf("append_info->height : %d \n", append_info->height);
-			//printf("append_info->frameRate : %d \n", append_info->frameRate);
-			
+			#if 0
+			printf("append_info->width : %d \n", append_info->width);
+			printf("append_info->height : %d \n", append_info->height);
+			printf("append_info->frameRate : %d \n", append_info->frameRate);
+			#endif
 			if((append_info->width > 1920) || (append_info->height > 1088) || (append_info->frameRate > 60) || (0 == append_info->width) || (0 == append_info->height)) 
 			{
 				log_note("abnoamrl width or height or frameRate.maybe reason of miss data\n");
 				discard_p_frame = 1;
 				return 0;
 			}
-			//else if((g_width != append_info->width ) || (g_height != append_info->height) || (g_frameRate != append_info->frameRate))
 			else if ((g_width != append_info->width ) || (g_height != append_info->height) || (g_frameRate != append_info->frameRate) || audio_change)
 			{
 				audio_change = 0;
 				g_discard_frame = 0;
 				g_sysctl_configed = 0;
 				list_flush_data(list);
-				printf("---g_width : %d -----\n", g_width);
 				if(!g_width)
 					first_time = 1;
 				else
@@ -612,29 +570,22 @@ step:
 				trigger(first_time);
 				g_sysctl_configed = 1;
 				g_osd_need_reconfig = 1;
-				//g_osd_state = 0;
-
 			}
 			idr_frame = 1;
-			idr_got = 1;
 			discard_p_frame = 0;
-			//printf("*****************idr*****************");
 			idr_flag = 0;
 		}
-		else
+		else //P frame
 		{
-			//printf("this is p frame \n");
-			//printf(" \n ************not idr frame : %d \n", idr_flag);
-			if (idr_flag) //from wang
+			if (idr_flag) 
 				return 0; //idr farme not come
 			
-			if(!g_sysctl_configed)
+			if (!g_sysctl_configed)
 			{
 				printf("not configed \n");
 				return 0;
 			}
-			//printf("frame : %d \n", discard_p_frame);
-			if(discard_p_frame)
+			if (discard_p_frame)
 			{
 				printf("discard frame \n");
 				return 0;
@@ -642,48 +593,36 @@ step:
 
 			idr_frame = 0;
 		}
-		if(!idr_frame)
+
+		if(!idr_frame) //p frame
 		{
 			cpSize = size;
 		}
-		else
+		else //i frame
 		{
 			cpSize = size - sizeof(H264_APPEND_INFO_s);
-			//printf("idr Size:%d\n",cpSize);
 		}
 
-		if(!idr_got)
+		if (0 == cpSize)
+		{
+			printf("cpSize = 0 \n");
 			return 0;
+		}
 
-	   //printf("allocate block \n");
-		
-tryAgain:
-		
 		ret = SLMDEV_mallocBlockWrite(im_devman, &buf, cpSize);
 		if (SL_NO_ERROR != ret)
 		{
+			printf("cpSzie : %d \n", cpSize);
+			BlockWriteFailedCnt++;
 			printf("pv SLMDEV_mallocBlockWrite failed \n");
 			usleep(100000);
-			
-			reboot1();
-			//return 0;
-			goto tryAgain;
+			if (BlockWriteFailedCnt > 10)
+			{
+				reboot1();
+			}
+			return 0;
 		}
-
-		//printf("allocate block ok\n");
-#if 0
-		//discard test
-		static int test_no;
-		test_no++;
-		if (test_no > 100 && test_no < 1000)
-		{
-			memset(pframe, 0, cpSize/2);
-		}
-		if (test_no > 5000)
-		{
-			test_no = 0;
-		}
-#endif
+		BlockWriteFailedCnt = 0;
 		
 		memcpy(buf, pframe, cpSize);
 
@@ -692,10 +631,6 @@ tryAgain:
 		{
 			printf("fail to push data\n");
 			return NULL;
-		}
-		else
-		{
-			//printf("list push data ok \n");
 		}
 	}
 	
@@ -1405,8 +1340,9 @@ int init_system(void)
 
 	i2c_gpio_init();
 	HPD_Init();
+#ifdef MUTEX_IIC
 	pthread_mutex_init(&mutex_iic, NULL);
-
+#endif
 	ret = SLSYSCTL_openSysCtlLib();
 	if (SL_NO_ERROR != ret)
 		return -1;
@@ -1422,11 +1358,26 @@ int init_system(void)
 	strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast);
 	printf("multicast address : %s \n", multicast);
 	init_eth();
-
-	osd_display_init();
+	if ((0==access("/tmp/logo.jpg", F_OK)))
+	{
+		logo_flag = 1;
+		osd_logo_display_init();
+	}
+	else
+	{
+		logo_flag = 0;
+		osd_display_init();
+	}
 	osd_sysctl_config();
+	
 	process_osd_text_solid(10, 10, OSD_VERSION);
 
+#ifdef DISPLAY_LOGO
+	if (logo_flag)
+	{
+		osd_choose_show(0, 0, ICON_MENU);
+	}
+#endif
 	return 0;
 }
 
@@ -1477,7 +1428,7 @@ int main(int argc, char* argv[])
 	sleep(1);
 
 #ifdef WEB_ENABLE
-	process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
+	//process_osd_text_solid(10, 10, share_mem->sm_eth_setting.strEthIp);
 #endif
 
 #ifdef BROAD_CONTROL
@@ -1555,95 +1506,159 @@ int main(int argc, char* argv[])
 #endif
 
 	unsigned int mul_add, ip_add, tmp_add;
+	char osd_tmp = 0;
+	char timeout = 0;
 	while (1)
 	{
+		timeout++;
 		sleep(1);
+		if (timeout > 60)
+		{
+			timeout = 0;
+			AppWriteCfgInfotoFile();
+		}
 		#if 0
 		printf("g_osd_state:%d \n", g_osd_state);
 		printf("g_ipConflict_flag: %d\n", g_ipConflict_flag);
 		printf("g_checkTxInput_flag: %d\n", g_checkTxInput_flag);
 		printf("g_display_flag: %d\n", g_display_flag);
 		printf("g_searchTX_flag: %d \n", g_searchTX_flag);
+		printf("g_key_display: %d \n", g_key_display);
 		#endif
-		if (g_ipConflict_flag || g_checkTxInput_flag || g_searchTX_flag || g_key_display || g_display_flag || (!g_osd_state))
+		#if 1
+		//get multicast address
+		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
+		mul_add = ntohl(mul_add); //host
+		mul_add &= 0xFF;
+		
+		//get ip address
+		inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
+		ip_add = ntohl(ip_add); //host
+		ip_add &= 0xFF;
+
+		if (g_ipConflict_flag)
 		{
-			//get multicast address
-			inet_pton(AF_INET, share_mem->sm_eth_setting.strEthMulticast, &mul_add);
-			mul_add = ntohl(mul_add); //host
-			mul_add &= 0xFF;
-
-			//get ip address
-			inet_pton(AF_INET, share_mem->sm_eth_setting.strEthIp, &ip_add);
-			ip_add = ntohl(ip_add); //host
-			ip_add &= 0xFF;
-
-			if (g_ipConflict_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
-			{
-				tmp_add = ip_add + mul_add;
-				sprintf(str_tmp, "IP:%s Conflict", share_mem->sm_eth_setting.strEthIp);
-				process_osd_text_solid(10, 20, str_tmp);
-				g_osd_state = 1;
-			}
-			else if (g_checkTxInput_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
-			{
-				tmp_add = ip_add + mul_add;
-				sprintf(str_tmp, "RX:%d Check TX:%d's HDMI input signal", ip_add, mul_add);
-				process_osd_text_solid(10, 20, str_tmp);
-				g_osd_state = 1;
-			}
-			else if (g_searchTX_flag && ((!g_osd_state) || (tmp_add != (ip_add+mul_add))))
-			{
-				tmp_add = ip_add + mul_add;
-				sprintf(str_tmp, "RX:%d Searching TX:%d device", ip_add, mul_add);
-				process_osd_text_solid(10, 20, str_tmp);
-				g_osd_state = 1;
-			}
-			else if ((g_key_display || g_display_flag) && (!g_osd_state)) //display ip and mulitcast info
-			{
-				sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
-				process_osd_text_solid(10, 20, str_tmp);
-				g_osd_state = 1;
-				if (g_key_display || g_display_flag)
-				{
-					sleep(5);
-					g_key_display = 0;
-					g_display_flag = 0;
-				}
-			}
+			g_osd_state = 1;
+		}
+		else if (g_display_flag || g_key_display)
+		{
+			g_osd_state = 2;
+		}
+		else if (g_searchTX_flag)
+		{
+			g_osd_state = 3;
+		}
+		else if (g_checkTxInput_flag)
+		{
+			g_osd_state = 4;
 		}
 		else
 		{
-			if (1==g_osd_state)
+			g_osd_state = 0;
+		}
+		
+		if ((osd_tmp != g_osd_state) || (tmp_add != ip_add))
+		{
+			osd_tmp = g_osd_state;
+			tmp_add = ip_add;
+
+			switch (g_osd_state)
 			{
-				process_osd_disable();
-				g_osd_state = 0;
+				case 0:
+					process_osd_disable();
+					break;
+
+				case 1:
+					sprintf(str_tmp, "IP:%s Conflict", share_mem->sm_eth_setting.strEthIp);
+					printf(str_tmp);
+					process_osd_text_solid(10, 20, str_tmp);
+					break;
+
+				case 2:
+					sprintf(str_tmp, "IGMP:%s IP:%s", share_mem->sm_eth_setting.strEthMulticast, share_mem->sm_eth_setting.strEthIp);
+					printf(str_tmp);
+					process_osd_text_solid(10, 20, str_tmp);
+					g_display_flag = 0;
+					g_key_display = 0;
+					sleep(5);
+					break;
+
+				case 3:
+					sprintf(str_tmp, "RX:%d Searching TX:%d device", ip_add, mul_add);
+					process_osd_text_solid(10, 20, str_tmp);
+					printf(str_tmp);
+					#ifdef DISPLAY_LOGO
+					if (logo_flag)
+					{
+						osd_choose_show(0, 0, ICON_MENU);
+					}
+					#endif
+					break;
+
+				case 4:
+					sprintf(str_tmp, "RX:%d Check TX:%d's HDMI input signal", ip_add, mul_add);
+					process_osd_text_solid(10, 20, str_tmp);
+					printf(str_tmp);
+					#ifdef DISPLAY_LOGO
+					if (logo_flag)
+					{
+						osd_choose_show(0, 0, ICON_MENU);
+					}
+					#endif
+					break;
 			}
 		}
-#if 0
-		static FILE *stream = NULL;
-		static char buf[20] = {0};
-		static char HPD_flag = 0;
+		#endif
+		
+		//printf("\nversion : %s \n", share_mem->sm_run_status.strSoftwareVer);
+		FILE *stream = NULL;
+		char buf[1024] = {0};
+		static char HDP_flag = 0;
+		static char TV_state = 0;
 		stream = popen("/user/word.csky 0xbfa500DF", "r");
 		fread(buf, 1, sizeof(buf), stream);
 		//printf("%s", buf);
 		pclose(stream);
 		//printf("%d \n", strncmp(buf, "0x00b000c0", 10));
-		if (0 == strncmp(buf, "0x00b000c0", 10))
+		//TV state flow : TV on -> TV off -> TV on -> Device Reboot
+		//				: 
+		switch (TV_state)
 		{
-			if (0 == HPD_flag)
-			{
-				Reset_HPD();
-				HPD_flag = 1;
-				printf("\n--------------------------\n");
-			}
-		}
-		else
-		{
-			Reset_HPD();
-		}
-#endif
-	}
+			case 0: //first check
+				if (0 == strncmp(buf, "0x00b000c0", 10)) //ON
+				{
+					TV_state = 1; //first TV on
+				}
+				else
+				{
+					TV_state = 0; //firs TV off
+				}
+				break;
+			case 1: //
+				if (0 == strncmp(buf, "0x00b00080", 10)) //OFF
+				{
+					TV_state = 2; //TV off after TV on
+					printf("\n\nTV off \n\n");
+				}
+				break;
+			case 2:
+				if (0 == strncmp(buf, "0x00b000c0", 10)) //ON
+				{
+					TV_state = 3; //second TV on
+					printf("\n\nTV on \n\n");
+				}
+				break;
+			case 3:
+				sleep(10);
+				reboot1(); //
+				break;
+			default:
+				break;
 
+		}
+	} /*while(1)*/
+#ifdef MUTEX_IIC
 	pthread_mutex_destroy(&mutex_iic);
+#endif
 	return 0;
 }

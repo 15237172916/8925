@@ -234,7 +234,7 @@ SL_POINTER pushMdev2List(SL_POINTER arg)
 			continue;
 		}
 		if(!viu_started)
-		{		
+		{
 			ret = SLSYSCTL_prepProcess(viu0_devman);
 			if (SL_NO_ERROR != ret) {
 				printf("VIU0 prepProcess failed\n");

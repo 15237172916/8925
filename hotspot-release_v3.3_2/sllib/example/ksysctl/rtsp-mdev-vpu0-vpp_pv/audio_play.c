@@ -162,7 +162,7 @@ void audio_play(unsigned char * src, unsigned frameSize)
 	#if 1
 	if (idr_flag != 0)
 	{
-		printf("idr not comed \n");
+		//printf("*");
 		audio_close();
 		return 0;
 	}

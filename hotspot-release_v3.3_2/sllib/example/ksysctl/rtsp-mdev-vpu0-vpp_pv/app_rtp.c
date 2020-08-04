@@ -443,7 +443,7 @@ Recv:
 				printf("check tx's hdmi input signal\n");
 				sleep(1);
 				timeOut++;
-				if (timeOut > 100)
+				if (timeOut > 3600)
 				{
 					printf("time out 100s \n");
 					reboot1();

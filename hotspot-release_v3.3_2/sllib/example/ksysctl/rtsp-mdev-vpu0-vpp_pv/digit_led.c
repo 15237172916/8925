@@ -1,12 +1,15 @@
 #include "test_gpio_rx_i2c.h"
 #include <pthread.h>
 
+#ifdef MUTEX_IIC
 extern pthread_mutex_t mutex_iic;
-
+#endif
 void  digit_led_writebyte(unsigned char DeviceAddr, unsigned char pBuffer)
 {
     //printf("digit_led_writebyte \n");
-    pthread_mutex_lock(&mutex_iic);
+#ifdef MUTEX_IIC
+	pthread_mutex_lock(&mutex_iic);
+#endif
 	gpio_i2c_start();
 
 	gpio_i2c_write_byte(DeviceAddr);    // 1.发送数据命令(01001000)
@@ -22,5 +25,7 @@ void  digit_led_writebyte(unsigned char DeviceAddr, unsigned char pBuffer)
 	}
 
 	gpio_i2c_end();
-    pthread_mutex_unlock(&mutex_iic);
+#ifdef MUTEX_IIC
+	pthread_mutex_unlock(&mutex_iic);
+#endif
 }

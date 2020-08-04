@@ -835,10 +835,14 @@ void *IP_switch(void)
 		{
 			tmp2 = tmp1;
 			sprintf(str, "192.168.1.%d", tmp1+1);
-			strcpy(share_mem->sm_eth_setting.strEthIp, str);
-			printf(share_mem->sm_eth_setting.strEthIp);
-			AppWriteCfgInfotoFile();
-			init_eth(); //ip configer
+			printf(str);
+			if (strcmp(str, share_mem->sm_eth_setting.strEthIp))
+			{
+				strcpy(share_mem->sm_eth_setting.strEthIp, str);
+				printf(share_mem->sm_eth_setting.strEthIp);
+				AppWriteCfgInfotoFile();
+				init_eth(); //ip configer
+			}
 		}
 		#endif
 
@@ -899,6 +903,16 @@ void Reset_HPD(void)
 	sleep(1);
 	GPIO_setValue(HDMI_HPD_CONTROL, GPIO_LOW_STA);
 	sleep(1);
+}
+
+void OFF_HPD(void)
+{
+	GPIO_setValue(HDMI_HPD_CONTROL, GPIO_HIG_STA);
+}
+
+void ON_HPD(void)
+{
+	GPIO_setValue(HDMI_HPD_CONTROL, GPIO_LOW_STA);
 }
 
 

@@ -35,12 +35,12 @@ int InitShareMem(void)
 #else
 	ret = -1;
 #endif
+	printf("ret : %d \n", ret);
 	if (ret < 0) //isn't eeprom
 	{
 		AppInitCfgInfoDefault();
 		g_Is_E2prom = 0;
-		printf("\n\n*****e2prom read error*****\n\n");
-
+		//printf("\n\n*****e2prom read error*****\n\n");
 		ret = AppInitCfgInfoFromFile(&fd_config); //reinit share memory form file
 		if (ret < 0) 
 		{
@@ -68,6 +68,7 @@ int InitShareMem(void)
 	printf("share_mem->sm_eth_setting.strEthIp : %s \n", share_mem->sm_eth_setting.strEthIp);
 	printf("share_mem->sm_eth_setting.strEthMulticast : %s \n", share_mem->sm_eth_setting.strEthMulticast);
 	printf("Memory attached at %X\n", (int)share_mem);
+	sleep(2);
 }
 
 void sharemem_handle(void)
@@ -82,11 +83,11 @@ void sharemem_handle(void)
 			printf("\nweb start \n");
 			strcpy(multicast, share_mem->sm_eth_setting.strEthMulticast); //get now multicast address
 			web_flag = 1;
-			AppWriteCfgInfotoFile();
+			//AppWriteCfgInfotoFile();
 			share_mem->ucUpdateFlag = 0;
 			printf("\n\nweb end \n\n");
 		}
-		usleep(500000); //0.5s
+		usleep(100000); //0.1s
 	}
 	return NULL;
 }

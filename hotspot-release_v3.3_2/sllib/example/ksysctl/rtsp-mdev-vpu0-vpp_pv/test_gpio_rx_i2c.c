@@ -7,8 +7,7 @@
 
 #define TRUE 1
 #define FALSE   0
-#define TIME 20
-
+#define TIME 5
 
 void i2c_gpio_init(void)
 {
@@ -107,7 +106,6 @@ void gpio_i2c_send_ack(void)
     GPIO_setValue(I2C_SCL, GPIO_LOW_STA); //SCL = 0
     usleep(TIME);
 }
-
 
 void gpio_i2c_send_nack(void)
 {

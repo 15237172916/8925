@@ -98,7 +98,6 @@ try_socket:
 	setsockopt(sockfd, SOL_SOCKET,SO_SNDTIMEO, &timeout, sizeof(timeout));
 	setsockopt(sockfd, SOL_SOCKET,SO_RCVTIMEO, &timeout, sizeof(timeout));
 
-
 	while (1)
 	{
 		sleep(1);
@@ -193,6 +192,7 @@ try_socket:
 					}
 					else //change multicast address
 					{
+						printf("switch rx multicast address \n");
 						sprintf(s, "239.255.42.%d", broadRecv_s.ucMultiAddress);
 						printf(s);
 						strcpy(share_mem->sm_eth_setting.strEthMulticast, s);
@@ -346,7 +346,6 @@ try_socket:
 							}
 							else if ((recive_cmd[4] > 24) || (recive_cmd[4] == mul_add)) //TX address
 							{
-								
 								printf("Multicast address is same \n");
 								sprintf(s, "239.255.42.%d", recive_cmd[4]);
 								printf(s);

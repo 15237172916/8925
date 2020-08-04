@@ -52,6 +52,7 @@ SL_S32 drawIndex1BPP(SL_POINTER dst, SL_U32 srcWidth, SL_U32 srcHeight, rectPara
 
 static SL_S32 drawArgb8888(SL_POINTER dst, SL_U32 srcWidth, SL_U32 srcHeight, rectParam_t *rectParam)
 {
+    //printf("drawArgb8888\n");
     SL_U32 width;
     SL_U32 height;
     SL_U32 copyBytes;
@@ -87,7 +88,7 @@ static SL_S32 drawArgb8888(SL_POINTER dst, SL_U32 srcWidth, SL_U32 srcHeight, re
             }
             dst_start = dst_start + strideBytes;
         }
-        }
+    }
 
     return 0;
 }

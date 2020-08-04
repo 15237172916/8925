@@ -249,6 +249,7 @@ int AppInitCfgInfoFromFile(int *fp)
 
 int AppWriteCfgInfotoFile(void)
 {
+    printf("\n-------AppWriteCfgInfotoFile----------\n");
     if (1 == g_Is_E2prom)
     {
         WriteConfigIntoE2prom(share_mem);

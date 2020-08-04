@@ -29,8 +29,8 @@
 #define BUILDING      "20200319"        //date
 #define CURRTNE_STATE "release" 
 
-#define PRINT_VERSION    "V1.1.3.200319_R"
-#define OSD_VERSION      "V1.1.3"
+#define PRINT_VERSION    "V1.5.3.200319_R"
+#define OSD_VERSION      "V1.5.3"
 
 /***************************define*******************************/
 #define WATCHDOG
@@ -46,12 +46,13 @@
 #if HSV761
 #define HSV761
 #define PRODUCT_NAME   "HSV761"     //product name
-#define WEB_VERSION      "HSV761V1.1.3.200319"
+#define WEB_VERSION      "V1.1.4.0529_logo"
 #define SWITCH_KEY
 #define CONFIG_EEPROM
 #define CONFIG_FLASH_RX
 #define BROAD_CONTROL
 #define BACKUP
+#define DISPLAY_LOGO
 #endif /* HSV761 */
 
 #if HSV7011

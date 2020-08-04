@@ -96,4 +96,8 @@ SL_U32 get_key_value(void);
 
 void *IP_switch(void);
 void HPD_Init(void);
+void OFF_HPD(void);
+void ON_HPD(void);
+
+
 #endif

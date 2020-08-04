@@ -21,7 +21,7 @@ int init_eth(void)
     FILE *fp = -1;
     int ret = -1;
     
-    printf("init eth start \n");
+    printf("\ninit eth start \n");
     strcpy(syscmd,"ifconfig eth0 ");
     strcat(syscmd,share_mem->sm_eth_setting.strEthIp);
     strcat(syscmd," netmask ");
@@ -58,7 +58,7 @@ int init_eth(void)
     system(MUL_ADDRESS);
     
     system(DEFAULT_ROUTE);
-    printf("init eth finish \n");
+    printf("\ninit eth finish \n");
 
     return 0;
 }
